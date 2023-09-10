@@ -1,0 +1,29 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 70vh;
+}
+.status {
+  font-size: 7rem;
+  font-family: cursive;
+  letter-spacing: 20px;
+  font-weight: 900;
+}
+
+.page {
+  margin: 0;
+}
+
+.message {
+  font-weight: 900;
+  font-size: 1.5rem;
+  margin-bottom: 4rem;
+  margin-bottom: .5rem
+}
+
+.close {
+  font-style: italic;
+  margin: 0;
+}

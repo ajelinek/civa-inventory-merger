@@ -1,0 +1,15 @@
+.header {
+  text-align: center;
+  border-bottom: 1px solid var(--primary);
+}
+
+.logout {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--primary);
+  width: 10rem;
+}
