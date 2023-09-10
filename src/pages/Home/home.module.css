@@ -1,0 +1,31 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 5rem);
+}
+
+.hero {
+  min-width: 40rem;
+  max-width: 90%;
+}
+
+.title {
+  display: flex;
+  align-items: felx-end;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.iconLeft,
+.iconRight {
+  font-size: 3rem;
+  margin-right: 1rem;
+  color: var(--primary-hover);
+}
+
+.iconRight {
+  margin-right: 0;
+  margin-left: 1rem;
+}

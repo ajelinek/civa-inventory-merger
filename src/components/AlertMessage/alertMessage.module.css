@@ -1,0 +1,9 @@
+.container {
+  padding: 1rem;
+  background: #d81b60;
+}
+
+.message {
+  color: #fff;
+  margin: 0;
+}

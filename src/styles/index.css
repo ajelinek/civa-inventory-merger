@@ -1,0 +1,12 @@
+:root {
+}
+
+h1 {
+  --typography-spacing-vertical: 0.5rem;
+}
+
+h2,
+h3,
+h4 {
+  --typography-spacing-vertical: 0.25rem;
+}
