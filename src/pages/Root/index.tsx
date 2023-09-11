@@ -9,13 +9,11 @@ export default function App() {
   const user = useStore(state => state.user)
   const nav = useNavigate()
 
-  //if not user redirect to login using react router
   useEffect(() => {
     if (!user) nav('/')
   }, [user])
 
   if (user === undefined) return (<div>Loading...</div>)
-
 
   return (
     <main >
