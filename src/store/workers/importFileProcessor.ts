@@ -1,6 +1,11 @@
 import { offices } from "../const"
+import { db } from "../firebase"
 import { itemRecordId } from "../selectors/item"
 
+export interface ImportFileProcessorReturnEvent {
+  office: OfficeAbbreviation
+  catalog: Record<string, ItemRecord>
+}
 onmessage = (event) => {
   const records = event.data?.records as ImportRecord[]
   const data = processParsedInputFile(records)
@@ -8,13 +13,14 @@ onmessage = (event) => {
 }
 
 function processParsedInputFile(records: ImportRecord[]) {
-  const itemRecords = records.reduce((acc, record) => {
+  const office = convertImportRecordToItemRecord(records[0]).officeAbbreviationId
+  const catalog = records.reduce((acc, record) => {
     const itemRecord = convertImportRecordToItemRecord(record)
     acc[itemRecordId(itemRecord)] = itemRecord
     return acc
   }, {} as Record<string, ItemRecord>)
 
-  return itemRecords
+  return { catalog, office }
 }
 
 function convertImportRecordToItemRecord(importRecord: ImportRecord): ItemRecord {

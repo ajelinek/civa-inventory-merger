@@ -28,7 +28,7 @@ type OfficeAbbreviation =
   'MC'
 
 
-type dbItemRecords = Record<string, ItemRecord>
+type dbCatalog = Record<string, ItemRecord>
 interface ItemRecord {
   officeAbbreviationId: OfficeAbbreviation
   classificationId: string

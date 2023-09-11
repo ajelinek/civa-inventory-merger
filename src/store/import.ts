@@ -1,16 +1,19 @@
 import ImportWorker from './workers/importFileProcessor?worker'
 import Papa from 'papaparse'
 import { useAsyncCallback } from "react-async-hook"
+import { createNewOfficeCatalog } from './db/item'
+import { ImportFileProcessorReturnEvent } from './workers/importFileProcessor'
 
 const importWorker = new ImportWorker()
 export function useFileImport() {
   return useAsyncCallback(async (file: File | null) => {
     if (!file) throw new Error('No file provided')
 
-    return new Promise<dbItemRecords>((resolve, reject) => {
+    return new Promise<ImportFileProcessorReturnEvent>((resolve, reject) => {
       importWorker.onmessage = (event) => {
-        console.log("🚀 ~ file: import.ts:12 ~ returnuseAsyncCallback ~ event:", event.data)
-        resolve(event.data)
+        const { catalog, office } = event.data as ImportFileProcessorReturnEvent
+        createNewOfficeCatalog(catalog, office)
+        resolve({ catalog, office })
       }
 
       //@ts-ignore
