@@ -15,7 +15,7 @@ export default function Home() {
     login.execute(creds.email, creds.password)
   })
 
-  useEffect(() => { if (user) nav('/catalog') }, [user])
+  useEffect(() => { if (user) nav('/catalogs') }, [user])
 
 
   return (

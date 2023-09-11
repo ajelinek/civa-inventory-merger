@@ -1,0 +1,2 @@
+type ItemCompositeKey = Pick<ItemRecord, 'officeAbbreviationId' | 'subClassificationId' | 'itemId'>
+export const itemRecordId = (item: ItemCompositeKey) => `${item.officeAbbreviationId}-${item.itemId}`

@@ -1,15 +1,27 @@
 .header {
   text-align: center;
-  border-bottom: 1px solid var(--primary);
+  border-bottom: 1px solid var(--primary-inverse);
+  background: var(--secondary);
+  color: var(--primary-inverse);
+}
+
+.header h1 {
+  color: var(--secondary-inverse);
 }
 
 .logout {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
+  top: 1rem;
+  right: 1.9rem;
   background: none;
   border: none;
   outline: none;
-  color: var(--primary);
+  color: var(--secondary-inverse);
   width: 10rem;
+  padding: 0;
+  text-align: right;
+}
+
+.nav {
+  padding: 0.5rem 2rem;
 }
