@@ -1,0 +1,9 @@
+.warning {
+  text-align: center;
+  font-weight: 900;
+  /* font-size: 1.15rem; */
+  color: var(--del-color);
+  background-color: var(--secondary);
+  padding: 1rem;
+  border-radius: 0.5rem;
+}

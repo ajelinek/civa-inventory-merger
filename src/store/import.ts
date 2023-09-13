@@ -11,15 +11,20 @@ export function useFileImport() {
 
     return new Promise<ImportFileProcessorReturnEvent>((resolve, reject) => {
       importWorker.onmessage = (event) => {
-        const { catalog, office } = event.data as ImportFileProcessorReturnEvent
-        createNewOfficeCatalog(catalog, office)
-        resolve({ catalog, office })
+        try {
+          const { catalog, office } = event.data as ImportFileProcessorReturnEvent
+          createNewOfficeCatalog(catalog, office)
+          resolve({ catalog, office })
+
+        } catch (error) {
+          reject(error)
+        }
       }
 
       //@ts-ignore
       Papa.parse(file, {
         header: true,
-        preview: 10,
+        // preview: 50,
         dynamicType: true,
         transformHeader(header: string) {
           return nameMap.get(header) || header

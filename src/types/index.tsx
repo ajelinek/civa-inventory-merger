@@ -12,6 +12,8 @@ interface Store {
   user: FirebaseUser | null | undefined
   classifications: Classifications
   offices: Offices
+  catalog: dbCatalog //Represents the actively queried catalog
+  catalogSearcher: unknown
 }
 
 interface Creds {
@@ -25,7 +27,8 @@ type OfficeAbbreviation =
   'EC' |
   'BH' |
   'WV' |
-  'MC'
+  'MC' |
+  'CIVA'
 
 
 type dbCatalog = Record<string, ItemRecord>
@@ -45,6 +48,7 @@ interface ItemRecord {
   dispensingFee: number
   minimumPrice: number
   markUpPercentage: number
+  mapped: number
 }
 
 interface ImportRecord {
@@ -66,4 +70,19 @@ interface ImportRecord {
   quantityUnitPrice: string
   revenueId: string
   status: string
+}
+
+interface Selector<T> {
+  selectItem: (item: T) => void
+  onSelect: (e: React.MouseEvent | React.KeyboardEvent | React.ChangeEvent<HTMLInputElement>, item: T) => boolean
+  onSelectAll: (items: T[]) => void
+  resetState: (items: T[]) => void
+  unSelectAll: () => void
+  isSelected: (item: T) => boolean
+  isAllSelected: (items: T[]) => boolean
+  getSelected: () => T[]
+  getSelectedIds: () => string[]
+  isDirty: boolean
+  count: number
+  selected: { string: T } | {}
 }

@@ -1,0 +1,56 @@
+.pillbox {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pill {
+  border: 1px solid var(--primary);
+  border-radius: 1rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  background-color: transparent;
+  transition: background-color 0.2s ease-in-out;
+  width: fit-content;
+
+  &.selected {
+    background-color: var(--primary-hover);
+  }
+
+  &:hover {
+    cursor: pointer;
+    background-color: var(--primary-hover);
+  }
+}
+.searchTextInputs {
+  display: flex;
+  justify-content: space-between;
+}
+
+.searchInput,
+.excludeInput {
+  width: calc(50% - 0.5rem);
+}
+
+.checkbox {
+  margin-right: 0.25rem;
+}
+
+.searchButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.searchIcon {
+  margin-right: 0.5rem;
+}
+
+.searchOptions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
