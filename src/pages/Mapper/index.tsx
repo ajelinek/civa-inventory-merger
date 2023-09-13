@@ -29,7 +29,7 @@ export default function Mapper() {
       c.classificationId === classificationId && c.subClassificationId === subClassificationId
     )
     setMappedResult(results)
-  }, [classificationId, subClassificationId, classificationUpdates.result])
+  }, [classificationId, subClassificationId, classificationUpdates.result, classificationUpdates.loading])
 
   const automaticSearchStrings = useMemo(() => {
     const tokens = mappedResult.map(r => r.itemDescription)

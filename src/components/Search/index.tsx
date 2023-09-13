@@ -20,7 +20,7 @@ export default function Search({ automaticSearchStrings, onSearch }: SearchProps
   const uniqueTokens = useMemo(() => {
     const tokensSet = new Set<string>()
     automaticSearchStrings?.forEach((str) => {
-      const strTokens = removeStopwords(str?.split(' '))
+      const strTokens = removeStopwords(str?.split(' ')).filter((t) => t.length > 2)
       strTokens.forEach((token) => tokensSet.add(token.toLocaleLowerCase()))
     })
 
@@ -35,10 +35,8 @@ export default function Search({ automaticSearchStrings, onSearch }: SearchProps
 
   function searchIt() {
     const q = createQuery()
-    console.log("🚀 ~ file: index.tsx:38 ~ searchIt ~ q:", JSON.stringify(q, null, 2))
     const results = searcher.search(q)
     return results.filter((r) => {
-      // if (r.score < 50) return false
       return includeMapped ? true : !r.mapped
     })
   }
