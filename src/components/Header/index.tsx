@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import { useStore } from '../../store'
 import { useLogout } from '../../store/auth'
 import s from './header.module.css'
@@ -17,11 +17,11 @@ export default function Header() {
       {user &&
         <nav className={s.nav}>
           <ul>
-            <li><Link to='/catalogs'>Home</Link></li>
-            <li><Link to='/mapper'>Mapper Tool</Link></li>
+            <li><NavLink className={s.link} to='/catalogs'>Home</NavLink></li>
+            <li><NavLink className={s.link} to='/mapper'>Mapper Tool</NavLink></li>
           </ul>
           <ul>
-            {user.displayName && `Welcome, ${user.displayName}`}
+            <li>{user.displayName && `Welcome, ${user.displayName}`}</li>
           </ul>
         </nav>
       }

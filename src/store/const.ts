@@ -5,6 +5,7 @@ export const offices: Offices = {
   "MC": "Marshall County Veterinary Clinic",
   "WV": "Wenona Vet Care",
   "VC": "Vet Care Associates",
+  "CIVA": "Central Illinois Veterinary Associates",
 }
 
 

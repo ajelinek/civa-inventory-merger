@@ -16,6 +16,22 @@ export function useModal() {
   return { modal, showModel, closeModel }
 }
 
+export function useOfficeSearchParams() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const selectedOffices = searchParams.getAll('office')
+
+  function toggleOffice(office: string) {
+    const offices = searchParams.getAll('office')
+    if (offices.includes(office)) {
+      setSearchParams(removeParam('office'))
+    } else {
+      setSearchParams(updateParam('office', office))
+    }
+  }
+
+  return { selectedOffices, toggleOffice }
+}
+
 function updateParam(key: string, value: string) {
   const searchString = new URLSearchParams(window.location.search)
   searchString.set(key, value)
@@ -27,3 +43,4 @@ function removeParam(key: string) {
   searchString.delete(key)
   return searchString
 }
+

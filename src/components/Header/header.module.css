@@ -23,5 +23,10 @@
 }
 
 .nav {
-  padding: 0.5rem 2rem;
+  padding: 0.5rem 1rem;
+}
+
+.nav ul a {
+  font-size: 1.25rem;
+  font-weight: bold;
 }

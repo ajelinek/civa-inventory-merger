@@ -4,6 +4,9 @@ import { useStore } from "../../store"
 import { officesForSelectInput } from "../../store/selectors/offices"
 import { useFileImport } from "../../store/import"
 import { AlertMessage } from "../AlertMessage"
+import s from './importModel.module.css'
+
+
 
 export default function ImportModel() {
   const { modal, closeModel } = useModal()
@@ -40,6 +43,7 @@ export default function ImportModel() {
           <input type="file" id="file" accept=".csv" onChange={handleFileSelection} />
           <button type='submit' aria-busy={fileImport.loading} >Process File</button>
         </form>
+        <p className={s.warning}>If you upload the same office file again, your updates and mappings for that office will be lost.</p>
       </article>
     </dialog>
   )
