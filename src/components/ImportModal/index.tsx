@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react"
 import { useModal } from "../../hooks/searchParams"
-import { useStore } from "../../store"
-import { officesForSelectInput } from "../../store/selectors/offices"
 import { useFileImport } from "../../store/import"
 import { AlertMessage } from "../AlertMessage"
 import s from './importModel.module.css'

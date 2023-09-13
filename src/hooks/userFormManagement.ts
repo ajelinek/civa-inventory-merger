@@ -53,6 +53,7 @@ export default function useFormManagement<Data, onSubmitReturn>(
   }
 }
 
+//@ts-ignore
 function defaultFormSubmit<T, R>(data: T): R {
   throw new Error('No formSubmitCb function was provided')
 }

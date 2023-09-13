@@ -42,7 +42,7 @@ export default function Search({ automaticSearchStrings, onSearch }: SearchProps
   }
 
   function createQuery() {
-    return buildSearchQuery(selectedTokens, searchTerm, excludeTerms, includeMapped)
+    return buildSearchQuery(selectedTokens, searchTerm, excludeTerms)
   }
 
 
@@ -129,7 +129,7 @@ export default function Search({ automaticSearchStrings, onSearch }: SearchProps
   )
 }
 
-function buildSearchQuery(selected: string[], searchTerm: string, excludeTerm: string, includeMapped: boolean): QueryCombination {
+function buildSearchQuery(selected: string[], searchTerm: string, excludeTerm: string): QueryCombination {
   let level = 1
 
   const query = {

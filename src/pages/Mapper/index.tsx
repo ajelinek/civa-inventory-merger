@@ -1,15 +1,15 @@
-import MiniSearch, { SearchResult } from 'minisearch'
+import { SearchResult } from 'minisearch'
 import { useEffect, useMemo, useState } from 'react'
 import { AlertMessage } from '../../components/AlertMessage'
 import { ClassificationSelector, SubClassificationSelector } from '../../components/CommonInputFields/selectors'
 import ItemSummary from '../../components/ItemSummary'
+import Search from '../../components/Search'
 import useListSelector from '../../hooks/useListSelector'
 import { useStore } from '../../store'
 import { useAllCatalogsQuery } from '../../store/catalog'
 import { updateClassifications } from '../../store/db/item'
-import s from './mapper.module.css'
-import Search from '../../components/Search'
 import { getClassificationNames } from '../../store/selectors/classifications'
+import s from './mapper.module.css'
 
 export default function Mapper() {
   const dataState = useAllCatalogsQuery()
