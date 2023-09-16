@@ -9,13 +9,15 @@ import { getStorage, connectStorageEmulator } from "firebase/storage"
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAMCY0E5mkohEQ40IOeJ2qpRN6xDcJaD8Q",
-  authDomain: "civa-master-inventory.firebaseapp.com",
-  projectId: "civa-master-inventory",
-  storageBucket: "civa-master-inventory.appspot.com",
-  messagingSenderId: "367870428566",
-  appId: "1:367870428566:web:4e9c6f1bd3d68892aa89b7"
+  apiKey: "AIzaSyClvptQ7mTQEW3JcJH5S4-jdTz670zaA5I",
+  authDomain: "civa-business-insights.firebaseapp.com",
+  projectId: "civa-business-insights",
+  storageBucket: "civa-business-insights.appspot.com",
+  messagingSenderId: "78359797855",
+  appId: "1:78359797855:web:5ae30c7b45fdd7e84f3bea",
+  measurementId: "G-HPKVDGW189"
 }
+
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig)
