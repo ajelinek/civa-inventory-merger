@@ -81,7 +81,7 @@ interface OnQueryReturnPayload {
 
 
 interface StoreWorker {
-  initializeApp: () => void
+  initializeApplication: (cb: (time: Dayjs) => void) => void
   queryCatalog: () => ItemRecord[]
   processImportFile: (file: File, email: string) => OfficeCatalogMetadata
 }

@@ -1,14 +1,15 @@
 import { create } from 'zustand'
-import { wrap } from 'comlink'
+import { wrap, proxy } from 'comlink'
 import { devtools } from 'zustand/middleware'
 import Worker from '../store/workers/worker?worker'
+import dayjs, { Dayjs } from 'dayjs'
 
 const worker = new Worker()
 export const storeWorker = wrap<StoreWorker>(worker)
-storeWorker.initializeApp()
+storeWorker.initializeApplication(proxy(catalogListener))
 
-worker.onmessage = (event) => {
-  console.log(event)
+function catalogListener(time: Date) {
+  console.log('catalogListener', time)
 }
 
 const initialState: Store = {
@@ -23,6 +24,7 @@ const initialState: Store = {
     subClassification: undefined,
     item: undefined,
   },
+  catalogLastUpdateTimestamp: dayjs(),
   catalog: undefined,
   catalogSearcher: undefined,
   storeWorker
@@ -38,7 +40,7 @@ export function resetState() {
 }
 
 export function initializeApplication() {
-  storeWorker.initializeApp()
+  // storeWorker.initializeApp()
 }
 
 export * from './hooks/auth'
