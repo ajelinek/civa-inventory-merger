@@ -1,6 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { useStore } from '../../store'
-import { useLogout } from '../../store/auth'
+import { useLogout, useStore } from '../../store'
 import s from './header.module.css'
 
 export default function Header() {

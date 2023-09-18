@@ -1,8 +1,7 @@
 import { Outlet, useNavigate } from 'react-router-dom'
 import Header from '../../components/Header'
-import { useStore } from '../../store'
+import { useAuthorizedUser, useStore } from '../../store'
 import { useEffect } from 'react'
-import { useAuthorizedUser } from '../../store/auth'
 
 export default function App() {
   useAuthorizedUser()

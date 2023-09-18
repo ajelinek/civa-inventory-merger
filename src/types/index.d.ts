@@ -1,54 +1,17 @@
 type FirebaseUser = import('firebase/auth').User
 
-type Classification = {
-  name: string
-  subClassifications?: Record<string, { name: string }>
-}
-type Classifications = Record<string, Classification>
-type Offices = Record<OfficeAbbreviation, string>
-
 
 interface Store {
   user: FirebaseUser | null | undefined
-  classifications: Classifications
-  offices: Offices
-  catalog: dbCatalog //Represents the actively queried catalog
-  catalogSearcher: unknown
+  org: Org | undefined
+  searchOptions: SearchOptions | undefined
+  catalog: dbCatalog | undefined //all of the data from the database
+  catalogSearcher: unknown | undefined
 }
 
 interface Creds {
   email: string
   password: string
-}
-
-type OfficeAbbreviation =
-  'VC' |
-  'LS' |
-  'EC' |
-  'BH' |
-  'WV' |
-  'MC' |
-  'CIVA'
-
-
-type dbCatalog = Record<string, ItemRecord>
-interface ItemRecord {
-  officeAbbreviationId: OfficeAbbreviation
-  classificationId: string
-  classificationName: string
-  subClassificationId: string
-  subClassificationName: string
-  itemId: string
-  itemDescription: string
-  definition: string
-  itemType: string
-  itemTypeDescription: string
-  // unitOfMeasure: string
-  unitPrice: number
-  dispensingFee: number
-  minimumPrice: number
-  markUpPercentage: number
-  mapped: number
 }
 
 interface ImportRecord {
@@ -85,4 +48,40 @@ interface Selector<T> {
   isDirty: boolean
   count: number
   selected: { string: T } | {}
+}
+
+
+type WorkerActionType =
+  'PROCESS_IMPORT_FILE' |
+  'INITIALIZE_APPLICATION' |
+  'UPDATE_CLASSIFICATIONS' |
+  'UPDATE_OFFICES' |
+  'QUERY_CATALOG' |
+  'UPDATE_ITEM' |
+  'REMOVE_TIME' |
+  'ADD_ITEM' |
+  'UPDATE_ITEMS_CLASSIFICATION'
+
+type ClientActionType =
+  'ON_QUERY_RETURN'
+
+interface Action {
+  type: ClientActionType | WorkerActionType
+  payload?: unknown
+}
+
+interface OnAuthStateChangePayload {
+  user: FirebaseUser | null
+}
+
+interface OnQueryReturnPayload {
+  queryName: string,
+  items: ItemRecord[]
+}
+
+
+interface StoreWorker {
+  initializeApp: () => void
+  queryCatalog: () => ItemRecord[]
+  processImportFile: (file: File, email: string) => OfficeCatalogMetadata
 }

@@ -1,10 +1,9 @@
 import { useNavigate } from 'react-router-dom'
 import { AlertMessage } from '../../components/AlertMessage'
 import useFormManagement from '../../hooks/userFormManagement'
-import { useLogin } from '../../store/auth'
 import s from './home.module.css'
 import { FaCat, FaDog } from 'react-icons/fa6'
-import { useStore } from '../../store'
+import { useLogin, useStore } from '../../store'
 import { useEffect } from 'react'
 
 export default function Home() {

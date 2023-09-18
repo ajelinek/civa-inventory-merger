@@ -1,11 +1,11 @@
 export const offices: Offices = {
-  "EC": "Eastland Companion Animal Hospital",
-  "BH": "Big Hollow Companion Animal Hospital",
-  "LS": "Limestone Companion Animal Hospital",
-  "MC": "Marshall County Veterinary Clinic",
-  "WV": "Wenona Vet Care",
-  "VC": "Vet Care Associates",
-  "CIVA": "Central Illinois Veterinary Associates",
+  "EC": { name: "Eastland Companion Animal Hospital" },
+  "BH": { name: "Big Hollow Companion Animal Hospital" },
+  "LS": { name: "Limestone Companion Animal Hospital" },
+  "MC": { name: "Marshall County Veterinary Clinic" },
+  "WV": { name: "Wenona Vet Care" },
+  "VC": { name: "Vet Care Associates" },
+  "CIVA": { name: "Central Illinois Veterinary Associates" },
 }
 
 
