@@ -7,6 +7,7 @@ interface Store {
   searchOptions: SearchOptions | undefined
   catalog: dbCatalog | undefined //all of the data from the database
   catalogSearcher: unknown | undefined
+  catalogLastUpdateTimestamp: Date | undefined
 }
 
 interface Creds {
@@ -51,37 +52,27 @@ interface Selector<T> {
 }
 
 
-type WorkerActionType =
-  'PROCESS_IMPORT_FILE' |
-  'INITIALIZE_APPLICATION' |
-  'UPDATE_CLASSIFICATIONS' |
-  'UPDATE_OFFICES' |
-  'QUERY_CATALOG' |
-  'UPDATE_ITEM' |
-  'REMOVE_TIME' |
-  'ADD_ITEM' |
-  'UPDATE_ITEMS_CLASSIFICATION'
 
-type ClientActionType =
-  'ON_QUERY_RETURN'
-
-interface Action {
-  type: ClientActionType | WorkerActionType
-  payload?: unknown
+interface StoreWorker {
+  loadCatalog: (cb: (time: Dayjs) => void) => void
+  queryCatalog: (query: CatalogQuery) => CatalogQueryResult
+  processImportFile: (file: File, email: string) => OfficeCatalogMetadata
+  fetchOrgSettings(cb: (org: Org) => void)
 }
 
-interface OnAuthStateChangePayload {
-  user: FirebaseUser | null
-}
-
-interface OnQueryReturnPayload {
-  queryName: string,
+interface CatalogQueryResult {
+  matchedCatalogs: number
+  matchedRecords: number
+  keyWords: string[]
   items: ItemRecord[]
 }
 
-
-interface StoreWorker {
-  initializeApplication: (cb: (time: Dayjs) => void) => void
-  queryCatalog: () => ItemRecord[]
-  processImportFile: (file: File, email: string) => OfficeCatalogMetadata
+interface CatalogQuery {
+  classificationId: string
+  subClassificationId: sting
+  searchText: string
+  searchWithinText: string
+  exclude: string
+  pageSize: number
+  page
 }

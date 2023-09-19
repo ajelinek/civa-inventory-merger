@@ -1,17 +1,14 @@
-import CatalogActionBar from '../../components/CatalogActionBar'
-import ImportModel from '../../components/ImportModal'
-import s from './catalog.module.css'
+import { Outlet } from "react-router-dom"
+import { useInitializeCatalog, useOrgSettings } from "../../store"
 
-export default function Catalog() {
+export default function CatalogViewer() {
+  const catalogInitialize = useInitializeCatalog()
+  const org = useOrgSettings()
+
+  if (catalogInitialize.loading || org.loading) return <div aria-busy={true}></div>
+
   return (
-    <div className={s.container}>
-      <ImportModel />
-      <section className={s.facets}>
-        <h3>Facets</h3>
-      </section>
-      <section className={s.catalog}>
-        <CatalogActionBar />
-      </section>
-    </div>
+    <Outlet />
   )
+
 }

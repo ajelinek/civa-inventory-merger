@@ -6,11 +6,11 @@ import dayjs, { Dayjs } from 'dayjs'
 
 const worker = new Worker()
 export const storeWorker = wrap<StoreWorker>(worker)
-storeWorker.initializeApplication(proxy(catalogListener))
+// storeWorker.initializeApplication(proxy(catalogListener))
 
-function catalogListener(time: Date) {
-  console.log('catalogListener', time)
-}
+// function catalogListener(time: Date) {
+//   console.log('catalogListener', time)
+// }
 
 const initialState: Store = {
   user: undefined, //undefined means it has not been checked yet
@@ -24,7 +24,7 @@ const initialState: Store = {
     subClassification: undefined,
     item: undefined,
   },
-  catalogLastUpdateTimestamp: dayjs(),
+  catalogLastUpdateTimestamp: undefined,
   catalog: undefined,
   catalogSearcher: undefined,
   storeWorker
@@ -37,10 +37,6 @@ export const useStore = create<Store>()(
 
 export function resetState() {
   useStore.setState({ ...initialState })
-}
-
-export function initializeApplication() {
-  // storeWorker.initializeApp()
 }
 
 export * from './hooks/auth'

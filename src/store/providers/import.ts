@@ -2,7 +2,7 @@ import Papa from "papaparse"
 import { offices } from "../const"
 import { createCatalog } from "./catalog"
 
-export async function processAndLoadFile(file: File, email: string) {
+export async function processImportFile(file: File, email: string) {
   if (!file) throw new Error('No file provided')
   const meta: OfficeCatalogMetadata = {
     lastImportDate: new Date(),
@@ -19,14 +19,11 @@ export async function processAndLoadFile(file: File, email: string) {
   if (!office) throw new Error('No office found')
   if (!catalog) throw new Error('No catalog created')
   await createCatalog(office, catalog, meta)
-
-  //Create new search index
-
+  //Search index is created by the catalog listener
   return {
     meta
     //eventually we may return updated, skipped, record keys
   }
-
 }
 
 

@@ -12,23 +12,17 @@ import { getClassificationNames } from '../../store/selectors/classifications'
 import s from './mapper.module.css'
 
 export default function Mapper() {
-  const dataState = useAllCatalogsQuery()
   const [classificationId, setClassification] = useState<string>('')
   const [subClassificationId, setSubClassification] = useState<string>('')
   const [mappedResult, setMappedResult] = useState<ItemRecord[]>([])
   const [suggestedResult, setSuggestedResult] = useState<SearchResult[]>([])
   const mapFromSelector = useListSelector<ItemRecord>([], 'itemId')
   const mappedSelector = useListSelector<ItemRecord>([], 'itemId')
-  const classifications = useStore(state => state.classifications)
-  const catalog = useStore(state => state.catalog)
+  const classifications = useStore(state => state.org?.classifications)
   const classificationUpdates = updateClassifications()
 
   useEffect(() => {
-    if (!(dataState.loading === false && classificationId && subClassificationId)) return
-    const results = Object.values(catalog).filter(c =>
-      c.classificationId === classificationId && c.subClassificationId === subClassificationId
-    )
-    setMappedResult(results)
+    //Execute the search
   }, [classificationId, subClassificationId, classificationUpdates.result, classificationUpdates.loading])
 
   const automaticSearchStrings = useMemo(() => {
@@ -40,14 +34,15 @@ export default function Mapper() {
   }, [mappedResult, classificationId, subClassificationId])
 
 
-  if (dataState.loading) return <div>Loading...</div>
 
   async function handleUpdateClassifications() {
+    if (!classifications || !classificationId || !subClassificationId) return
+
     await classificationUpdates.execute({
       classificationId,
       subClassificationId,
-      classificationName: classifications[classificationId].name,
-      subClassificationName: classifications[classificationId]?.subClassifications?.[subClassificationId]?.name,
+      classificationName: classifications?.[classificationId].name,
+      subClassificationName: classifications?.[classificationId]?.subClassifications?.[subClassificationId]?.name,
       items: mapFromSelector.getSelected()
     })
     mapFromSelector.unSelectAll()
@@ -56,7 +51,6 @@ export default function Mapper() {
 
   return (
     <div className={s.container}>
-      <AlertMessage message={dataState.error} />
       <AlertMessage message={classificationUpdates.error?.message} />
       {/* <MapperInstructions /> */}
 

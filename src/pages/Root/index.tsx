@@ -12,7 +12,7 @@ export default function App() {
     if (!user) nav('/')
   }, [user])
 
-  if (user === undefined) return (<div>Loading...</div>)
+  if (user === undefined) return (<div aria-busy={true}>Loading...</div>)
 
   return (
     <main >
