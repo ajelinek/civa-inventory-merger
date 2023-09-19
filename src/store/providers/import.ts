@@ -15,7 +15,6 @@ export async function processImportFile(file: File, email: string) {
   const fileAsJSON = await convertFileToJSON(file)
   meta.numberOfItemsImported = fileAsJSON.length
   const { catalog, office } = convertImportFileToCatalog(fileAsJSON)
-  console.log("🚀 ~ file: import.ts:18 ~ processAndLoadFile ~ catalog:", catalog)
   if (!office) throw new Error('No office found')
   if (!catalog) throw new Error('No catalog created')
   await createCatalog(office, catalog, meta)
@@ -32,7 +31,7 @@ function convertFileToJSON(file: File): Promise<ImportRecord[]> {
     //@ts-ignore
     Papa.parse(file, {
       header: true,
-      preview: 50,
+      // preview: 50,
 
       transformHeader(header: string) {
         return nameMap.get(header) || header
@@ -49,6 +48,7 @@ function convertFileToJSON(file: File): Promise<ImportRecord[]> {
 }
 
 function convertImportFileToCatalog(records: ImportRecord[]) {
+  console.log("🚀 ~ file: import.ts:51 ~ convertImportFileToCatalog ~ records:", records)
   const office = convertImportRecordToItemRecord(records[0]).officeId
   const catalog = records.reduce((acc, record) => {
     if (!record.itemId) return acc
@@ -62,7 +62,8 @@ function convertImportFileToCatalog(records: ImportRecord[]) {
 
 function convertImportRecordToItemRecord(importRecord: ImportRecord): ItemRecord {
   const itemRecord = {
-    itemId: importRecord.itemId,
+    itemId: importRecord.itemId.replace(/[.#$\/\[\]]/g, '_'),
+    originalItemId: importRecord.itemId,
     classificationId: importRecord.classificationId,
     classificationName: importRecord.description,
     subClassificationId: importRecord.subClassificationId,

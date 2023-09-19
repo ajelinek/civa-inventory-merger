@@ -3,9 +3,12 @@ import { useAsync } from "react-async-hook"
 import { storeWorker, useStore } from ".."
 
 export function useOrgSettings() {
-  return useAsync(async () => proxy(
-    storeWorker.fetchOrgSettings((org) => useStore.setState({ org }))
-  ), [])
+  function setOrg(org: Org) {
+    console.log("🚀 ~ file: org.ts:7 ~ setOrg ~ org:", org)
+    useStore.setState({ org })
+  }
+
+  return useAsync(async () => storeWorker.fetchOrgSettings(proxy(setOrg)), [])
 }
 
 export function useUpdateOrgClassifications() {

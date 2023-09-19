@@ -7,5 +7,6 @@ export function fetchOrgSettings(cb: (org: Org) => void) {
   //   cb(data.offices, data.classifications)
   // })
 
+  console.log("🚀 ~ file: org.ts:11 ~ fetchOrgSettings ~ { offices, classifications }:", { offices, classifications })
   cb({ offices, classifications })
 }

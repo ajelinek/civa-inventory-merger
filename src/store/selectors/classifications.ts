@@ -18,7 +18,7 @@ export function subClassificationsForSelectInput(classifications: Classification
 }
 
 export function getClassificationNames(classId: string, subClassId: string) {
-  const classifications = useStore.getState().classifications
+  const classifications = useStore.getState().org?.classifications ?? {}
   return {
     classificationName: classifications[classId]?.name,
     subClassificationName: classifications[classId]?.subClassifications?.[subClassId]?.name || ''

@@ -1,6 +1,5 @@
 import { useAsync, useAsyncCallback } from "react-async-hook"
 import { storeWorker, useStore } from ".."
-import { loadCatalog } from "../providers/catalog"
 import { proxy } from "comlink"
 
 export function useFileImport() {
@@ -11,15 +10,16 @@ export function useFileImport() {
 }
 
 export function useInitializeCatalog() {
-  return useAsync(async () =>
-    loadCatalog(proxy((time: Date) =>
-      useStore.setState({ catalogLastUpdateTimestamp: time }))
-    ), [])
+  function setTime(time: Date) {
+    useStore.setState({ catalogLastUpdateTimestamp: time })
+  }
+  return useAsync(async () => storeWorker.loadCatalog(proxy(setTime)), [])
 }
 
-export function useSearchCatalog(query: CatalogQuery) {
+export function useSearchCatalog(query: CatalogQuery | undefined) {
   return useAsync(async () => {
-    return []
-  }, [])
+    if (!query) return []
+    return storeWorker.queryCatalog(query)
+  }, [query])
 }
 

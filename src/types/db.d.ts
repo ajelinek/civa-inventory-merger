@@ -69,4 +69,8 @@ interface ItemRecord {
   dispensingFee: number
   minimumPrice: number
   markUpPercentage: number
+  originalItemId: string //Set on import
+  lastUpdateTimestamp?: Date
+  classificationMappedTimestamp?: Date
+  itemLinkedTimestamp?: Date
 }

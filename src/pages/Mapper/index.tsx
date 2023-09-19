@@ -1,12 +1,10 @@
-import { SearchResult } from 'minisearch'
 import { useEffect, useMemo, useState } from 'react'
 import { AlertMessage } from '../../components/AlertMessage'
 import { ClassificationSelector, SubClassificationSelector } from '../../components/CommonInputFields/selectors'
 import ItemSummary from '../../components/ItemSummary'
 import Search from '../../components/Search'
 import useListSelector from '../../hooks/useListSelector'
-import { useStore } from '../../store'
-import { useAllCatalogsQuery } from '../../store/catalog'
+import { useSearchCatalog, useStore } from '../../store'
 import { updateClassifications } from '../../store/db/item'
 import { getClassificationNames } from '../../store/selectors/classifications'
 import s from './mapper.module.css'
@@ -15,11 +13,13 @@ export default function Mapper() {
   const [classificationId, setClassification] = useState<string>('')
   const [subClassificationId, setSubClassification] = useState<string>('')
   const [mappedResult, setMappedResult] = useState<ItemRecord[]>([])
-  const [suggestedResult, setSuggestedResult] = useState<SearchResult[]>([])
+  const [suggestedResult, setSuggestedResult] = useState<ItemRecord[]>([])
   const mapFromSelector = useListSelector<ItemRecord>([], 'itemId')
   const mappedSelector = useListSelector<ItemRecord>([], 'itemId')
   const classifications = useStore(state => state.org?.classifications)
   const classificationUpdates = updateClassifications()
+  const [query, setQuery] = useState<CatalogQuery>()
+  const search = useSearchCatalog(query)
 
   useEffect(() => {
     //Execute the search
@@ -65,12 +65,12 @@ export default function Mapper() {
           {mappedResult.map(r => <ItemSummary key={r.itemId} itemId={r.itemId} selector={mappedSelector} />)}
         </div>
         <div className={s.column}>
-          <div className={s.searchMapping}>
+          <div className={s.searchMapping} >
             <h3>Suggested Mappings</h3>
             <Search
               automaticSearchStrings={automaticSearchStrings}
               onSearch={(r) => {
-                setSuggestedResult(r)
+                setQuery(r)
               }}
             />
             <button
@@ -79,11 +79,16 @@ export default function Mapper() {
               Map Selected (<span>{mapFromSelector.count}</span>)
             </button>
           </div>
-          {suggestedResult.map(r =>
-            <>
-              {/* {r.score} */}
-              <ItemSummary key={r.id} itemId={r.id} selector={mapFromSelector} />
-            </>)}
+
+          {search?.loading
+            ? <div aria-busy={true}></div>
+            //@ts-ignore
+            : search?.result?.map(r =>
+              <>
+                {/* {r.score} */}
+                <ItemSummary key={r.officeId + r.itemId} item={r.item} selector={mapFromSelector} />
+              </>
+            )}
         </div>
       </section>
     </div>

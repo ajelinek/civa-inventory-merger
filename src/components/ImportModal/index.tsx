@@ -9,7 +9,6 @@ import { useFileImport } from "../../store"
 export default function ImportModel() {
   const { modal, closeModel } = useModal()
   const fileImport = useFileImport()
-  console.log("🚀 ~ file: index.tsx:12 ~ ImportModel ~ fileImport:", fileImport)
   const [file, setFile] = useState<File | null>(null)
 
   function handleFileSelection(event: React.ChangeEvent<HTMLInputElement>) {

@@ -54,7 +54,7 @@ interface Selector<T> {
 
 
 interface StoreWorker {
-  loadCatalog: (cb: (time: Dayjs) => void) => void
+  loadCatalog: (cb: (time: Date) => void) => void
   queryCatalog: (query: CatalogQuery) => CatalogQueryResult
   processImportFile: (file: File, email: string) => OfficeCatalogMetadata
   fetchOrgSettings(cb: (org: Org) => void)
@@ -68,11 +68,11 @@ interface CatalogQueryResult {
 }
 
 interface CatalogQuery {
-  classificationId: string
-  subClassificationId: sting
-  searchText: string
-  searchWithinText: string
-  exclude: string
-  pageSize: number
-  page
+  classificationId?: string
+  subClassificationId?: sting
+  searchText?: string
+  searchWithinText?: string
+  exclude?: string
+  pageSize?: number
+  page?: number
 }

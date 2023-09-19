@@ -2,11 +2,11 @@ import MiniSearch, { QueryCombination, SearchResult } from 'minisearch'
 import { useEffect, useMemo, useState } from 'react'
 import { removeStopwords } from 'stopword'
 import s from './search.module.css'
-import { useStore } from '../../store'
+import { useSearchCatalog, useStore } from '../../store'
 
 type SearchProps = {
   automaticSearchStrings?: string[]
-  onSearch: (result: SearchResult[]) => void
+  onSearch: (query: CatalogQuery) => void
 }
 
 export default function Search({ automaticSearchStrings, onSearch }: SearchProps) {
@@ -15,7 +15,6 @@ export default function Search({ automaticSearchStrings, onSearch }: SearchProps
   const [includeMapped, setIncludeMapped] = useState<boolean>(false) //TODO: make this a parm in
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [showAdvancedSearch, setShowAdvancedSearch] = useState<boolean>(false)
-  const searcher = useStore(state => state.catalogSearcher) as MiniSearch<ItemRecord>
 
   const uniqueTokens = useMemo(() => {
     const tokensSet = new Set<string>()
@@ -28,22 +27,6 @@ export default function Search({ automaticSearchStrings, onSearch }: SearchProps
     setSelectedTokens([...tokens])
     return tokens
   }, [automaticSearchStrings])
-
-  useEffect(() => {
-    onSearch(searchIt())
-  }, [selectedTokens])
-
-  function searchIt() {
-    const q = createQuery()
-    const results = searcher.search(q)
-    return results.filter((r) => {
-      return includeMapped ? true : !r.mapped
-    })
-  }
-
-  function createQuery() {
-    return buildSearchQuery(selectedTokens, searchTerm, excludeTerms)
-  }
 
 
   function handleTokenClick(token: string) {
@@ -61,7 +44,9 @@ export default function Search({ automaticSearchStrings, onSearch }: SearchProps
 
   function handleSearchSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    onSearch(searchIt())
+    onSearch({
+      searchText: searchTerm,
+    })
   }
 
 
