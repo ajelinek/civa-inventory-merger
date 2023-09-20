@@ -1,12 +1,12 @@
 type FirebaseUser = import('firebase/auth').User
 
+type CatalogSearcher = import('fuse.js').Fuse<ItemRecord>
 
 interface Store {
   user: FirebaseUser | null | undefined
   org: Org | undefined
-  searchOptions: SearchOptions | undefined
   catalog: dbCatalog | undefined //all of the data from the database
-  catalogSearcher: unknown | undefined
+  catalogSearcher: CatalogSearcher | undefined //the searcher that is used to search the catalog
   catalogLastUpdateTimestamp: Date | undefined
 }
 

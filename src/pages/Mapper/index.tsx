@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { AlertMessage } from '../../components/AlertMessage'
 import { ClassificationSelector, SubClassificationSelector } from '../../components/CommonInputFields/selectors'
 import ItemSummary from '../../components/ItemSummary'
@@ -6,24 +6,18 @@ import Search from '../../components/Search'
 import useListSelector from '../../hooks/useListSelector'
 import { useSearchCatalog, useStore } from '../../store'
 import { updateClassifications } from '../../store/db/item'
-import { getClassificationNames } from '../../store/selectors/classifications'
 import s from './mapper.module.css'
 
 export default function Mapper() {
   const [classificationId, setClassification] = useState<string>('')
   const [subClassificationId, setSubClassification] = useState<string>('')
-  const [suggestedResult, setSuggestedResult] = useState<ItemRecord[]>([])
   const mapFromSelector = useListSelector<ItemRecord>([], 'recordId')
   const mappedSelector = useListSelector<ItemRecord>([], 'recordId')
   const classifications = useStore(state => state.org?.classifications)
   const classificationUpdates = updateClassifications()
   const [query, setQuery] = useState<CatalogQuery>()
-  const search = useSearchCatalog(null)
+  const search = useSearchCatalog(query)
   const mappedResult = useSearchCatalog(null)
-
-  useEffect(() => {
-    //Execute the search
-  }, [classificationId, subClassificationId, classificationUpdates.result, classificationUpdates.loading])
 
   // const automaticSearchStrings = useMemo(() => {
   //   const tokens = mappedResult.result?.map(r => r.itemDescription)
@@ -32,7 +26,6 @@ export default function Mapper() {
   //   if (subClassificationName) tokens.push(subClassificationName)
   //   return tokens
   // }, [mappedResult, classificationId, subClassificationId])
-
 
 
   async function handleUpdateClassifications() {
@@ -63,7 +56,7 @@ export default function Mapper() {
           </div>
           <h3>Mapped</h3>
           {mappedResult.loading ? <div aria-busy={true}></div>
-            : mappedResult.result?.items.map(r => <ItemSummary key={r.itemId} item={r} selector={mappedSelector} />)
+            : mappedResult.result?.items.map((r: ItemRecord) => <ItemSummary key={r.itemId} item={r} selector={mappedSelector} />)
           }
         </div>
         <div className={s.column}>
@@ -84,12 +77,8 @@ export default function Mapper() {
 
           {search?.loading
             ? <div aria-busy={true}></div>
-            //@ts-ignore
-            : search?.result?.map(r =>
-              <>
-                {/* {r.score} */}
-                <ItemSummary key={r.officeId + r.itemId} item={r.item} selector={mapFromSelector} />
-              </>
+            : search?.result?.items.map(r =>
+              <ItemSummary key={r.officeId + r.itemId} item={r} selector={mapFromSelector} />
             )}
         </div>
       </section>

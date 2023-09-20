@@ -1,31 +1,31 @@
 import { useAsync, useAsyncCallback } from "react-async-hook"
-import { storeWorker, useStore } from ".."
-import { proxy } from "comlink"
+import { useStore } from ".."
+import { loadCatalog, queryCatalog } from "../providers/catalog"
+import { processImportFile } from "../providers/import"
 
 export function useFileImport() {
   const email = useStore.getState().user?.email ?? 'unknown'
   return useAsyncCallback(async (file: File) => {
-    return storeWorker.processImportFile(file, email)
+    return processImportFile(file, email)
   })
 }
 
 export function useInitializeCatalog() {
-  function setTime(time: Date) {
-    useStore.setState({ catalogLastUpdateTimestamp: time })
+  function setData(catalog: Catalogs, catalogSearcher: CatalogSearcher) {
+    useStore.setState({ catalogSearcher, catalog })
   }
-  return useAsync(async () => storeWorker.loadCatalog(proxy(setTime)), [])
+  return useAsync(async () => loadCatalog(setData), [])
 }
 
 export function useSearchCatalog(query: CatalogQuery | undefined | null) {
-  return useAsync(async () => {
-    if (!query) return {
-      items: [],
-      matchedCatalogs: 0,
-      matchedRecords: 0,
-      keyWords: []
-    } as CatalogQueryResult
+  console.log("🚀 ~ file: catalog.ts:21 ~ useSearchCatalog ~ query:", query)
+  const searcher = useStore(state => state.catalogSearcher)
 
-    return storeWorker.queryCatalog(query)
-  }, [query])
+  return useAsync(async () => {
+    if (!query) return null
+    return queryCatalog(query, searcher)
+
+  }, [query, searcher])
 }
+
 

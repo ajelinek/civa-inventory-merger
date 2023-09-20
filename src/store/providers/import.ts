@@ -18,7 +18,7 @@ export async function processImportFile(file: File, email: string) {
   const { catalog, office } = convertImportFileToCatalog(fileAsJSON)
   if (!office) throw new Error('No office found')
   if (!catalog) throw new Error('No catalog created')
-  await createCatalog(office, catalog, meta)
+  await createCatalog(office, catalog)
   //Search index is created by the catalog listener
   return {
     meta

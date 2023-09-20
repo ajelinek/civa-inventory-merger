@@ -1,5 +1,5 @@
 // Import the functions you need from the SDKs you need
-import { getAnalytics, isSupported } from "firebase/analytics"
+import { getAnalytics } from "firebase/analytics"
 import { initializeApp } from "firebase/app"
 import { connectAuthEmulator, getAuth } from "firebase/auth"
 import { connectDatabaseEmulator, get, getDatabase } from "firebase/database"
@@ -20,16 +20,11 @@ const firebaseConfig = {
 }
 
 const app = initializeApp(firebaseConfig)
-let worker = false
-console.log("🚀 ~ file: firebase.ts:24 ~ worker:", worker)
-if (!window) {
-  worker = true
-}
 
-export const auth = worker ? null : getAuth(app)
-export const analytics = worker ? null : getAnalytics(app)
-export const db = getFirestore(app)
-export const rdb = getDatabase(app)
+export const analytics = getAnalytics(app)
+export const rdb = getDatabase()
+export const db = getFirestore()
+export const auth = getAuth()
 export const storage = getStorage(app)
 
 if (process.env.NODE_ENV !== 'production') {
