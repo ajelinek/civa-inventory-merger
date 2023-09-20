@@ -77,3 +77,16 @@ interface CatalogQuery {
   pageSize?: number
   page?: number
 }
+
+interface SearcherSearchMessage {
+  type: 'search'
+  payload: CatalogQuery
+}
+
+interface SearcherLoadMessage {
+  type: 'load'
+  payload: Catalogs
+}
+
+type SearcherMessage = SearcherSearchMessage | SearcherLoadMessage;
+

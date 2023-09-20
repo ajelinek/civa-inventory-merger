@@ -1,6 +1,7 @@
 import { onValue, ref, set } from "firebase/database"
 import { rdb } from "../firebase"
 import Fuse from 'fuse.js'
+import { useEffect, useState } from "react"
 
 export function createCatalog(officeId: string, catalog: Catalogs) {
   const path = `catalogs/${officeId}`
@@ -17,7 +18,7 @@ export async function loadCatalog(cb: (catalog: Catalogs, searcher: Fuse<ItemRec
     const searcher = new Fuse<ItemRecord>(mergeCatalogs(catalog), {
       keys: ['itemId', 'officeAbbreviationId', 'classificationId', 'classificationName', 'subClassificationId', 'subClassificationName', 'itemId', 'itemDescription', 'definition', 'itemType', 'itemTypeDescription', 'mapped'],
       threshold: 0.5,
-      // ignoreLocation: true,
+      ignoreLocation: true,
       minMatchCharLength: 2,
       shouldSort: true,
       includeScore: true,
@@ -29,8 +30,8 @@ export async function loadCatalog(cb: (catalog: Catalogs, searcher: Fuse<ItemRec
   })
 }
 
-export function queryCatalog(query: CatalogQuery | undefined, searcher: Fuse<ItemRecord>): Promise<CatalogQueryResult> {
-  return new Promise((resolve) => {
+export function queryCatalog(query: CatalogQuery, searcher: Fuse<ItemRecord>): Promise<CatalogQueryResult> {
+  return new Promise((resolve,) => {
     if (!query || !query.searchText) {
       resolve({
         items: [],
@@ -41,7 +42,7 @@ export function queryCatalog(query: CatalogQuery | undefined, searcher: Fuse<Ite
       return
     }
 
-    const results = searcher.search(query.searchText, { limit: 500 })
+    const results = searcher.search(query.searchText)
     const items = results.map(result => result.item)
     const matchedCatalogs = new Set(items.map(item => item.officeId)).size
     const matchedRecords = results.length

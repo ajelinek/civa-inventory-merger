@@ -56,14 +56,14 @@ export default function Mapper() {
           </div>
           <h3>Mapped</h3>
           {mappedResult.loading ? <div aria-busy={true}></div>
-            : mappedResult.result?.items.map((r: ItemRecord) => <ItemSummary key={r.itemId} item={r} selector={mappedSelector} />)
+            : mappedResult.items.map((r: ItemRecord) => <ItemSummary key={r.itemId} item={r} selector={mappedSelector} />)
           }
         </div>
         <div className={s.column}>
           <div className={s.searchMapping} >
             <h3>Suggested Mappings</h3>
             <Search
-              autoTokens={mappedResult.result?.keyWords || []}
+              autoTokens={mappedResult.keyWords || []}
               onSearch={(r) => {
                 setQuery(r)
               }}
@@ -74,10 +74,10 @@ export default function Mapper() {
               Map Selected (<span>{mapFromSelector.count}</span>)
             </button>
           </div>
-
+          {search.items.length}
           {search?.loading
-            ? <div aria-busy={true}></div>
-            : search?.result?.items.map(r =>
+            ? <div className={s.loading} aria-busy={true}>Searching...</div>
+            : search?.items.map(r =>
               <ItemSummary key={r.officeId + r.itemId} item={r} selector={mapFromSelector} />
             )}
         </div>
