@@ -18,8 +18,8 @@ export default function Mapper() {
   const classifications = useStore(state => state.org?.classifications)
   const classificationUpdates = updateClassifications()
   const [query, setQuery] = useState<CatalogQuery>()
-  const search = useSearchCatalog(query)
-  const mappedResult = useSearchCatalog({ classificationId, subClassificationId })
+  const search = useSearchCatalog(null)
+  const mappedResult = useSearchCatalog(null)
 
   useEffect(() => {
     //Execute the search

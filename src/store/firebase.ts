@@ -2,7 +2,7 @@
 import { getAnalytics, isSupported } from "firebase/analytics"
 import { initializeApp } from "firebase/app"
 import { connectAuthEmulator, getAuth } from "firebase/auth"
-import { connectDatabaseEmulator, getDatabase } from "firebase/database"
+import { connectDatabaseEmulator, get, getDatabase } from "firebase/database"
 import { connectFirestoreEmulator, getFirestore } from "firebase/firestore"
 import { connectStorageEmulator, getStorage } from "firebase/storage"
 // TODO: Add SDKs for Firebase products that you want to use
@@ -19,22 +19,22 @@ const firebaseConfig = {
   measurementId: "G-HPKVDGW189"
 }
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig)
-
-let a = null
-if (await isSupported()) {
-  a = getAnalytics(app)
+let worker = false
+console.log("🚀 ~ file: firebase.ts:24 ~ worker:", worker)
+if (!window) {
+  worker = true
 }
-export const analytics = a
-export const rdb = getDatabase()
-export const db = getFirestore()
-export const auth = getAuth()
+
+export const auth = worker ? null : getAuth(app)
+export const analytics = worker ? null : getAnalytics(app)
+export const db = getFirestore(app)
+export const rdb = getDatabase(app)
 export const storage = getStorage(app)
 
 if (process.env.NODE_ENV !== 'production') {
-  connectFirestoreEmulator(db, 'localhost', 9001)
-  connectDatabaseEmulator(rdb, 'localhost', 9000)
-  connectAuthEmulator(auth, "http://localhost:9099")
-  connectStorageEmulator(storage, 'localhost', 9199)
+  db && connectFirestoreEmulator(db, 'localhost', 9001)
+  rdb && connectDatabaseEmulator(rdb, 'localhost', 9000)
+  auth && connectAuthEmulator(auth, "http://localhost:9099")
+  storage && connectStorageEmulator(storage, 'localhost', 9199)
 }

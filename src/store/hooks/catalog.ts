@@ -16,7 +16,7 @@ export function useInitializeCatalog() {
   return useAsync(async () => storeWorker.loadCatalog(proxy(setTime)), [])
 }
 
-export function useSearchCatalog(query: CatalogQuery | undefined) {
+export function useSearchCatalog(query: CatalogQuery | undefined | null) {
   return useAsync(async () => {
     if (!query) return {
       items: [],
