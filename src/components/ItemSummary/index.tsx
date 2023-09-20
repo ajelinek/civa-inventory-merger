@@ -1,10 +1,8 @@
 import { useState } from 'react'
-import { useStore } from '../../store'
-import s from './itemSummary.module.css'
-import Money from '../Money'
 import { FaCaretDown, FaCaretRight } from 'react-icons/fa6'
 import { RxDividerVertical } from 'react-icons/rx'
-import dayjs from 'dayjs'
+import Money from '../Money'
+import s from './itemSummary.module.css'
 
 export default function ItemSummary({ item, selector }: { item: ItemRecord, selector: Selector<ItemRecord> }) {
   const [active, setActive] = useState(false)
