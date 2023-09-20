@@ -1,6 +1,7 @@
 import Papa from "papaparse"
 import { offices } from "../const"
 import { createCatalog } from "./catalog"
+import { itemRecordId } from "../selectors/item"
 
 export async function processImportFile(file: File, email: string) {
   if (!file) throw new Error('No file provided')
@@ -84,6 +85,7 @@ function convertImportRecordToItemRecord(importRecord: ImportRecord): ItemRecord
   ) //Hacky, but we know it will be there, .. or hope
   if (!officeId) throw new Error('No office found')
   itemRecord.officeId = officeId
+  itemRecord.recordId = itemRecordId(itemRecord)
 
   return itemRecord
 }

@@ -18,7 +18,13 @@ export function useInitializeCatalog() {
 
 export function useSearchCatalog(query: CatalogQuery | undefined) {
   return useAsync(async () => {
-    if (!query) return []
+    if (!query) return {
+      items: [],
+      matchedCatalogs: 0,
+      matchedRecords: 0,
+      keyWords: []
+    } as CatalogQueryResult
+
     return storeWorker.queryCatalog(query)
   }, [query])
 }

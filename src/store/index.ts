@@ -1,16 +1,10 @@
+import { wrap } from 'comlink'
 import { create } from 'zustand'
-import { wrap, proxy } from 'comlink'
 import { devtools } from 'zustand/middleware'
 import Worker from '../store/workers/worker?worker'
-import dayjs, { Dayjs } from 'dayjs'
 
 const worker = new Worker()
 export const storeWorker = wrap<StoreWorker>(worker)
-// storeWorker.initializeApplication(proxy(catalogListener))
-
-// function catalogListener(time: Date) {
-//   console.log('catalogListener', time)
-// }
 
 const initialState: Store = {
   user: undefined, //undefined means it has not been checked yet
@@ -27,7 +21,6 @@ const initialState: Store = {
   catalogLastUpdateTimestamp: undefined,
   catalog: undefined,
   catalogSearcher: undefined,
-  storeWorker
 } as Store
 
 

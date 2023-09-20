@@ -70,9 +70,10 @@ interface CatalogQueryResult {
 interface CatalogQuery {
   classificationId?: string
   subClassificationId?: sting
+  autoTokens?: string[]
   searchText?: string
-  searchWithinText?: string
-  exclude?: string
+  includeMapped?: boolean
+  includeLinked?: boolean
   pageSize?: number
   page?: number
 }

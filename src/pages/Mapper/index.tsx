@@ -12,26 +12,26 @@ import s from './mapper.module.css'
 export default function Mapper() {
   const [classificationId, setClassification] = useState<string>('')
   const [subClassificationId, setSubClassification] = useState<string>('')
-  const [mappedResult, setMappedResult] = useState<ItemRecord[]>([])
   const [suggestedResult, setSuggestedResult] = useState<ItemRecord[]>([])
-  const mapFromSelector = useListSelector<ItemRecord>([], 'itemId')
-  const mappedSelector = useListSelector<ItemRecord>([], 'itemId')
+  const mapFromSelector = useListSelector<ItemRecord>([], 'recordId')
+  const mappedSelector = useListSelector<ItemRecord>([], 'recordId')
   const classifications = useStore(state => state.org?.classifications)
   const classificationUpdates = updateClassifications()
   const [query, setQuery] = useState<CatalogQuery>()
   const search = useSearchCatalog(query)
+  const mappedResult = useSearchCatalog({ classificationId, subClassificationId })
 
   useEffect(() => {
     //Execute the search
   }, [classificationId, subClassificationId, classificationUpdates.result, classificationUpdates.loading])
 
-  const automaticSearchStrings = useMemo(() => {
-    const tokens = mappedResult.map(r => r.itemDescription)
-    const { classificationName, subClassificationName } = getClassificationNames(classificationId, subClassificationId)
-    if (classificationName) tokens.push(classificationName)
-    if (subClassificationName) tokens.push(subClassificationName)
-    return tokens
-  }, [mappedResult, classificationId, subClassificationId])
+  // const automaticSearchStrings = useMemo(() => {
+  //   const tokens = mappedResult.result?.map(r => r.itemDescription)
+  //   const { classificationName, subClassificationName } = getClassificationNames(classificationId, subClassificationId)
+  //   if (classificationName) tokens.push(classificationName)
+  //   if (subClassificationName) tokens.push(subClassificationName)
+  //   return tokens
+  // }, [mappedResult, classificationId, subClassificationId])
 
 
 
@@ -62,13 +62,15 @@ export default function Mapper() {
             <SubClassificationSelector value={subClassificationId} onChange={e => setSubClassification(e.target.value)} classification={classificationId} />
           </div>
           <h3>Mapped</h3>
-          {mappedResult.map(r => <ItemSummary key={r.itemId} itemId={r.itemId} selector={mappedSelector} />)}
+          {mappedResult.loading ? <div aria-busy={true}></div>
+            : mappedResult.result?.items.map(r => <ItemSummary key={r.itemId} item={r} selector={mappedSelector} />)
+          }
         </div>
         <div className={s.column}>
           <div className={s.searchMapping} >
             <h3>Suggested Mappings</h3>
             <Search
-              automaticSearchStrings={automaticSearchStrings}
+              autoTokens={mappedResult.result?.keyWords || []}
               onSearch={(r) => {
                 setQuery(r)
               }}

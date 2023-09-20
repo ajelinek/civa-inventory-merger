@@ -54,6 +54,7 @@ interface OfficeCatalogMetadata {
 }
 
 interface ItemRecord {
+  recordId: string //officeId-itemId
   officeId: OfficeAbbreviation
   classificationId: string
   classificationName: string
