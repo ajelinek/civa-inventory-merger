@@ -16,7 +16,7 @@ export default function Mapper() {
   const classifications = useStore(state => state.org?.classifications)
   const classificationUpdates = updateClassifications()
   const [query, setQuery] = useState<CatalogQuery>()
-  const search = useSearchCatalog(null)
+  const search = useSearchCatalog(query)
   const mappedResult = useSearchCatalog(null)
 
   // const automaticSearchStrings = useMemo(() => {
@@ -78,10 +78,7 @@ export default function Mapper() {
           {search?.loading
             ? <div aria-busy={true}></div>
             : search?.result?.items.map(r =>
-              <>
-                {/* {r.score} */}
-                <ItemSummary key={r.officeId + r.itemId} item={r} selector={mapFromSelector} />
-              </>
+              <ItemSummary key={r.officeId + r.itemId} item={r} selector={mapFromSelector} />
             )}
         </div>
       </section>

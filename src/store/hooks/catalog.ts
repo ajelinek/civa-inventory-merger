@@ -12,7 +12,7 @@ export function useFileImport() {
 
 export function useInitializeCatalog() {
   function setData(catalog: Catalogs, catalogSearcher: CatalogSearcher) {
-    // useStore.setState({ catalogSearcher, catalog })
+    useStore.setState({ catalogSearcher, catalog })
   }
   return useAsync(async () => loadCatalog(setData), [])
 }
