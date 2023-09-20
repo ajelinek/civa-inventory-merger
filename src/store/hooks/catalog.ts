@@ -25,7 +25,7 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null) {
     if (!query) return null
     return queryCatalog(query, searcher)
 
-  }, [query])
+  }, [query, searcher])
 }
 
 

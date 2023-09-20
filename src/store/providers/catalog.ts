@@ -29,27 +29,31 @@ export async function loadCatalog(cb: (catalog: Catalogs, searcher: Fuse<ItemRec
   })
 }
 
-export function queryCatalog(query: CatalogQuery | undefined, searcher: Fuse<ItemRecord>): CatalogQueryResult {
-  if (!query || !query.searchText) return {
-    items: [],
-    matchedCatalogs: 0,
-    matchedRecords: 0,
-    keyWords: []
-  } as CatalogQueryResult
+export function queryCatalog(query: CatalogQuery | undefined, searcher: Fuse<ItemRecord>): Promise<CatalogQueryResult> {
+  return new Promise((resolve) => {
+    if (!query || !query.searchText) {
+      resolve({
+        items: [],
+        matchedCatalogs: 0,
+        matchedRecords: 0,
+        keyWords: []
+      })
+      return
+    }
 
-  const results = searcher.search(query.searchText, { limit: 500 })
-  const items = results.map(result => result.item)
-  const matchedCatalogs = new Set(items.map(item => item.officeId)).size
-  const matchedRecords = results.length
+    const results = searcher.search(query.searchText, { limit: 500 })
+    const items = results.map(result => result.item)
+    const matchedCatalogs = new Set(items.map(item => item.officeId)).size
+    const matchedRecords = results.length
 
-  return {
-    items,
-    matchedCatalogs,
-    matchedRecords,
-    keyWords: []
-  }
+    resolve({
+      items,
+      matchedCatalogs,
+      matchedRecords,
+      keyWords: []
+    })
+  })
 }
-
 
 function mergeCatalogs(catalogs: Catalogs) {
   const merged = Object.values(catalogs).reduce((acc, catalog) => {
