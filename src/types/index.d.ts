@@ -1,7 +1,5 @@
 type FirebaseUser = import('firebase/auth').User
 
-type CatalogSearcher = import('fuse.js').Fuse<ItemRecord>
-
 interface Store {
   user: FirebaseUser | null | undefined
   org: Org | undefined
@@ -67,6 +65,7 @@ interface CatalogQueryResult {
   items: ItemRecord[]
 }
 
+
 interface CatalogQuery {
   classificationId?: string
   subClassificationId?: sting
@@ -86,6 +85,10 @@ interface SearcherSearchMessage {
 interface SearcherLoadMessage {
   type: 'load'
   payload: Catalogs
+}
+
+interface SearcherLoadMessageReturn {
+  type: 'loaded'
 }
 
 type SearcherMessage = SearcherSearchMessage | SearcherLoadMessage;
