@@ -1,50 +1,17 @@
-import MiniSearch, { QueryCombination, SearchResult } from 'minisearch'
-import { useEffect, useMemo, useState } from 'react'
-import { removeStopwords } from 'stopword'
+import { useEffect, useState } from 'react'
 import s from './search.module.css'
-import { useStore } from '../../store'
 
 type SearchProps = {
-  automaticSearchStrings?: string[]
-  onSearch: (result: SearchResult[]) => void
+  keyWords?: string[]
+  onSearch: (query: CatalogQuery) => void
 }
 
-export default function Search({ automaticSearchStrings, onSearch }: SearchProps) {
+export default function Search({ keyWords, onSearch }: SearchProps) {
   const [selectedTokens, setSelectedTokens] = useState<string[]>([])
   const [excludeTerms, setExcludeTerms] = useState<string>('')
   const [includeMapped, setIncludeMapped] = useState<boolean>(false) //TODO: make this a parm in
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [showAdvancedSearch, setShowAdvancedSearch] = useState<boolean>(false)
-  const searcher = useStore(state => state.catalogSearcher) as MiniSearch<ItemRecord>
-
-  const uniqueTokens = useMemo(() => {
-    const tokensSet = new Set<string>()
-    automaticSearchStrings?.forEach((str) => {
-      const strTokens = removeStopwords(str?.split(' ')).filter((t) => t.length > 2)
-      strTokens.forEach((token) => tokensSet.add(token.toLocaleLowerCase()))
-    })
-
-    const tokens = Array.from(tokensSet)
-    setSelectedTokens([...tokens])
-    return tokens
-  }, [automaticSearchStrings])
-
-  useEffect(() => {
-    onSearch(searchIt())
-  }, [selectedTokens])
-
-  function searchIt() {
-    const q = createQuery()
-    const results = searcher.search(q)
-    return results.filter((r) => {
-      return includeMapped ? true : !r.mapped
-    })
-  }
-
-  function createQuery() {
-    return buildSearchQuery(selectedTokens, searchTerm, excludeTerms)
-  }
-
 
   function handleTokenClick(token: string) {
     if (selectedTokens.includes(token)) {
@@ -54,15 +21,25 @@ export default function Search({ automaticSearchStrings, onSearch }: SearchProps
     }
   }
 
-  //when new tokes come in add new tokes to the selected tokens
-  useEffect(() => {
-  }, [automaticSearchStrings])
-
-
   function handleSearchSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    onSearch(searchIt())
+    onSearch({
+      searchText: searchTerm,
+    })
   }
+
+  useEffect(() => {
+    if (!keyWords || keyWords.length == 0) return
+    setSelectedTokens(keyWords)
+  }, [keyWords])
+
+  useEffect(() => {
+    onSearch({
+      searchText: searchTerm,
+      includeMapped,
+      autoTokens: selectedTokens,
+    })
+  }, [selectedTokens])
 
 
   return (
@@ -70,7 +47,7 @@ export default function Search({ automaticSearchStrings, onSearch }: SearchProps
       <fieldset>
         <label htmlFor="pillbox" className={s.label}>Automatic Terms</label>
         <div id='pillbox' className={s.pillbox}>
-          {uniqueTokens.map((token) => (
+          {keyWords?.map((token) => (
             <button
               type='button'
               key={token}
@@ -128,69 +105,3 @@ export default function Search({ automaticSearchStrings, onSearch }: SearchProps
     </form>
   )
 }
-
-function buildSearchQuery(selected: string[], searchTerm: string, excludeTerm: string): QueryCombination {
-  let level = 1
-
-  const query = {
-    combineWith: 'OR',
-    fuzzy: 0.1,
-    // prefix: true, 
-    boost: { itemDescription: 2 },
-    queries: []
-  }
-
-  if (excludeTerm) {
-    query.combineWith = 'AND_NOT'
-    //@ts-ignore
-  }
-
-  if (selected.length > 0) {
-    //@ts-ignore
-    query.queries.push(selected.join(' '))
-    //@ts-ignore
-    excludeTerm && query.queries.push(excludeTerm)
-    //@ts-ignore
-    level = 2
-  }
-
-  if (searchTerm && level === 1) {
-    //@ts-ignore
-    query.queries.push(searchTerm)
-    //@ts-ignore
-    excludeTerm && query.queries.push(excludeTerm)
-    //@ts-ignore
-    level = 2
-  }
-
-  if (searchTerm && level === 2) {
-    //@ts-ignore
-    query.queries.push({
-      combineWith: 'AND',
-      // prefix: true,
-      boost: { itemDescription: 2, itemId: 3 },
-      queries: [searchTerm]
-    })
-    level = 3
-  }
-
-  // if (excludeTerm && level === 1) return query
-  // if (excludeTerm && level === 2) {
-  //   //@ts-ignore
-  //   query.queries.push({ combineWith: 'AND_NOT', queries: [excludeTerm] })
-  // }
-  // if (excludeTerm && level === 3) {
-  //   //@ts-ignore
-  //   query.queries[1].queries.push({
-  //     combineWith: 'AND_NOT',
-  //     // prefix: true,
-  //     boost: { itemDescription: 2 },
-  //     queries: [excludeTerm]
-  //   })
-  // }
-
-
-
-  return query
-}
-

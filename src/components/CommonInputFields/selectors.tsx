@@ -8,7 +8,7 @@ type props = {
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
 }
 export function OfficeSelector({ value, onChange }: props) {
-  const offices = useStore(state => state.offices)
+  const offices = useStore(state => state.org?.offices)!
   const officesOptions = officesForSelectInput(offices)
 
   return (
@@ -25,7 +25,7 @@ export function OfficeSelector({ value, onChange }: props) {
 }
 
 export function ClassificationSelector({ value, onChange }: props) {
-  const classifications = useStore(state => state.classifications)
+  const classifications = useStore(state => state.org?.classifications)!
   const classificationsOptions = classificationsForSelectInput(classifications)
 
   return (
@@ -43,7 +43,7 @@ export function ClassificationSelector({ value, onChange }: props) {
 
 type subClassificationProps = props & { classification: string }
 export function SubClassificationSelector({ value, onChange, classification }: subClassificationProps) {
-  const classifications = useStore(state => state.classifications)
+  const classifications = useStore(state => state.org?.classifications)!
   const subClassificationsOptions = subClassificationsForSelectInput(classifications, classification)
 
   return (

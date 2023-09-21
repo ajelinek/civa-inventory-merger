@@ -3,7 +3,7 @@ import { db } from "../firebase"
 import { offices } from "../const"
 import { useAsyncCallback } from "react-async-hook"
 
-export function createNewOfficeCatalog(catalog: dbCatalog, office: OfficeAbbreviation) {
+export function createNewOfficeCatalog(catalog: Catalogs, office: OfficeId) {
   return setDoc(doc(db, 'catalogs', office), catalog)
 }
 
@@ -22,7 +22,7 @@ export function updateClassifications() {
 
     //Loop thru the available offices and filter the items that belong to the office.
     Object.keys(offices).forEach((office) => {
-      const items = updateInput.items.filter((item) => item.officeAbbreviationId === office)
+      const items = updateInput.items.filter((item) => item.officeId === office)
       if (!items.length) return
 
       const objects = items.map((item) => {

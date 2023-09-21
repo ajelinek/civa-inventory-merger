@@ -1,0 +1,6 @@
+{
+  "rules": {
+    ".read": "auth != null",
+    ".write": "auth.token.email.matches(/^(admin@admin\\.com|email2|email3)$/)"
+  }
+}

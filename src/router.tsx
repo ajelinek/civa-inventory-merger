@@ -4,6 +4,7 @@ import ErrorPage from "./pages/ErrorPage"
 import Home from "./pages/Home"
 import Catalog from "./pages/Catalog"
 import Mapper from "./pages/Mapper"
+import CatalogViewer from "./pages/CatalogViewer"
 
 export const router = createBrowserRouter([
   {
@@ -11,15 +12,23 @@ export const router = createBrowserRouter([
     element: <Root />,
     errorElement: <ErrorPage />,
     children: [
-      { index: true, element: <Home /> },
       {
-        path: "/catalogs",
+        index: true,
+        element: <Home />,
+      },
+      {
         element: <Catalog />,
-      },
-      {
-        path: "/mapper",
-        element: <Mapper />,
-      },
+        children: [
+          {
+            path: "catalogs",
+            element: <CatalogViewer />
+          },
+          {
+            path: "mapper",
+            element: <Mapper />,
+          },
+        ],
+      }
     ],
-  },
+  }
 ])

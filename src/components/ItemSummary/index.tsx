@@ -1,32 +1,26 @@
 import { useState } from 'react'
-import { useStore } from '../../store'
-import s from './itemSummary.module.css'
-import Money from '../Money'
 import { FaCaretDown, FaCaretRight } from 'react-icons/fa6'
 import { RxDividerVertical } from 'react-icons/rx'
-import dayjs from 'dayjs'
+import Money from '../Money'
+import s from './itemSummary.module.css'
 
-export default function ItemSummary({ itemId, selector }: { itemId: string, selector: Selector<ItemRecord> }) {
+export default function ItemSummary({ item, selector }: { item: ItemRecord, selector: Selector<ItemRecord> }) {
   const [active, setActive] = useState(false)
-  const itemRecord = useStore(state => state.catalog[itemId])
 
-  if (!itemRecord) {
-    return <div>Item not found</div>
-  }
 
   return (
     <div className={s.container} >
       <div className={s.summary}>
         <div>
           <input type='checkbox'
-            onChange={(e) => selector.onSelect(e, itemRecord)}
-            checked={selector.isSelected(itemRecord)}
+            onChange={(e) => selector.onSelect(e, item)}
+            checked={selector.isSelected(item)}
           />
         </div>
         <div className={s.summaryContent} onClick={() => setActive(!active)}>
           <div  >
-            <p className={s.title}><span className={s.id}>{itemRecord.itemId}</span> - {itemRecord.itemDescription} </p>
-            <p className={s.subTitle}>C -{itemRecord.classificationName} <RxDividerVertical className={s.divider} />  SC - {itemRecord.subClassificationName}</p>
+            <p className={s.title}><span className={s.id}>{item.officeId}-{item.itemId}</span> - {item.itemDescription} </p>
+            <p className={s.subTitle}>C -{item.classificationName} <RxDividerVertical className={s.divider} />  SC - {item.subClassificationName}</p>
           </div>
           <button className={s.hideShowButton}
             onClick={() => setActive(!active)}>
@@ -38,28 +32,28 @@ export default function ItemSummary({ itemId, selector }: { itemId: string, sele
       {active &&
         <div>
           <p className={s.attribute}>
-            <span className={s.label}>Definition:</span> {itemRecord.definition}
+            <span className={s.label}>Definition:</span> {item.definition}
           </p>
           <p className={s.attribute}>
-            <span className={s.label}>Item Type:</span> {itemRecord.itemType}
+            <span className={s.label}>Item Type:</span> {item.itemType}
           </p>
           <p className={s.attribute}>
-            <span className={s.label}>Item Type Description:</span> {itemRecord.itemTypeDescription}
+            <span className={s.label}>Item Type Description:</span> {item.itemTypeDescription}
           </p>
           <p className={s.attribute}>
-            <span className={s.label}>Unit Price:</span> <Money>{itemRecord.unitPrice}</Money>
+            <span className={s.label}>Unit Price:</span> <Money>{item.unitPrice}</Money>
           </p>
           <p className={s.attribute}>
-            <span className={s.label}>Dispensing Fee:</span> <Money>{itemRecord.dispensingFee}</Money>
+            <span className={s.label}>Dispensing Fee:</span> <Money>{item.dispensingFee}</Money>
           </p>
           <p className={s.attribute}>
-            <span className={s.label}>Minimum Price:</span> <Money>{itemRecord.minimumPrice}</Money>
+            <span className={s.label}>Minimum Price:</span> <Money>{item.minimumPrice}</Money>
           </p>
           <p className={s.attribute}>
-            <span className={s.label}>Mark Up Percentage:</span> <Money>{itemRecord.markUpPercentage}</Money>
+            <span className={s.label}>Mark Up Percentage:</span> <Money>{item.markUpPercentage}</Money>
           </p>
           <p className={s.attribute}>
-            <span className={s.label}>Mapped:</span> {dayjs(itemRecord.mapped).format()}
+            {/* <span className={s.label}>Mapped:</span> {dayjs(item.mapped).format()/} */}
           </p>
         </div>
       }

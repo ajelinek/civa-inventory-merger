@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react"
 import { useModal } from "../../hooks/searchParams"
-import { useFileImport } from "../../store/import"
 import { AlertMessage } from "../AlertMessage"
 import s from './importModel.module.css'
+import { useFileImport } from "../../store"
 
 
 
@@ -19,6 +19,7 @@ export default function ImportModel() {
 
   function processCsv(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    if (!file) return
     fileImport.execute(file)
   }
 
@@ -39,7 +40,7 @@ export default function ImportModel() {
         <AlertMessage message={fileImport.error?.message} />
         <form onSubmit={processCsv}>
           <input type="file" id="file" accept=".csv" onChange={handleFileSelection} />
-          <button type='submit' aria-busy={fileImport.loading} >Process File</button>
+          <button type='submit' aria-busy={fileImport.loading} disabled={!file}>Process File</button>
         </form>
         <p className={s.warning}>If you upload the same office file again, your updates and mappings for that office will be lost.</p>
       </article>

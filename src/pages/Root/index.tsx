@@ -1,8 +1,7 @@
 import { Outlet, useNavigate } from 'react-router-dom'
 import Header from '../../components/Header'
-import { useStore } from '../../store'
+import { useAuthorizedUser, useStore } from '../../store'
 import { useEffect } from 'react'
-import { useAuthorizedUser } from '../../store/auth'
 
 export default function App() {
   useAuthorizedUser()
@@ -13,7 +12,7 @@ export default function App() {
     if (!user) nav('/')
   }, [user])
 
-  if (user === undefined) return (<div>Loading...</div>)
+  if (user === undefined) return (<div aria-busy={true}>Loading...</div>)
 
   return (
     <main >
