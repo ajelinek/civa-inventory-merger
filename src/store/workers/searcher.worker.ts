@@ -1,6 +1,8 @@
 import Fuse from 'fuse.js'
+import { removeStopwords } from 'stopword'
 
-let searcher: Fuse<ItemRecord> | null = null
+let searcher: Fuse<SearchItem> | null = null
+let id = Math.random() * 100
 
 onmessage = (event: MessageEvent<SearcherMessage>) => {
   switch (event.data.type) {
@@ -14,8 +16,8 @@ onmessage = (event: MessageEvent<SearcherMessage>) => {
 }
 
 function load(catalog: Catalogs) {
-  searcher = new Fuse<ItemRecord>(mergeCatalogs(catalog), {
-    keys: ['itemId', 'officeAbbreviationId', 'classificationId', 'classificationName', 'subClassificationId', 'subClassificationName', 'itemId', 'itemDescription', 'definition', 'itemType', 'itemTypeDescription', 'mapped'],
+  searcher = new Fuse<SearchItem>(mergeCatalogs(catalog), {
+    keys: ['searchString', 'classificationId', 'subClassificationId', 'officeId', 'itemId'],
     threshold: 0.5,
     ignoreLocation: true,
     minMatchCharLength: 2,
@@ -28,37 +30,90 @@ function load(catalog: Catalogs) {
   postMessage({ type: 'loaded' })
 }
 
+interface SearchItem {
+  searchString: string
+  classificationId: string
+  subClassificationId: string
+  officeId: string
+  itemId: string
+  mapped: Date
+  linked: Date
+}
+
 function mergeCatalogs(catalogs: Catalogs) {
-  const merged = Object.values(catalogs).reduce((acc, catalog) => {
-    acc = [...acc, ...Object.values(catalog)]
+  const merged = Object.values(catalogs).reduce((acc, catalog: Catalogs) => {
+    acc = [
+      ...acc,
+      ...Object.values(catalog).map((item: ItemRecord) => ({
+        searchString: `${item.classificationName} ${item.subClassificationName} ${item.itemDescription} ${item.definition}`,
+        classificationId: item.classificationId,
+        subClassificationId: item.subClassificationId,
+        officeId: item.officeId,
+        itemId: item.itemId,
+        classificationMappedTimestamp: item.classificationMappedTimestamp,
+        itemLinkedTimestamp: item.itemLinkedTimestamp
+      }))]
     return acc
-  }, [] as ItemRecord[])
+  }, [] as SearchItem[])
   return merged
 }
 
 function search(query: CatalogQuery) {
   if (!searcher) throw new Error('Searcher not initialized')
 
-  if (!query || !query.searchText) {
+  if (!query) {
     postMessage({ type: 'searched', payload: [] })
     return
   }
 
-  const results = searcher.search(query.searchText)
-  const items = results.map(result => ({
+  const results = searcher.search(buildLogicalQuery(query), { limit: 100 })
+  //TODO: check the mapped and linked query options and filter the results
+  const itemKeys = results.map(result => ({
     itemId: result.item.itemId,
     officeId: result.item.officeId
   }))
-  const matchedCatalogs = new Set(items.map(item => item.officeId)).size
+  const matchedCatalogs = new Set(itemKeys.map(item => item.officeId)).size
   const matchedRecords = results.length
+  const keyWords = identifyKeyWords(results, query)
 
   postMessage({
     type: 'searched',
     payload: {
-      items,
+      itemKeys,
       matchedCatalogs,
       matchedRecords,
-      keyWords: []
+      keyWords
     }
   })
+}
+
+function identifyKeyWords(results: Fuse.FuseResult<SearchItem>[], query: EnhancedCatalogQuery) {
+  const tokens = new Set<string>()
+  results.forEach(r => {
+    r.item.searchString.split(' ')
+      .filter(token => token.length > 2)
+      .forEach(token => {
+        tokens.add(token)
+      })
+  })
+
+  query.classificationName?.split(' ').forEach(token => tokens.add(token))
+  query.subClassificationName?.split(' ').forEach(token => tokens.add(token))
+
+  return removeStopwords(Array.from(tokens))
+}
+
+function buildLogicalQuery(query: CatalogQuery): Fuse.Expression {
+  const logicalQuery = { $and: [] as Fuse.Expression[] }
+
+  if (query.autoTokens?.length || 0 > 0) {
+    const autoTokens = query.autoTokens?.map(token => ({ searchString: `'${token}` }))
+    logicalQuery.$and.push({ $or: autoTokens })
+  }
+
+  if (query.searchText) logicalQuery.$and.push({ searchString: query.searchText })
+  if (query.classificationId) logicalQuery.$and.push({ classificationId: query.classificationId })
+  if (query.subClassificationId) logicalQuery.$and.push({ subClassificationId: query.subClassificationId })
+
+  return logicalQuery
 }

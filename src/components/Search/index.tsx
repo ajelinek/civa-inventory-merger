@@ -1,31 +1,17 @@
-import { useMemo, useState } from 'react'
-import { removeStopwords } from 'stopword'
+import { useEffect, useState } from 'react'
 import s from './search.module.css'
 
 type SearchProps = {
-  autoTokens?: string[]
+  keyWords?: string[]
   onSearch: (query: CatalogQuery) => void
 }
 
-export default function Search({ autoTokens, onSearch }: SearchProps) {
+export default function Search({ keyWords, onSearch }: SearchProps) {
   const [selectedTokens, setSelectedTokens] = useState<string[]>([])
   const [excludeTerms, setExcludeTerms] = useState<string>('')
   const [includeMapped, setIncludeMapped] = useState<boolean>(false) //TODO: make this a parm in
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [showAdvancedSearch, setShowAdvancedSearch] = useState<boolean>(false)
-
-  const uniqueTokens = useMemo(() => {
-    const tokensSet = new Set<string>()
-    autoTokens?.forEach((str) => {
-      const strTokens = removeStopwords(str?.split(' ')).filter((t) => t.length > 2)
-      strTokens.forEach((token) => tokensSet.add(token.toLocaleLowerCase()))
-    })
-
-    const tokens = Array.from(tokensSet)
-    setSelectedTokens([...tokens])
-    return tokens
-  }, [autoTokens])
-
 
   function handleTokenClick(token: string) {
     if (selectedTokens.includes(token)) {
@@ -35,7 +21,6 @@ export default function Search({ autoTokens, onSearch }: SearchProps) {
     }
   }
 
-
   function handleSearchSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     onSearch({
@@ -43,13 +28,26 @@ export default function Search({ autoTokens, onSearch }: SearchProps) {
     })
   }
 
+  useEffect(() => {
+    if (!keyWords || keyWords.length == 0) return
+    setSelectedTokens(keyWords)
+  }, [keyWords])
+
+  useEffect(() => {
+    onSearch({
+      searchText: searchTerm,
+      includeMapped,
+      autoTokens: selectedTokens,
+    })
+  }, [selectedTokens])
+
 
   return (
     <form className={s.form} onSubmit={handleSearchSubmit}>
       <fieldset>
         <label htmlFor="pillbox" className={s.label}>Automatic Terms</label>
         <div id='pillbox' className={s.pillbox}>
-          {uniqueTokens.map((token) => (
+          {keyWords?.map((token) => (
             <button
               type='button'
               key={token}

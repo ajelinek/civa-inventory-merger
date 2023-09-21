@@ -49,7 +49,6 @@ function convertFileToJSON(file: File): Promise<ImportRecord[]> {
 }
 
 function convertImportFileToCatalog(records: ImportRecord[]) {
-  console.log("🚀 ~ file: import.ts:51 ~ convertImportFileToCatalog ~ records:", records)
   const office = convertImportRecordToItemRecord(records[0]).officeId
   const catalog = records.reduce((acc, record) => {
     if (!record.itemId) return acc

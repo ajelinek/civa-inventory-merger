@@ -2,22 +2,22 @@ interface RealDbSchema {
   org: Org
   catalogs: Catalogs
   prevId: {
-    [officeId: OfficeId]: {
-      [itemId: string]: string
+    [OfficeId]: {
+      [itemId]: string
     }
   }
   catalogHistory: {
-    [officeId: OfficeId]: {
+    [OfficeId]: {
       metadata: OfficeCatalogMetadata
-      [itemId: string]: ItemRecord
+      [itemId]: ItemRecord
     }
   }
 }
-
+type itemId = string
 interface Catalogs {
-  [officeId: OfficeId]: {
+  [OfficeId]: {
     metadata: OfficeCatalogMetadata
-    [itemId: string]: ItemRecord
+    [itemId]: ItemRecord
   }
 }
 
@@ -25,6 +25,7 @@ interface Org {
   offices: Offices | undefined
   classifications: Classifications | undefined
 }
+
 type Offices = Record<OfficeId, OfficeRecord>
 interface OfficeRecord {
   name: string
@@ -36,8 +37,7 @@ interface Classification {
   subClassifications?: Record<string, { name: string }>
 }
 
-type OfficeId =
-  'VC' |
+type OfficeId = 'VC' |
   'LS' |
   'EC' |
   'BH' |
@@ -74,4 +74,12 @@ interface ItemRecord {
   lastUpdateTimestamp?: Date
   classificationMappedTimestamp?: Date
   itemLinkedTimestamp?: Date
+}
+
+interface UpdateClassificationInput {
+  classificationId: string
+  classificationName: string
+  subClassificationId?: string
+  subClassificationName?: string
+  items: ItemRecord[]
 }

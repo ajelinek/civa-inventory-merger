@@ -1,11 +1,10 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { AlertMessage } from '../../components/AlertMessage'
 import { ClassificationSelector, SubClassificationSelector } from '../../components/CommonInputFields/selectors'
 import ItemSummary from '../../components/ItemSummary'
 import Search from '../../components/Search'
 import useListSelector from '../../hooks/useListSelector'
-import { useSearchCatalog, useStore } from '../../store'
-import { updateClassifications } from '../../store/db/item'
+import { useClassificationUpdate, useSearchCatalog, useStore } from '../../store'
 import s from './mapper.module.css'
 
 export default function Mapper() {
@@ -14,19 +13,18 @@ export default function Mapper() {
   const mapFromSelector = useListSelector<ItemRecord>([], 'recordId')
   const mappedSelector = useListSelector<ItemRecord>([], 'recordId')
   const classifications = useStore(state => state.org?.classifications)
-  const classificationUpdates = updateClassifications()
+  const classificationUpdates = useClassificationUpdate()
   const [query, setQuery] = useState<CatalogQuery>()
   const search = useSearchCatalog(query)
-  const mappedResult = useSearchCatalog(null)
 
-  // const automaticSearchStrings = useMemo(() => {
-  //   const tokens = mappedResult.result?.map(r => r.itemDescription)
-  //   const { classificationName, subClassificationName } = getClassificationNames(classificationId, subClassificationId)
-  //   if (classificationName) tokens.push(classificationName)
-  //   if (subClassificationName) tokens.push(subClassificationName)
-  //   return tokens
-  // }, [mappedResult, classificationId, subClassificationId])
-
+  const mappedQuery = useMemo(() => {
+    if (!classificationId || !subClassificationId) return
+    return {
+      classificationId,
+      subClassificationId,
+    }
+  }, [classificationId, subClassificationId])
+  const mappedResult = useSearchCatalog(mappedQuery)
 
   async function handleUpdateClassifications() {
     if (!classifications || !classificationId || !subClassificationId) return
@@ -55,15 +53,17 @@ export default function Mapper() {
             <SubClassificationSelector value={subClassificationId} onChange={e => setSubClassification(e.target.value)} classification={classificationId} />
           </div>
           <h3>Mapped</h3>
-          {mappedResult.loading ? <div aria-busy={true}></div>
-            : mappedResult.items.map((r: ItemRecord) => <ItemSummary key={r.itemId} item={r} selector={mappedSelector} />)
+          {mappedResult.status === 'searching' && <div aria-busy={true}></div>}
+          {mappedResult.status === 'searched' && mappedResult.result?.matchedRecords === 0 && <p>No Results Found</p>}
+          {mappedResult.status === 'searched' && mappedResult.page &&
+            mappedResult.page.map((r: ItemRecord) => <ItemSummary key={r.itemId} item={r} selector={mappedSelector} />)
           }
         </div>
         <div className={s.column}>
           <div className={s.searchMapping} >
             <h3>Suggested Mappings</h3>
             <Search
-              autoTokens={mappedResult.keyWords || []}
+              keyWords={mappedResult.result?.keyWords || []}
               onSearch={(r) => {
                 setQuery(r)
               }}
@@ -74,10 +74,11 @@ export default function Mapper() {
               Map Selected (<span>{mapFromSelector.count}</span>)
             </button>
           </div>
-          {search.items.length}
-          {search?.loading
-            ? <div className={s.loading} aria-busy={true}>Searching...</div>
-            : search?.items.map(r =>
+          {search?.result?.matchedRecords}
+          {search?.status === 'searching' && <div className={s.loading} aria-busy={true}>Searching...</div>}
+          {(search?.status === 'searched' && search?.result?.matchedRecords === 0) && <p>No Results Found</p>}^
+          {(search?.page) &&
+            search?.page.map(r =>
               <ItemSummary key={r.officeId + r.itemId} item={r} selector={mapFromSelector} />
             )}
         </div>
