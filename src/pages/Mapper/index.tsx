@@ -9,8 +9,9 @@ import { useCatalogSearchParamQuery, useClassificationUpdate, useSearchCatalog, 
 import s from './mapper.module.css'
 
 export default function Mapper() {
-  const classification = useSearchParam('c')
-  const subClassification = useSearchParam('cs')
+  //TODO, change this to a different param that is not pulled int the search results
+  const classification = useSearchParam('mc')
+  const subClassification = useSearchParam('msc')
   const classificationId = classification.value || ''
   const subClassificationId = subClassification.value || ''
 
@@ -29,6 +30,7 @@ export default function Mapper() {
     }
   }, [classificationId, subClassificationId])
   const mappedResult = useSearchCatalog(mappedQuery)
+  console.log("🚀 ~ file: index.tsx:33 ~ Mapper ~ mappedResult:", mappedResult)
 
   async function handleUpdateClassifications() {
     if (!classifications || !classificationId || !subClassificationId) return

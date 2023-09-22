@@ -22,7 +22,7 @@ export function useModal() {
   return { modal, showModel, closeModel }
 }
 
-type SelectParams = 'o' | 'c' | 'cs' | 'kw'
+type SelectParams = 'o' | 'c' | 'sc' | 'kw'
 export function useSearchParamsListToggle(param: SelectParams) {
   const [searchParams, setSearchParams] = useSearchParams()
   const values = searchParams.getAll(param)
@@ -74,7 +74,7 @@ export function useSearchParamsListToggle(param: SelectParams) {
   }
 }
 
-type SearchParams = 'o' | 'c' | 'cs' | 'st' | 'im' | 'il'
+type SearchParams = 'o' | 'c' | 'sc' | 'st' | 'im' | 'il' | 'mc' | 'msc'
 export function useSearchParam(param: SearchParams) {
   const [searchParams, setSearchParams] = useSearchParams()
   const value = searchParams.get(param)
