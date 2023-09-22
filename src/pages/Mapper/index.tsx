@@ -1,27 +1,31 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { AlertMessage } from '../../components/AlertMessage'
 import { ClassificationSelector, SubClassificationSelector } from '../../components/CommonInputFields/selectors'
 import ItemSummary from '../../components/ItemSummary'
 import Search from '../../components/Search'
+import { useSearchParam } from '../../hooks/searchParams'
 import useListSelector from '../../hooks/useListSelector'
-import { useClassificationUpdate, useSearchCatalog, useStore } from '../../store'
+import { useCatalogSearchParamQuery, useClassificationUpdate, useSearchCatalog, useStore } from '../../store'
 import s from './mapper.module.css'
 
 export default function Mapper() {
-  const [classificationId, setClassification] = useState<string>('')
-  const [subClassificationId, setSubClassification] = useState<string>('')
+  const classification = useSearchParam('c')
+  const subClassification = useSearchParam('cs')
+  const classificationId = classification.value || ''
+  const subClassificationId = subClassification.value || ''
+
   const mapFromSelector = useListSelector<ItemRecord>([], 'recordId')
   const mappedSelector = useListSelector<ItemRecord>([], 'recordId')
   const classifications = useStore(state => state.org?.classifications)
   const classificationUpdates = useClassificationUpdate()
-  const [query, setQuery] = useState<CatalogQuery>()
+  const query = useCatalogSearchParamQuery()
   const search = useSearchCatalog(query)
 
   const mappedQuery = useMemo(() => {
     if (!classificationId || !subClassificationId) return
     return {
-      classificationId,
-      subClassificationId,
+      classificationIds: [classificationId],
+      subClassificationIds: [subClassificationId],
     }
   }, [classificationId, subClassificationId])
   const mappedResult = useSearchCatalog(mappedQuery)
@@ -49,8 +53,8 @@ export default function Mapper() {
         <div className={s.column}>
           <h3>Mappings</h3>
           <div className={s.classifications}>
-            <ClassificationSelector value={classificationId} onChange={e => setClassification(e.target.value)} />
-            <SubClassificationSelector value={subClassificationId} onChange={e => setSubClassification(e.target.value)} classification={classificationId} />
+            <ClassificationSelector value={classificationId} onChange={e => classification.setValue(e.target.value)} />
+            <SubClassificationSelector value={subClassificationId} onChange={e => subClassification.setValue(e.target.value)} classification={classificationId} />
           </div>
           <h3>Mapped</h3>
           {mappedResult.status === 'searching' && <div aria-busy={true}></div>}
@@ -62,12 +66,7 @@ export default function Mapper() {
         <div className={s.column}>
           <div className={s.searchMapping} >
             <h3>Suggested Mappings</h3>
-            <Search
-              keyWords={mappedResult.result?.keyWords || []}
-              onSearch={(r) => {
-                setQuery(r)
-              }}
-            />
+            <Search keyWords={mappedResult.result?.keyWords || []} />
             <button
               aria-busy={classificationUpdates.loading}
               onClick={handleUpdateClassifications} >
@@ -76,7 +75,7 @@ export default function Mapper() {
           </div>
           {search?.result?.matchedRecords}
           {search?.status === 'searching' && <div className={s.loading} aria-busy={true}>Searching...</div>}
-          {(search?.status === 'searched' && search?.result?.matchedRecords === 0) && <p>No Results Found</p>}^
+          {(search?.status === 'searched' && search?.result?.matchedRecords === 0) && <p>No Results Found</p>}
           {(search?.page) &&
             search?.page.map(r =>
               <ItemSummary key={r.officeId + r.itemId} item={r} selector={mapFromSelector} />

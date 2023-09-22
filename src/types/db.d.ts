@@ -32,9 +32,10 @@ interface OfficeRecord {
 }
 
 type Classifications = Record<string, Classification>
+type SubClassifications = Record<string, { name: string }>
 interface Classification {
   name: string
-  subClassifications?: Record<string, { name: string }>
+  subClassifications?: SubClassifications
 }
 
 type OfficeId = 'VC' |

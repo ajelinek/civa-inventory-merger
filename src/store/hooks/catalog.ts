@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useAsync, useAsyncCallback } from "react-async-hook"
 import { useStore } from ".."
 import { loadCatalog, updateClassifications } from "../providers/catalog"
 import { processImportFile } from "../providers/import"
 import Searcher from "../workers/searcher.worker?worker"
+import { useSearchParams } from "react-router-dom"
+import { useDebouncedCallback } from "use-debounce"
 
 export function useFileImport() {
   const email = useStore.getState().user?.email ?? 'unknown'
@@ -20,11 +22,35 @@ export function useClassificationUpdate() {
   return useAsyncCallback(updateClassifications)
 }
 
+export function useCatalogSearchParamQuery(): CatalogQuery | undefined {
+  const classificationsMap = useStore(state => state.org?.classifications)
+  const subClassificationMap = useStore(state => state.subClassifications)
+  const [query, setQuery] = useState<CatalogQuery>()
+  const [searchParams] = useSearchParams()
+  const queryBuilder = useDebouncedCallback(() => {
+    const newQuery = {
+      officeIds: searchParams.getAll('o'),
+      classificationIds: searchParams.getAll('c'),
+      classificationNames: searchParams.getAll('c').map(id => classificationsMap?.[id]?.name ?? ''),
+      subClassificationIds: searchParams.getAll('cs'),
+      keyWords: searchParams.getAll('kw'),
+      searchText: searchParams.get('st') || '',
+      includeMapped: searchParams.get('im') === 'true',
+      includeLinked: searchParams.get('il') === 'true',
+      subClassificationNames: searchParams.getAll('cs').map(id => subClassificationMap?.[id]?.name ?? '')
+    }
+    setQuery(newQuery)
+  }, 500)
+
+  useEffect(() => queryBuilder(), [classificationsMap, subClassificationMap, searchParams])
+
+  return query
+}
+
 type SearchStatus = 'initial' | 'loading' | 'loaded' | 'searching' | 'searched'
 export function useSearchCatalog(query: CatalogQuery | undefined | null) {
   const searcher = useRef<Worker>()
   const catalog = useStore(state => state.catalog)
-  const classifications = useStore(state => state.org?.classifications)
   const [status, setStatus] = useState<SearchStatus>('initial')
   const [result, setResult] = useState<CatalogQueryResult>()
   const [page, setPage] = useState<ItemRecord[]>()
@@ -63,16 +89,13 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null) {
     searcher.current.postMessage({ type: 'load', payload: catalog })
   }, [catalog])
 
+
   useEffect(() => {
     if (!(searcher.current && query)) return
-    const enhancedCatalogQuery = {
-      ...query,
-      classificationName: query.classificationId && classifications?.[query.classificationId]?.name,
-      subClassificationName: query.classificationId && query.subClassificationId && classifications?.[query.classificationId]?.subClassifications?.[query.subClassificationId]?.name
-    }
     setStatus('searching')
-    searcher.current.postMessage({ type: 'search', payload: enhancedCatalogQuery })
+    searcher.current.postMessage({ type: 'search', payload: query })
   }, [query])
 
   return { status, result, page }
 }
+

@@ -27,6 +27,7 @@
     "react-icons": "^4.11.0",
     "react-router-dom": "^6.15.0",
     "stopword": "^2.0.8",
+    "use-debounce": "^9.0.4",
     "zustand": "^4.4.1"
   },
   "devDependencies": {

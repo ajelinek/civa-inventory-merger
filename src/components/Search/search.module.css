@@ -22,15 +22,6 @@
     background-color: var(--primary-hover);
   }
 }
-.searchTextInputs {
-  display: flex;
-  justify-content: space-between;
-}
-
-.searchInput,
-.excludeInput {
-  width: calc(50% - 0.5rem);
-}
 
 .checkbox {
   margin-right: 0.25rem;

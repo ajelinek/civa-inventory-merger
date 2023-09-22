@@ -2,6 +2,7 @@ import Fuse from 'fuse.js'
 import { removeStopwords } from 'stopword'
 
 let searcher: Fuse<SearchItem> | null = null
+let catalog: Catalogs | null = null
 let id = Math.random() * 100
 
 onmessage = (event: MessageEvent<SearcherMessage>) => {
@@ -16,6 +17,7 @@ onmessage = (event: MessageEvent<SearcherMessage>) => {
 }
 
 function load(catalog: Catalogs) {
+  catalog = catalog
   searcher = new Fuse<SearchItem>(mergeCatalogs(catalog), {
     keys: ['searchString', 'classificationId', 'subClassificationId', 'officeId', 'itemId'],
     threshold: 0.5,
@@ -87,7 +89,7 @@ function search(query: CatalogQuery) {
   })
 }
 
-function identifyKeyWords(results: Fuse.FuseResult<SearchItem>[], query: EnhancedCatalogQuery) {
+function identifyKeyWords(results: Fuse.FuseResult<SearchItem>[], query: CatalogQuery) {
   const tokens = new Set<string>()
   results.forEach(r => {
     r.item.searchString.split(' ')
@@ -97,8 +99,8 @@ function identifyKeyWords(results: Fuse.FuseResult<SearchItem>[], query: Enhance
       })
   })
 
-  query.classificationName?.split(' ').forEach(token => tokens.add(token))
-  query.subClassificationName?.split(' ').forEach(token => tokens.add(token))
+  query.classificationNames?.forEach(name => name.split(' ').forEach(token => tokens.add(token)))
+  query.subClassificationNames?.forEach(name => name.split(' ').forEach(token => tokens.add(token)))
 
   return removeStopwords(Array.from(tokens))
 }
@@ -106,14 +108,14 @@ function identifyKeyWords(results: Fuse.FuseResult<SearchItem>[], query: Enhance
 function buildLogicalQuery(query: CatalogQuery): Fuse.Expression {
   const logicalQuery = { $and: [] as Fuse.Expression[] }
 
-  if (query.autoTokens?.length || 0 > 0) {
-    const autoTokens = query.autoTokens?.map(token => ({ searchString: `'${token}` }))
+  if (query.keyWords?.length || 0 > 0) {
+    const autoTokens = query.keyWords?.map(token => ({ searchString: `'${token}` }))
     logicalQuery.$and.push({ $or: autoTokens })
   }
 
   if (query.searchText) logicalQuery.$and.push({ searchString: query.searchText })
-  if (query.classificationId) logicalQuery.$and.push({ classificationId: query.classificationId })
-  if (query.subClassificationId) logicalQuery.$and.push({ subClassificationId: query.subClassificationId })
+  if (query.classificationIds?.length ?? 0 > 0) query.classificationIds?.forEach(classificationId => logicalQuery.$and.push({ classificationId }))
+  if (query.subClassificationIds?.length ?? 0 > 0) query.subClassificationIds?.forEach(subclassificationId => logicalQuery.$and.push({ subclassificationId }))
 
   return logicalQuery
 }

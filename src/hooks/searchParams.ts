@@ -22,27 +22,70 @@ export function useModal() {
   return { modal, showModel, closeModel }
 }
 
-export function useOfficeSearchParams() {
+type SelectParams = 'o' | 'c' | 'cs' | 'kw'
+export function useSearchParamsListToggle(param: SelectParams) {
   const [searchParams, setSearchParams] = useSearchParams()
-  const selectedOffices = searchParams.getAll('office')
+  const values = searchParams.getAll(param)
 
-  function toggleOffice(office: string) {
-    const offices = searchParams.getAll('office')
-    if (offices.includes(office)) {
+  function toggle(value: string) {
+    if (isSelected(value)) {
       setSearchParams(prev => {
-        prev.delete('office', office)
+        prev.delete(param, value)
         return prev
       }, { replace: true })
-    } else {
-      setSearchParams(prev => {
-        prev.append('office', office)
-        return prev
-      }, { replace: true })
+      return false
     }
+
+    setSearchParams(prev => {
+      prev.append(param, value)
+      return prev
+    }, { replace: true })
+    return true
   }
 
-  return { selectedOffices, toggleOffice }
+  function isSelected(value: string) {
+    return values.includes(value)
+  }
+
+  function removeAll() {
+    setSearchParams(prev => {
+      prev.delete(param)
+      return prev
+    }, { replace: true })
+  }
+
+  function addAll(values: string[]) {
+    setSearchParams(prev => {
+      prev.delete(param)
+      values.forEach(value => prev.append(param, value))
+      return prev
+    }, { replace: true })
+  }
+
+  function add(value: string) {
+    setSearchParams(prev => {
+      prev.append(param, value)
+      return prev
+    }, { replace: true })
+  }
+
+  return {
+    values, toggle, isSelected, removeAll, addAll, add
+  }
 }
 
+type SearchParams = 'o' | 'c' | 'cs' | 'st' | 'im' | 'il'
+export function useSearchParam(param: SearchParams) {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const value = searchParams.get(param)
 
+  function setValue(value: string) {
+    setSearchParams(prev => {
+      prev.set(param, value)
+      return prev
+    }, { replace: true })
+  }
+
+  return { value, setValue }
+}
 
