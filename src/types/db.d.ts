@@ -66,7 +66,7 @@ interface ItemRecord {
   definition: string
   itemType: string
   itemTypeDescription: string
-  // unitOfMeasure: string
+  unitOfMeasure: string
   unitPrice: number
   dispensingFee: number
   minimumPrice: number
@@ -84,3 +84,17 @@ interface UpdateClassificationInput {
   subClassificationName?: string
   items: ItemRecord[]
 }
+
+type CreateItemRecordInput = Pick<ItemRecord,
+  'officeId' |
+  'itemId' |
+  'itemDescription' |
+  'classificationId' |
+  'classificationName' |
+  'subClassificationId' |
+  'subClassificationName' |
+  'unitOfMeasure' |
+  'itemType' |
+  'minimumPrice' |
+  'markUpPercentage'
+>
