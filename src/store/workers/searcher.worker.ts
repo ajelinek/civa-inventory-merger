@@ -19,7 +19,7 @@ onmessage = (event: MessageEvent<SearcherMessage>) => {
 function load(catalog: Catalogs) {
   catalog = catalog
   searcher = new Fuse<SearchItem>(mergeCatalogs(catalog), {
-    keys: ['searchString', 'classificationId', 'subClassificationId', 'officeId', 'itemId'],
+    keys: ['searchString', 'classificationId', 'subClassificationId', 'officeId', 'itemId', 'classificationMappedTimestamp', 'itemLinkedTimestamp'],
     threshold: 0.5,
     ignoreLocation: true,
     minMatchCharLength: 2,
@@ -38,8 +38,8 @@ interface SearchItem {
   subClassificationId: string
   officeId: string
   itemId: string
-  mapped: Date
-  linked: Date
+  classificationMappedTimestamp: Date
+  itemLinkedTimestamp: Date
 }
 
 function mergeCatalogs(catalogs: Catalogs) {
@@ -69,11 +69,16 @@ function search(query: CatalogQuery) {
   }
 
   const results = searcher.search(buildLogicalQuery(query), { limit: 100 })
-  //TODO: check the mapped and linked query options and filter the results
-  const itemKeys = results.map(result => ({
-    itemId: result.item.itemId,
-    officeId: result.item.officeId
-  }))
+  const itemKeys = results
+    .filter(i => {
+      if (query.includeMapped === false && i.item?.classificationMappedTimestamp) return false
+      if (query.includeLinked === false && i.item?.itemLinkedTimestamp) return false
+      return true
+    })
+    .map(result => ({
+      itemId: result.item.itemId,
+      officeId: result.item.officeId
+    }))
   const matchedCatalogs = new Set(itemKeys.map(item => item.officeId)).size
   const matchedRecords = results.length
   const keyWords = identifyKeyWords(results, query)
@@ -95,12 +100,12 @@ function identifyKeyWords(results: Fuse.FuseResult<SearchItem>[], query: Catalog
     r.item.searchString.split(' ')
       .filter(token => token.length > 2)
       .forEach(token => {
-        tokens.add(token)
+        tokens.add(token.toLocaleLowerCase())
       })
   })
 
-  query.classificationNames?.forEach(name => name.split(' ').forEach(token => tokens.add(token)))
-  query.subClassificationNames?.forEach(name => name.split(' ').forEach(token => tokens.add(token)))
+  query.classificationNames?.forEach(name => name.split(' ').forEach(token => tokens.add(token.toLocaleLowerCase())))
+  query.subClassificationNames?.forEach(name => name.split(' ').forEach(token => tokens.add(token.toLocaleLowerCase())))
 
   return removeStopwords(Array.from(tokens))
 }
@@ -114,8 +119,19 @@ function buildLogicalQuery(query: CatalogQuery): Fuse.Expression {
   }
 
   if (query.searchText) logicalQuery.$and.push({ searchString: query.searchText })
-  if (query.classificationIds?.length ?? 0 > 0) query.classificationIds?.forEach(classificationId => logicalQuery.$and.push({ classificationId }))
-  if (query.subClassificationIds?.length ?? 0 > 0) query.subClassificationIds?.forEach(subclassificationId => logicalQuery.$and.push({ subclassificationId }))
+  if (query.classificationIds?.length ?? 0 > 0) {
+    const classificationIds = query.classificationIds?.map(cId => ({ classificationId: `="${cId}"` }))
+    logicalQuery.$and.push({ $or: classificationIds })
+  }
+  if (query.subClassificationIds?.length ?? 0 > 0) {
+    const subClassificationIds = query.subClassificationIds?.map(scId => ({ subClassificationId: `="${scId}"` }))
+    logicalQuery.$and.push({ $or: subClassificationIds })
+  }
+
+  if (query.officeIds?.length ?? 0 > 0) {
+    const officeIds = query.officeIds?.map(oId => ({ officeId: `="${oId}"` }))
+    logicalQuery.$and.push({ $or: officeIds })
+  }
 
   return logicalQuery
 }

@@ -1,15 +1,16 @@
-import dayjs from 'dayjs'
 import CatalogActionBar from '../../components/CatalogActionBar'
-import ImportModel from '../../components/ImportModal'
-import { useCatalogSearchParamQuery, useStore } from '../../store'
-import s from './catalogViewer.module.css'
 import FacetedSearch from '../../components/CatalogFacetSearch'
+import ImportModel from '../../components/ImportModal'
 import Search from '../../components/Search'
+import SearchResults from '../../components/SearchResults/indext'
+import useListSelector from '../../hooks/useListSelector'
+import { useCatalogSearchParamQuery, useSearchCatalog } from '../../store'
+import s from './catalogViewer.module.css'
 
 export default function CatalogViewer() {
-  const lastUpdateTime = useStore(state => state.catalogLastUpdateTimestamp)
-  const quey = useCatalogSearchParamQuery()
-  console.log("🚀 ~ file: index.tsx:12 ~ CatalogViewer ~ quey:", quey)
+  const query = useCatalogSearchParamQuery()
+  const search = useSearchCatalog(query)
+  const selector = useListSelector<ItemRecord>([], 'recordId')
 
   return (
     <div className={s.container}>
@@ -19,8 +20,8 @@ export default function CatalogViewer() {
       </section>
       <section className={s.catalog}>
         <CatalogActionBar />
-        {/* <Search /> */}
-        <p>{lastUpdateTime ? dayjs(lastUpdateTime).format() : ''}</p>
+        <Search />
+        <SearchResults search={search} selector={selector} />
       </section>
     </div>
   )

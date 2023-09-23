@@ -1,22 +1,29 @@
-import { useEffect, useState } from 'react'
-import s from './search.module.css'
+import { useEffect } from 'react'
 import { useSearchParam, useSearchParamsListToggle } from '../../hooks/searchParams'
+import s from './search.module.css'
 
 type SearchProps = {
   keyWords?: string[]
+  includeDefaultState?: boolean | undefined
 }
 
-export default function Search({ keyWords }: SearchProps) {
-  const [includeMapped, setIncludeMapped] = useState<boolean>(false) //TODO: make this a parm in
+export default function Search({ keyWords, includeDefaultState }: SearchProps) {
+  const includeMapped = useSearchParam('im')
+  const includeLinked = useSearchParam('il')
   const searchTerm = useSearchParam('st')
   const selectedTokens = useSearchParamsListToggle('kw')
+
+  useEffect(() => {
+    if (includeMapped.value === undefined && includeDefaultState !== undefined) includeMapped.setValue(includeDefaultState ? 'true' : 'false')
+    if (includeLinked.value === undefined && includeDefaultState !== undefined) includeLinked.setValue(includeDefaultState ? 'true' : 'false')
+  }, [])
 
   useEffect(() => {
     if (keyWords && keyWords.length > 0) selectedTokens.addAll(keyWords)
   }, [keyWords])
 
   return (
-    <form className={s.form}>
+    <div className={s.form}>
       {(keyWords?.length || 0 > 0) &&
         <>
           <fieldset>
@@ -44,22 +51,36 @@ export default function Search({ keyWords }: SearchProps) {
           <input
             type="search"
             id="searchInput"
-            value={searchTerm.value || ''}
+            placeholder='Search for an item'
+            value={searchTerm.value || undefined}
             onChange={(e) => searchTerm.setValue(e.target.value)}
           />
         </fieldset>
-        <fieldset>
-          <input
-            type="checkbox"
-            role='switch'
-            id="includeMapped"
-            className={s.checkbox}
-            checked={includeMapped}
-            onChange={() => setIncludeMapped(!includeMapped)}
-          />
-          <label htmlFor="includeMapped" className={s.label}>Include mapped fields</label>
-        </fieldset>
+        <div className={s.includeOptions}>
+          <fieldset>
+            <input
+              type="checkbox"
+              role='switch'
+              id="includeMapped"
+              className={s.checkbox}
+              checked={!!includeMapped.value}
+              onChange={() => !!includeMapped.value ? includeMapped.remove() : includeMapped.setValue('true')}
+            />
+            <label htmlFor="includeMapped" className={s.label}>Include mapped items</label>
+          </fieldset>
+          <fieldset>
+            <input
+              type="checkbox"
+              role='switch'
+              id="includeLinked"
+              className={s.checkbox}
+              checked={!!includeLinked.value}
+              onChange={() => !!includeLinked.value ? includeLinked.remove() : includeLinked.setValue('true')}
+            />
+            <label htmlFor="includeLinked" className={s.label}>Include linked items</label>
+          </fieldset>
+        </div>
       </div>
-    </form>
+    </div>
   )
 }

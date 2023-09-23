@@ -96,5 +96,12 @@ interface SearcherLoadMessageReturn {
   type: 'loaded'
 }
 
-type SearcherMessage = SearcherSearchMessage | SearcherLoadMessage;
+type SearcherMessage = SearcherSearchMessage | SearcherLoadMessage
+
+interface UseSearchCatalogReturn {
+  status: SearchStatus
+  result: CatalogQueryResult | undefined
+  page: ItemRecord[] | undefined
+}
+
 

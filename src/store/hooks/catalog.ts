@@ -48,7 +48,7 @@ export function useCatalogSearchParamQuery(): CatalogQuery | undefined {
 }
 
 type SearchStatus = 'initial' | 'loading' | 'loaded' | 'searching' | 'searched'
-export function useSearchCatalog(query: CatalogQuery | undefined | null) {
+export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSearchCatalogReturn {
   const searcher = useRef<Worker>()
   const catalog = useStore(state => state.catalog)
   const [status, setStatus] = useState<SearchStatus>('initial')
@@ -81,7 +81,7 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null) {
     //@ts-ignore
     const newPage = itemKeys?.map(item => catalog[item.officeId][item.itemId])
     setPage(newPage)
-  }, [catalog, result])
+  }, [result])
 
   useEffect(() => {
     if (!(catalog && searcher.current)) return
@@ -94,7 +94,7 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null) {
     if (!(searcher.current && query)) return
     setStatus('searching')
     searcher.current.postMessage({ type: 'search', payload: query })
-  }, [query])
+  }, [query, catalog])
 
   return { status, result, page }
 }

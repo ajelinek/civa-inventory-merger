@@ -86,6 +86,13 @@ export function useSearchParam(param: SearchParams) {
     }, { replace: true })
   }
 
-  return { value, setValue }
+  function remove() {
+    setSearchParams(prev => {
+      prev.delete(param)
+      return prev
+    }, { replace: true })
+  }
+
+  return { value, setValue, remove }
 }
 
