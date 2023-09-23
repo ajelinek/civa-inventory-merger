@@ -35,8 +35,8 @@ export function useCatalogSearchParamQuery(): CatalogQuery | undefined {
       subClassificationIds: searchParams.getAll('cs'),
       keyWords: searchParams.getAll('kw'),
       searchText: searchParams.get('st') || '',
-      includeMapped: searchParams.get('im') === 'true',
-      includeLinked: searchParams.get('il') === 'true',
+      excludeMapped: searchParams.get('exm') === 'true',
+      excludeLinked: searchParams.get('exl') === 'true',
       subClassificationNames: searchParams.getAll('cs').map(id => subClassificationMap?.[id]?.name ?? '')
     }
     setQuery(newQuery)

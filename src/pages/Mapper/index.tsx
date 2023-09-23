@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AlertMessage } from '../../components/AlertMessage'
 import { ClassificationSelector, SubClassificationSelector } from '../../components/CommonInputFields/selectors'
-import ItemSummary from '../../components/ItemSummary'
 import Search from '../../components/Search'
+import SearchResults from '../../components/SearchResults'
 import { useSearchParam } from '../../hooks/searchParams'
 import useListSelector from '../../hooks/useListSelector'
 import { useCatalogSearchParamQuery, useClassificationUpdate, useSearchCatalog, useStore } from '../../store'
 import s from './mapper.module.css'
-import SearchResults from '../../components/SearchResults/indext'
 
 export default function Mapper() {
   const classification = useSearchParam('mc')
@@ -78,7 +77,11 @@ export default function Mapper() {
         <div className={s.column}>
           <div className={s.searchMapping} >
             <h3>Suggested Mappings</h3>
-            <Search keyWords={mappedResult.result?.keyWords || []} />
+            <Search
+              keyWords={mappedResult.result?.keyWords || []}
+              excludeLinkedDefault={true}
+              excludeMappedDefault={true}
+            />
             <button
               className={s.mapButton}
               aria-busy={classificationUpdates.loading}

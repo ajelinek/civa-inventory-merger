@@ -23,3 +23,7 @@
   overflow-y: auto;
   padding: 0 1rem;
 }
+
+.catalog :global(.SearchResults-container) {
+  margin-top: -3rem;
+}

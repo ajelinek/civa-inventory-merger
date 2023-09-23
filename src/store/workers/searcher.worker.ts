@@ -71,8 +71,8 @@ function search(query: CatalogQuery) {
   const results = searcher.search(buildLogicalQuery(query), { limit: 100 })
   const itemKeys = results
     .filter(i => {
-      if (query.includeMapped === false && i.item?.classificationMappedTimestamp) return false
-      if (query.includeLinked === false && i.item?.itemLinkedTimestamp) return false
+      if (query.excludeMapped === true && i.item?.classificationMappedTimestamp) return false
+      if (query.excludeLinked === true && i.item?.itemLinkedTimestamp) return false
       return true
     })
     .map(result => ({

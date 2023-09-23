@@ -1,21 +1,27 @@
 import { useEffect } from 'react'
 import { useSearchParam, useSearchParamsListToggle } from '../../hooks/searchParams'
 import s from './search.module.css'
+import { useSearchParams } from 'react-router-dom'
 
 type SearchProps = {
   keyWords?: string[]
-  includeDefaultState?: boolean | undefined
+  excludeMappedDefault?: boolean | undefined
+  excludeLinkedDefault?: boolean | undefined
 }
 
-export default function Search({ keyWords, includeDefaultState }: SearchProps) {
-  const includeMapped = useSearchParam('im')
-  const includeLinked = useSearchParam('il')
+export default function Search({ keyWords, excludeLinkedDefault, excludeMappedDefault }: SearchProps) {
+  const excludeMapped = useSearchParam('exm')
+  const excludeLinked = useSearchParam('exl')
   const searchTerm = useSearchParam('st')
   const selectedTokens = useSearchParamsListToggle('kw')
+  const [_, setParams] = useSearchParams()
 
   useEffect(() => {
-    if (includeMapped.value === undefined && includeDefaultState !== undefined) includeMapped.setValue(includeDefaultState ? 'true' : 'false')
-    if (includeLinked.value === undefined && includeDefaultState !== undefined) includeLinked.setValue(includeDefaultState ? 'true' : 'false')
+    setParams((prevParams) => {
+      if (excludeLinked.value === null && excludeLinkedDefault !== undefined) prevParams.set('exl', excludeLinkedDefault ? 'true' : 'false')
+      if (excludeMapped.value === null && excludeMappedDefault !== undefined) prevParams.set('exm', excludeMappedDefault ? 'true' : 'false')
+      return prevParams
+    })
   }, [])
 
   useEffect(() => {
@@ -61,23 +67,23 @@ export default function Search({ keyWords, includeDefaultState }: SearchProps) {
             <input
               type="checkbox"
               role='switch'
-              id="includeMapped"
+              id="excludeMapped"
               className={s.checkbox}
-              checked={!!includeMapped.value}
-              onChange={() => !!includeMapped.value ? includeMapped.remove() : includeMapped.setValue('true')}
+              checked={!!excludeMapped.value}
+              onChange={() => !!excludeMapped.value ? excludeMapped.remove() : excludeMapped.setValue('true')}
             />
-            <label htmlFor="includeMapped" className={s.label}>Include mapped items</label>
+            <label htmlFor="excludeMapped" className={s.label}>Exclude mapped items</label>
           </fieldset>
           <fieldset>
             <input
               type="checkbox"
               role='switch'
-              id="includeLinked"
+              id="excludeLinked"
               className={s.checkbox}
-              checked={!!includeLinked.value}
-              onChange={() => !!includeLinked.value ? includeLinked.remove() : includeLinked.setValue('true')}
+              checked={!!excludeLinked.value}
+              onChange={() => !!excludeLinked.value ? excludeLinked.remove() : excludeLinked.setValue('true')}
             />
-            <label htmlFor="includeLinked" className={s.label}>Include linked items</label>
+            <label htmlFor="excludeLinked" className={s.label}>Exclude linked items</label>
           </fieldset>
         </div>
       </div>

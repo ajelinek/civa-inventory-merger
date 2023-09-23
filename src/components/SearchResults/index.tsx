@@ -8,7 +8,7 @@ type props = {
 
 export default function SearchResults({ search, selector }: props) {
   return (
-    <div className={s.container}>
+    <div className={`${s.container} SearchResults-container`}>
       {(search?.result?.matchedRecords || 0 > 0) && <p>Showing {search?.result?.matchedRecords} results</p>}
       {search?.status === 'searching' && <div className={s.loading} aria-busy={true}>Searching...</div>}
       {(search?.status === 'searched' && search?.result?.matchedRecords === 0) && <p>No Results Found</p>}

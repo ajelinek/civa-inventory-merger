@@ -74,7 +74,7 @@ export function useSearchParamsListToggle(param: SelectParams) {
   }
 }
 
-type SearchParams = 'o' | 'c' | 'sc' | 'st' | 'im' | 'il' | 'mc' | 'msc'
+type SearchParams = 'o' | 'c' | 'sc' | 'st' | 'exm' | 'exl' | 'mc' | 'msc'
 export function useSearchParam(param: SearchParams) {
   const [searchParams, setSearchParams] = useSearchParams()
   const value = searchParams.get(param)

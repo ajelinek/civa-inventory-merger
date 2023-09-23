@@ -76,8 +76,8 @@ interface CatalogQuery {
   subClassificationIds?: string[]
   keyWords?: string[]
   searchText?: string
-  includeMapped?: boolean
-  includeLinked?: boolean
+  excludeMapped?: boolean
+  excludeLinked?: boolean
   classificationNames?: string[]
   subClassificationNames?: string[]
 }
