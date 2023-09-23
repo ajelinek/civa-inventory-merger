@@ -47,7 +47,7 @@ function mergeCatalogs(catalogs: Catalogs) {
     acc = [
       ...acc,
       ...Object.values(catalog).map((item: ItemRecord) => ({
-        searchString: `${item.classificationName} ${item.subClassificationName} ${item.itemDescription} ${item.definition}`,
+        searchString: `${item.classificationName} ${item.subClassificationName} ${item.itemDescription} ${item.definition} ${item.originalItemId}`,
         classificationId: item.classificationId,
         subClassificationId: item.subClassificationId,
         officeId: item.officeId,

@@ -2,18 +2,18 @@ import React, { useState } from 'react'
 
 export default function useFormManagement<Data, onSubmitReturn>(
   defaultState: Partial<Data>,
-  formSubmitCb: (data: Partial<Data>) => onSubmitReturn = defaultFormSubmit
+  formSubmitCb: (data: Data) => onSubmitReturn = defaultFormSubmit
 ) {
 
   const [initialState, setInitialState] = useState<Partial<Data>>({ ...defaultState })
-  const [data, setData] = useState<Partial<Data>>({ ...defaultState } as Data)
+  const [data, setData] = useState<Data>({ ...defaultState } as Data)
   const [isDirty, setIsDirty] = useState(false)
 
   /**
    * Update the current state based on the name attribute..  The name attribute
    * and the key in the object must match
    */
-  function onChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function onChange(e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>) {
     const newState = { ...data, [e.target.name]: e.target.value } as Data
     //TODO: Change to Deep Equal Lib
     setIsDirty(JSON.stringify(initialState) !== JSON.stringify(newState))
@@ -39,6 +39,7 @@ export default function useFormManagement<Data, onSubmitReturn>(
   function resetState(newState?: Partial<Data>) {
     const state = newState && !('nativeEvent' in newState) ? newState : initialState
     setInitialState(state)
+    //@ts-ignore
     setData(state)
     setIsDirty(false)
   }
