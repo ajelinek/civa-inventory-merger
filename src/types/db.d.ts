@@ -55,7 +55,7 @@ interface OfficeCatalogMetadata {
 }
 
 interface ItemRecord {
-  recordId: string //officeId-itemId
+  recordId: string //random uuid
   officeId: OfficeAbbreviation
   classificationId: string
   classificationName: string
@@ -86,6 +86,7 @@ interface UpdateClassificationInput {
 }
 
 type CreateItemRecordInput = Pick<ItemRecord,
+  'recordId' |
   'officeId' |
   'itemId' |
   'itemDescription' |

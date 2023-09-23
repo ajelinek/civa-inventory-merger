@@ -9,6 +9,6 @@ export function createItem(item: CreateItemRecordInput) {
   if (!item.itemId) throw new Error('ItemId is required')
   if (!(item.itemId.startsWith(item.subClassificationId))) throw new Error('Item Id must start with sub-classification id')
   if (!item.itemDescription) throw new Error('Description is required')
-  const itemRef = ref(rdb, `catalogs/${item.officeId}/${item.itemId}`)
+  const itemRef = ref(rdb, `catalogs/${item.officeId}/${item.recordId}`)
   return set(itemRef, item)
 }

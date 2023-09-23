@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useAsync, useAsyncCallback } from "react-async-hook"
+import { useSearchParams } from "react-router-dom"
+import { useDebouncedCallback } from "use-debounce"
 import { useStore } from ".."
 import { loadCatalog, updateClassifications } from "../providers/catalog"
 import { processImportFile } from "../providers/import"
 import Searcher from "../workers/searcher.worker?worker"
-import { useSearchParams } from "react-router-dom"
-import { useDebouncedCallback } from "use-debounce"
 
 export function useFileImport() {
   const email = useStore.getState().user?.email ?? 'unknown'
@@ -79,7 +79,7 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSea
     if (!(result && catalog)) return
     const itemKeys = result?.itemKeys?.slice(0, 50)
     //@ts-ignore
-    const newPage = itemKeys?.map(item => catalog[item.officeId][item.itemId])
+    const newPage = itemKeys?.map(item => catalog[item.officeId][item.recordId])
     setPage(newPage)
   }, [result])
 

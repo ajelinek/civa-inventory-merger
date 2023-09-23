@@ -19,7 +19,7 @@ onmessage = (event: MessageEvent<SearcherMessage>) => {
 function load(catalog: Catalogs) {
   catalog = catalog
   searcher = new Fuse<SearchItem>(mergeCatalogs(catalog), {
-    keys: ['searchString', 'classificationId', 'subClassificationId', 'officeId', 'itemId', 'classificationMappedTimestamp', 'itemLinkedTimestamp'],
+    keys: ['searchString', 'classificationId', 'subClassificationId', 'officeId', 'itemId', 'classificationMappedTimestamp', 'itemLinkedTimestamp', 'recordId'],
     threshold: 0.5,
     ignoreLocation: true,
     minMatchCharLength: 2,
@@ -38,6 +38,7 @@ interface SearchItem {
   subClassificationId: string
   officeId: string
   itemId: string
+  recordId: string
   classificationMappedTimestamp: Date
   itemLinkedTimestamp: Date
 }
@@ -52,6 +53,7 @@ function mergeCatalogs(catalogs: Catalogs) {
         subClassificationId: item.subClassificationId,
         officeId: item.officeId,
         itemId: item.itemId,
+        recordId: item.recordId,
         classificationMappedTimestamp: item.classificationMappedTimestamp,
         itemLinkedTimestamp: item.itemLinkedTimestamp
       }))]
@@ -76,7 +78,7 @@ function search(query: CatalogQuery) {
       return true
     })
     .map(result => ({
-      itemId: result.item.itemId,
+      recordId: result.item.recordId,
       officeId: result.item.officeId
     }))
   const matchedCatalogs = new Set(itemKeys.map(item => item.officeId)).size

@@ -5,6 +5,7 @@ import { useStore, useUpsertItem } from "../../store"
 import { AlertMessage } from "../AlertMessage"
 import { ClassificationSelector, OfficeSelector, SubClassificationSelector } from "../CommonInputFields/selectors"
 import s from './createCatalogItem.module.css'
+import { nanoid } from "nanoid/non-secure"
 
 type props = {
   item?: Partial<ItemRecord>
@@ -14,7 +15,7 @@ export default function CreateCatalogItem({ item }: props) {
   const { modal, closeModel } = useModal()
   const classifications = useStore(state => state.org?.classifications)
   const createItem = useUpsertItem()
-  const form = useFormManagement(initItem(item), async (item) => {
+  const form = useFormManagement<CreateItemRecordInput, Promise<void>>(initItem(item), async (item) => {
     item.classificationName = classifications?.[item.classificationId].name || ""
     item.subClassificationName = classifications?.[item.classificationId]?.subClassifications?.[item.subClassificationId]?.name || ""
     await createItem.execute(item)
@@ -22,15 +23,18 @@ export default function CreateCatalogItem({ item }: props) {
     form.resetState()
   })
 
+  const createEditText = !!item ? 'Update' : 'Create'
+
   function initItem(item: Partial<ItemRecord> | undefined) {
     return ({
+      recordId: item?.recordId || nanoid(8),
       officeId: item?.officeId || "",
       itemId: item?.itemId || "",
       itemDescription: item?.itemDescription || "",
-      classificationId: item?.classificationId || "",
-      classificationName: item?.classificationName || "",
-      subClassificationId: item?.subClassificationId || "",
-      subClassificationName: item?.subClassificationName || "",
+      // classificationId: item?.classificationId || "",
+      // classificationName: item?.classificationName || "",
+      // subClassificationId: item?.subClassificationId || "",
+      // subClassificationName: item?.subClassificationName || "",
       unitOfMeasure: item?.unitOfMeasure || "",
       itemType: item?.itemType || "",
       minimumPrice: item?.minimumPrice || 0,
@@ -47,7 +51,7 @@ export default function CreateCatalogItem({ item }: props) {
       <article className={s.container}>
         <header>
           <a className="close" onClick={closeModel} />
-          {item ? "Edit" : "Create"}
+          {createEditText}
         </header>
         <AlertMessage message={createItem.error?.message} />
         <form className={s.form} onSubmit={form.onSubmit}>
@@ -57,7 +61,7 @@ export default function CreateCatalogItem({ item }: props) {
             <OfficeSelector className={s.fieldset} value={form.data.officeId} onChange={form.onChange} />
             <fieldset className={s.fieldset}>
               <label htmlFor="itemId">Item Id</label>
-              <input type="text" id="itemId" name="itemId" value={form.data.itemId} onChange={form.onChange} disabled={!!item} />
+              <input type="text" id="itemId" name="itemId" value={form.data.itemId} onChange={form.onChange} />
             </fieldset>
           </div>
           <fieldset className={s.itemDescription}>
@@ -84,7 +88,7 @@ export default function CreateCatalogItem({ item }: props) {
               <input type="number" id="markUpPercentage" name="markUpPercentage" value={form.data.markUpPercentage} onChange={form.onChange} />
             </fieldset>
           </div>
-          <button type="submit" aria-busy={createItem.loading}>Create Item</button>
+          <button type="submit" aria-busy={createItem.loading}>{createEditText}</button>
         </form>
       </article>
     </dialog>
