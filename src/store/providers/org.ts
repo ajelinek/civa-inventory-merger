@@ -1,12 +1,22 @@
 import { classifications, offices } from "../const"
 
-export function fetchOrgSettings(cb: (org: Org) => void) {
+interface SettingsCallback {
+  offices: Offices
+  classifications: Classifications
+  subClassifications: SubClassifications
+}
+export function fetchOrgSettings(cb: (org: SettingsCallback) => void) {
   // const orgRef = ref(rdb, 'org')
   // onValue(orgRef, (snapshot) => {
   //   const data = snapshot.val() as Org
   //   cb(data.offices, data.classifications)
   // })
 
-  console.log("🚀 ~ file: org.ts:11 ~ fetchOrgSettings ~ { offices, classifications }:", { offices, classifications })
-  cb({ offices, classifications })
+  const subClassifications = Object.keys(classifications).reduce((acc, key) => {
+    const classification = classifications[key]
+    acc = { ...acc, ...classification.subClassifications }
+    return acc
+  }, {} as SubClassifications)
+
+  cb({ offices, classifications, subClassifications })
 }

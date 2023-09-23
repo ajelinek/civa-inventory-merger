@@ -2,6 +2,7 @@ import Fuse from 'fuse.js'
 import { removeStopwords } from 'stopword'
 
 let searcher: Fuse<SearchItem> | null = null
+let catalog: Catalogs | null = null
 let id = Math.random() * 100
 
 onmessage = (event: MessageEvent<SearcherMessage>) => {
@@ -16,8 +17,9 @@ onmessage = (event: MessageEvent<SearcherMessage>) => {
 }
 
 function load(catalog: Catalogs) {
+  catalog = catalog
   searcher = new Fuse<SearchItem>(mergeCatalogs(catalog), {
-    keys: ['searchString', 'classificationId', 'subClassificationId', 'officeId', 'itemId'],
+    keys: ['searchString', 'classificationId', 'subClassificationId', 'officeId', 'itemId', 'classificationMappedTimestamp', 'itemLinkedTimestamp'],
     threshold: 0.5,
     ignoreLocation: true,
     minMatchCharLength: 2,
@@ -36,8 +38,8 @@ interface SearchItem {
   subClassificationId: string
   officeId: string
   itemId: string
-  mapped: Date
-  linked: Date
+  classificationMappedTimestamp: Date
+  itemLinkedTimestamp: Date
 }
 
 function mergeCatalogs(catalogs: Catalogs) {
@@ -67,11 +69,16 @@ function search(query: CatalogQuery) {
   }
 
   const results = searcher.search(buildLogicalQuery(query), { limit: 100 })
-  //TODO: check the mapped and linked query options and filter the results
-  const itemKeys = results.map(result => ({
-    itemId: result.item.itemId,
-    officeId: result.item.officeId
-  }))
+  const itemKeys = results
+    .filter(i => {
+      if (query.excludeMapped === true && i.item?.classificationMappedTimestamp) return false
+      if (query.excludeLinked === true && i.item?.itemLinkedTimestamp) return false
+      return true
+    })
+    .map(result => ({
+      itemId: result.item.itemId,
+      officeId: result.item.officeId
+    }))
   const matchedCatalogs = new Set(itemKeys.map(item => item.officeId)).size
   const matchedRecords = results.length
   const keyWords = identifyKeyWords(results, query)
@@ -87,18 +94,18 @@ function search(query: CatalogQuery) {
   })
 }
 
-function identifyKeyWords(results: Fuse.FuseResult<SearchItem>[], query: EnhancedCatalogQuery) {
+function identifyKeyWords(results: Fuse.FuseResult<SearchItem>[], query: CatalogQuery) {
   const tokens = new Set<string>()
   results.forEach(r => {
     r.item.searchString.split(' ')
       .filter(token => token.length > 2)
       .forEach(token => {
-        tokens.add(token)
+        tokens.add(token.toLocaleLowerCase())
       })
   })
 
-  query.classificationName?.split(' ').forEach(token => tokens.add(token))
-  query.subClassificationName?.split(' ').forEach(token => tokens.add(token))
+  query.classificationNames?.forEach(name => name.split(' ').forEach(token => tokens.add(token.toLocaleLowerCase())))
+  query.subClassificationNames?.forEach(name => name.split(' ').forEach(token => tokens.add(token.toLocaleLowerCase())))
 
   return removeStopwords(Array.from(tokens))
 }
@@ -106,14 +113,25 @@ function identifyKeyWords(results: Fuse.FuseResult<SearchItem>[], query: Enhance
 function buildLogicalQuery(query: CatalogQuery): Fuse.Expression {
   const logicalQuery = { $and: [] as Fuse.Expression[] }
 
-  if (query.autoTokens?.length || 0 > 0) {
-    const autoTokens = query.autoTokens?.map(token => ({ searchString: `'${token}` }))
+  if (query.keyWords?.length || 0 > 0) {
+    const autoTokens = query.keyWords?.map(token => ({ searchString: `'${token}` }))
     logicalQuery.$and.push({ $or: autoTokens })
   }
 
   if (query.searchText) logicalQuery.$and.push({ searchString: query.searchText })
-  if (query.classificationId) logicalQuery.$and.push({ classificationId: query.classificationId })
-  if (query.subClassificationId) logicalQuery.$and.push({ subClassificationId: query.subClassificationId })
+  if (query.classificationIds?.length ?? 0 > 0) {
+    const classificationIds = query.classificationIds?.map(cId => ({ classificationId: `="${cId}"` }))
+    logicalQuery.$and.push({ $or: classificationIds })
+  }
+  if (query.subClassificationIds?.length ?? 0 > 0) {
+    const subClassificationIds = query.subClassificationIds?.map(scId => ({ subClassificationId: `="${scId}"` }))
+    logicalQuery.$and.push({ $or: subClassificationIds })
+  }
+
+  if (query.officeIds?.length ?? 0 > 0) {
+    const officeIds = query.officeIds?.map(oId => ({ officeId: `="${oId}"` }))
+    logicalQuery.$and.push({ $or: officeIds })
+  }
 
   return logicalQuery
 }

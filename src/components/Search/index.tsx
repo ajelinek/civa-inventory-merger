@@ -1,107 +1,92 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { useSearchParam, useSearchParamsListToggle } from '../../hooks/searchParams'
 import s from './search.module.css'
+import { useSearchParams } from 'react-router-dom'
 
 type SearchProps = {
   keyWords?: string[]
-  onSearch: (query: CatalogQuery) => void
+  excludeMappedDefault?: boolean | undefined
+  excludeLinkedDefault?: boolean | undefined
 }
 
-export default function Search({ keyWords, onSearch }: SearchProps) {
-  const [selectedTokens, setSelectedTokens] = useState<string[]>([])
-  const [excludeTerms, setExcludeTerms] = useState<string>('')
-  const [includeMapped, setIncludeMapped] = useState<boolean>(false) //TODO: make this a parm in
-  const [searchTerm, setSearchTerm] = useState<string>('')
-  const [showAdvancedSearch, setShowAdvancedSearch] = useState<boolean>(false)
-
-  function handleTokenClick(token: string) {
-    if (selectedTokens.includes(token)) {
-      setSelectedTokens(selectedTokens.filter((t) => t !== token))
-    } else {
-      setSelectedTokens([...selectedTokens, token])
-    }
-  }
-
-  function handleSearchSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    onSearch({
-      searchText: searchTerm,
-    })
-  }
+export default function Search({ keyWords, excludeLinkedDefault, excludeMappedDefault }: SearchProps) {
+  const excludeMapped = useSearchParam('exm')
+  const excludeLinked = useSearchParam('exl')
+  const searchTerm = useSearchParam('st')
+  const selectedTokens = useSearchParamsListToggle('kw')
+  const [_, setParams] = useSearchParams()
 
   useEffect(() => {
-    if (!keyWords || keyWords.length == 0) return
-    setSelectedTokens(keyWords)
+    setParams((prevParams) => {
+      if (excludeLinked.value === null && excludeLinkedDefault !== undefined) prevParams.set('exl', excludeLinkedDefault ? 'true' : 'false')
+      if (excludeMapped.value === null && excludeMappedDefault !== undefined) prevParams.set('exm', excludeMappedDefault ? 'true' : 'false')
+      return prevParams
+    })
+  }, [])
+
+  useEffect(() => {
+    if (keyWords && keyWords.length > 0) selectedTokens.addAll(keyWords)
   }, [keyWords])
 
-  useEffect(() => {
-    onSearch({
-      searchText: searchTerm,
-      includeMapped,
-      autoTokens: selectedTokens,
-    })
-  }, [selectedTokens])
-
-
   return (
-    <form className={s.form} onSubmit={handleSearchSubmit}>
-      <fieldset>
-        <label htmlFor="pillbox" className={s.label}>Automatic Terms</label>
-        <div id='pillbox' className={s.pillbox}>
-          {keyWords?.map((token) => (
-            <button
-              type='button'
-              key={token}
-              className={`${s.pill} ${selectedTokens.includes(token) ? s.selected : ''}`}
-              onClick={() => handleTokenClick(token)}
-            >
-              {token}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <div className={s.searchOptions}>
-        <a onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}>Show Advanced Search</a>
-        <a onClick={() => setSelectedTokens([])}>Unselect All</a>
-      </div>
-      {showAdvancedSearch &&
+    <div className={s.form}>
+      {(keyWords?.length || 0 > 0) &&
         <>
-          <div className={s.searchContainer}>
-            <div className={s.searchTextInputs}>
-              <fieldset className={s.searchInput}>
-                <label htmlFor="searchInput" className={s.label}> Search:</label>
-                <input
-                  type="text"
-                  id="searchInput"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </fieldset>
-
-              <fieldset className={s.excludeInput} >
-                <label htmlFor="excludeInput" className={s.label}> Exclude: </label>
-                <input
-                  type="text"
-                  id="excludeInput"
-                  value={excludeTerms}
-                  onChange={(e) => setExcludeTerms(e.target.value)}
-                />
-              </fieldset>
+          <fieldset>
+            <label htmlFor="pillbox" className={s.label}>Automatic Terms</label>
+            <div id='pillbox' className={s.pillbox}>
+              {keyWords?.map((token) => (
+                <button
+                  type='button'
+                  key={token}
+                  className={`${s.pill} ${selectedTokens.isSelected(token) ? s.selected : ''}`}
+                  onClick={() => selectedTokens.toggle(token)}
+                >
+                  {token}
+                </button>
+              ))}
             </div>
-            <fieldset>
-              <input
-                type="checkbox"
-                role='switch'
-                id="includeMapped"
-                className={s.checkbox}
-                checked={includeMapped}
-                onChange={() => setIncludeMapped(!includeMapped)}
-              />
-              <label htmlFor="includeMapped" className={s.label}> Include mapped fields </label>
-            </fieldset>
+          </fieldset>
+          <div className={s.searchOptions}>
+            <a onClick={() => selectedTokens.removeAll()}>Unselect All</a>
           </div>
-          <button type="submit" className={s.searchButton}> Search</button>
         </>
       }
-    </form>
+      <div className={s.searchContainer}>
+        <fieldset className={s.searchInput}>
+          <input
+            type="search"
+            id="searchInput"
+            placeholder='Search for an item'
+            value={searchTerm.value || undefined}
+            onChange={(e) => searchTerm.setValue(e.target.value)}
+          />
+        </fieldset>
+        <div className={s.includeOptions}>
+          <fieldset>
+            <input
+              type="checkbox"
+              role='switch'
+              id="excludeMapped"
+              className={s.checkbox}
+              checked={!!excludeMapped.value}
+              onChange={() => !!excludeMapped.value ? excludeMapped.remove() : excludeMapped.setValue('true')}
+            />
+            <label htmlFor="excludeMapped" className={s.label}>Exclude mapped items</label>
+          </fieldset>
+          <fieldset>
+            <input
+              type="checkbox"
+              role='switch'
+              id="excludeLinked"
+              className={s.checkbox}
+              checked={!!excludeLinked.value}
+              onChange={() => !!excludeLinked.value ? excludeLinked.remove() : excludeLinked.setValue('true')}
+            />
+            <label htmlFor="excludeLinked" className={s.label}>Exclude linked items</label>
+          </fieldset>
+        </div>
+      </div>
+    </div>
   )
 }

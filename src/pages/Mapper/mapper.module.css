@@ -10,6 +10,12 @@
   height: 100%;
   margin-bottom: 1rem;
 }
+.mapButton {
+  position: absolute;
+  bottom: 3rem;
+  right: 3rem;
+  width: 12rem;
+}
 
 .mappings {
   display: flex;

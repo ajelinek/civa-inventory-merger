@@ -6,7 +6,7 @@
 }
 
 .facets {
-  flex-basis: 20rem;
+  flex-basis: 25rem;
   height: 100%;
   overflow-y: auto;
   padding: 0 1rem;
@@ -16,7 +16,14 @@
 
 .catalog {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   height: 100%;
+  row-gap: 2rem;
   overflow-y: auto;
   padding: 0 1rem;
+}
+
+.catalog :global(.SearchResults-container) {
+  margin-top: -3rem;
 }
