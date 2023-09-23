@@ -53,7 +53,7 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSea
   const catalog = useStore(state => state.catalog)
   const [status, setStatus] = useState<SearchStatus>('initial')
   const [result, setResult] = useState<CatalogQueryResult>()
-  const [page, setPage] = useState<ItemRecord[]>()
+  const [page, setPage] = useState<ItemKey[]>()
 
 
   useEffect(() => {
@@ -77,10 +77,11 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSea
 
   useEffect(() => {
     if (!(result && catalog)) return
-    const itemKeys = result?.itemKeys?.slice(0, 50)
+    // const itemKeys = result?.itemKeys?.slice(0, 500)
+    const itemKeys = result?.itemKeys
     //@ts-ignore
-    const newPage = itemKeys?.map(item => catalog[item.officeId][item.recordId])
-    setPage(newPage)
+    // const newPage = itemKeys?.map(item => catalog[item.officeId][item.recordId])
+    setPage(itemKeys)
   }, [result])
 
   useEffect(() => {
@@ -99,3 +100,6 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSea
   return { status, result, page }
 }
 
+export function useCatalogItem(itemKey: ItemKey) {
+  return useStore(state => state.catalog?.[itemKey.officeId][itemKey.recordId])
+}

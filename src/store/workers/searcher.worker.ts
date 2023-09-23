@@ -32,19 +32,20 @@ function load(catalog: Catalogs) {
   postMessage({ type: 'loaded' })
 }
 
-interface SearchItem {
+type SearchItem = Pick<ItemRecord,
+  'classificationId' |
+  'subClassificationId' |
+  'officeId' |
+  'itemId' |
+  'recordId' |
+  'classificationMappedTimestamp' |
+  'itemLinkedTimestamp'
+> & {
   searchString: string
-  classificationId: string
-  subClassificationId: string
-  officeId: string
-  itemId: string
-  recordId: string
-  classificationMappedTimestamp: Date
-  itemLinkedTimestamp: Date
 }
 
 function mergeCatalogs(catalogs: Catalogs) {
-  const merged = Object.values(catalogs).reduce((acc, catalog: Catalogs) => {
+  const merged = Object.values(catalogs).reduce((acc, catalog: Catalog) => {
     acc = [
       ...acc,
       ...Object.values(catalog).map((item: ItemRecord) => ({
@@ -70,7 +71,7 @@ function search(query: CatalogQuery) {
     return
   }
 
-  const results = searcher.search(buildLogicalQuery(query), { limit: 100 })
+  const results = searcher.search(buildLogicalQuery(query), { limit: 1000 })
   const itemKeys = results
     .filter(i => {
       if (query.excludeMapped === true && i.item?.classificationMappedTimestamp) return false

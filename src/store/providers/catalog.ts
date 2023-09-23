@@ -1,7 +1,7 @@
 import { onValue, ref, set, update } from "firebase/database"
 import { rdb } from "../firebase"
 
-export function createCatalog(officeId: string, catalog: Catalogs) {
+export function createCatalog(officeId: string, catalog: Catalog) {
   const path = `catalogs/${officeId}`
   const catalogRef = ref(rdb, path)
   return set(catalogRef, catalog)

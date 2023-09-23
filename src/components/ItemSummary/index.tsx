@@ -4,10 +4,12 @@ import { RxDividerVertical } from 'react-icons/rx'
 import Money from '../Money'
 import s from './itemSummary.module.css'
 import dayjs from 'dayjs'
+import { useCatalogItem } from '../../store'
 
-export default function ItemSummary({ item, selector }: { item: ItemRecord, selector: Selector<ItemRecord> }) {
+export default function ItemSummary({ itemKey, selector }: { itemKey: ItemKey, selector: Selector<ItemRecord> }) {
+  const item = useCatalogItem(itemKey)
   const [active, setActive] = useState(false)
-
+  if (!item) return null
 
   return (
     <div className={s.container} >

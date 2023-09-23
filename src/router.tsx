@@ -5,6 +5,7 @@ import Home from "./pages/Home"
 import Catalog from "./pages/Catalog"
 import Mapper from "./pages/Mapper"
 import CatalogViewer from "./pages/CatalogViewer"
+import LinkerPage from "./pages/Linker"
 
 export const router = createBrowserRouter([
   {
@@ -26,6 +27,10 @@ export const router = createBrowserRouter([
           {
             path: "mapper",
             element: <Mapper />,
+          },
+          {
+            path: "linker",
+            element: <LinkerPage />,
           },
         ],
       }

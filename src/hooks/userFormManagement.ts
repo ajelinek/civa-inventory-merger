@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 
 export default function useFormManagement<Data, onSubmitReturn>(
-  defaultState: Partial<Data>,
+  defaultState: Data,
   formSubmitCb: (data: Data) => onSubmitReturn = defaultFormSubmit
 ) {
 

@@ -14,7 +14,7 @@ export default function SearchResults({ search, selector }: props) {
       {(search?.status === 'searched' && search?.result?.matchedRecords === 0) && <p>No Results Found</p>}
       {(search?.page) &&
         search?.page.map(r =>
-          <ItemSummary key={r.officeId + r.itemId} item={r} selector={selector} />
+          <ItemSummary key={r.recordId} itemKey={r} selector={selector} />
         )}
     </div>
   )

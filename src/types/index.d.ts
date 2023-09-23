@@ -65,7 +65,6 @@ interface CatalogQueryResult {
   keyWords: string[]
   itemKeys: ItemKey[]
 }
-type ItemKey = { itemId: ItemId, officeId: OfficeId }
 
 
 
@@ -101,7 +100,7 @@ type SearcherMessage = SearcherSearchMessage | SearcherLoadMessage
 interface UseSearchCatalogReturn {
   status: SearchStatus
   result: CatalogQueryResult | undefined
-  page: ItemRecord[] | undefined
+  page: ItemKey[] | undefined
 }
 
 

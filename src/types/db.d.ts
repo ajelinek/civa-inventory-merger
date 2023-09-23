@@ -1,3 +1,7 @@
+type ItemId = string
+type RecordId = string
+type ItemKey = { recordId: RecordId, officeId: OfficeId }
+
 interface RealDbSchema {
   org: Org
   catalogs: Catalogs
@@ -13,13 +17,8 @@ interface RealDbSchema {
     }
   }
 }
-type itemId = string
-interface Catalogs {
-  [OfficeId]: {
-    metadata: OfficeCatalogMetadata
-    [itemId]: ItemRecord
-  }
-}
+type Catalogs = Record<OfficeId, Catalog>
+type Catalog = Record<RecordId, ItemRecord>
 
 interface Org {
   offices: Offices | undefined
@@ -38,13 +37,15 @@ interface Classification {
   subClassifications?: SubClassifications
 }
 
-type OfficeId = 'VC' |
+type OfficeId =
+  'VC' |
   'LS' |
   'EC' |
   'BH' |
   'WV' |
   'MC' |
-  'CIVA'
+  'CIVA' |
+  ''
 
 interface OfficeCatalogMetadata {
   lastImportDate: Date
@@ -55,13 +56,13 @@ interface OfficeCatalogMetadata {
 }
 
 interface ItemRecord {
-  recordId: string //random uuid
-  officeId: OfficeAbbreviation
+  recordId: RecordId
+  officeId: OfficeId
   classificationId: string
   classificationName: string
   subClassificationId: string
   subClassificationName: string
-  itemId: string
+  itemId: ItemId
   itemDescription: string
   definition: string
   itemType: string
@@ -73,8 +74,8 @@ interface ItemRecord {
   markUpPercentage: number
   originalItemId: string //Set on import
   lastUpdateTimestamp?: Date
-  classificationMappedTimestamp?: Date
-  itemLinkedTimestamp?: Date
+  classificationMappedTimestamp?: Date | undefined
+  itemLinkedTimestamp?: Date | undefined
 }
 
 interface UpdateClassificationInput {

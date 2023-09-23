@@ -8,14 +8,14 @@ import s from './createCatalogItem.module.css'
 import { nanoid } from "nanoid/non-secure"
 
 type props = {
-  item?: Partial<ItemRecord>
+  item?: ItemRecord
 }
 
 export default function CreateCatalogItem({ item }: props) {
   const { modal, closeModel } = useModal()
   const classifications = useStore(state => state.org?.classifications)
   const createItem = useUpsertItem()
-  const form = useFormManagement<CreateItemRecordInput, Promise<void>>(initItem(item), async (item) => {
+  const form = useFormManagement(initItem(item), async (item) => {
     item.classificationName = classifications?.[item.classificationId].name || ""
     item.subClassificationName = classifications?.[item.classificationId]?.subClassifications?.[item.subClassificationId]?.name || ""
     await createItem.execute(item)
@@ -25,16 +25,16 @@ export default function CreateCatalogItem({ item }: props) {
 
   const createEditText = !!item ? 'Update' : 'Create'
 
-  function initItem(item: Partial<ItemRecord> | undefined) {
+  function initItem(item: ItemRecord | undefined): CreateItemRecordInput {
     return ({
       recordId: item?.recordId || nanoid(8),
       officeId: item?.officeId || "",
       itemId: item?.itemId || "",
       itemDescription: item?.itemDescription || "",
-      // classificationId: item?.classificationId || "",
-      // classificationName: item?.classificationName || "",
-      // subClassificationId: item?.subClassificationId || "",
-      // subClassificationName: item?.subClassificationName || "",
+      classificationId: item?.classificationId || "",
+      classificationName: item?.classificationName || "",
+      subClassificationId: item?.subClassificationId || "",
+      subClassificationName: item?.subClassificationName || "",
       unitOfMeasure: item?.unitOfMeasure || "",
       itemType: item?.itemType || "",
       minimumPrice: item?.minimumPrice || 0,
@@ -58,7 +58,7 @@ export default function CreateCatalogItem({ item }: props) {
           <div className={s.formGroup}>
             <ClassificationSelector className={s.fieldset} value={form.data.classificationId} onChange={form.onChange} />
             <SubClassificationSelector className={s.fieldset} value={form.data.subClassificationId} onChange={form.onChange} classification={form.data.classificationId} />
-            <OfficeSelector className={s.fieldset} value={form.data.officeId} onChange={form.onChange} />
+            <OfficeSelector className={s.fieldset} value={form.data.officeId} onChange={form.onChange} disabled={!!item} />
             <fieldset className={s.fieldset}>
               <label htmlFor="itemId">Item Id</label>
               <input type="text" id="itemId" name="itemId" value={form.data.itemId} onChange={form.onChange} />
