@@ -2,6 +2,7 @@ import Papa from "papaparse"
 import { offices } from "../const"
 import { createCatalog } from "./catalog"
 import { itemRecordId } from "../selectors/item"
+import { nanoid } from "nanoid"
 
 export async function processImportFile(file: File, email: string) {
   if (!file) throw new Error('No file provided')
@@ -32,7 +33,7 @@ function convertFileToJSON(file: File): Promise<ImportRecord[]> {
     //@ts-ignore
     Papa.parse(file, {
       header: true,
-      // preview: 50,
+      // preview: 10,
 
       transformHeader(header: string) {
         return nameMap.get(header) || header
@@ -53,7 +54,7 @@ function convertImportFileToCatalog(records: ImportRecord[]) {
   const catalog = records.reduce((acc, record) => {
     if (!record.itemId) return acc
     const itemRecord = convertImportRecordToItemRecord(record)
-    acc[itemRecord.itemId] = itemRecord
+    acc[itemRecord.recordId] = itemRecord
     return acc
   }, {} as Record<string, ItemRecord>)
 
@@ -62,7 +63,7 @@ function convertImportFileToCatalog(records: ImportRecord[]) {
 
 function convertImportRecordToItemRecord(importRecord: ImportRecord): ItemRecord {
   const itemRecord = {
-    itemId: importRecord.itemId.replace(/[.#$\/\[\]]/g, '_'),
+    itemId: importRecord.itemId,
     originalItemId: importRecord.itemId,
     classificationId: importRecord.classificationId,
     classificationName: importRecord.description,
@@ -84,7 +85,7 @@ function convertImportRecordToItemRecord(importRecord: ImportRecord): ItemRecord
   ) //Hacky, but we know it will be there, .. or hope
   if (!officeId) throw new Error('No office found')
   itemRecord.officeId = officeId
-  itemRecord.recordId = itemRecordId(itemRecord)
+  itemRecord.recordId = nanoid(8)
 
   return itemRecord
 }

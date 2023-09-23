@@ -18,11 +18,11 @@ export async function loadCatalog(cb: (catalog: Catalogs) => void) {
 
 export async function updateClassifications(updateInput: UpdateClassificationInput) {
   const updates = updateInput.items.reduce((acc, item) => {
-    acc[`catalogs/${item.officeId}/${item.itemId}/classificationId`] = updateInput.classificationId
-    acc[`catalogs/${item.officeId}/${item.itemId}/classificationName`] = updateInput.classificationName
-    acc[`catalogs/${item.officeId}/${item.itemId}/subClassificationId`] = updateInput.subClassificationId || ''
-    acc[`catalogs/${item.officeId}/${item.itemId}/subClassificationName`] = updateInput.subClassificationName || ''
-    acc[`catalogs/${item.officeId}/${item.itemId}/classificationMappedTimestamp`] = new Date().toISOString()
+    acc[`catalogs/${item.officeId}/${item.recordId}/classificationId`] = updateInput.classificationId
+    acc[`catalogs/${item.officeId}/${item.recordId}/classificationName`] = updateInput.classificationName
+    acc[`catalogs/${item.officeId}/${item.recordId}/subClassificationId`] = updateInput.subClassificationId || ''
+    acc[`catalogs/${item.officeId}/${item.recordId}/subClassificationName`] = updateInput.subClassificationName || ''
+    acc[`catalogs/${item.officeId}/${item.recordId}/classificationMappedTimestamp`] = new Date().toISOString()
     return acc
   }, {} as Record<string, string>)
 

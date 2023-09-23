@@ -3,6 +3,7 @@ import { FaCaretDown, FaCaretRight } from 'react-icons/fa6'
 import { RxDividerVertical } from 'react-icons/rx'
 import Money from '../Money'
 import s from './itemSummary.module.css'
+import dayjs from 'dayjs'
 
 export default function ItemSummary({ item, selector }: { item: ItemRecord, selector: Selector<ItemRecord> }) {
   const [active, setActive] = useState(false)
@@ -53,7 +54,10 @@ export default function ItemSummary({ item, selector }: { item: ItemRecord, sele
             <span className={s.label}>Mark Up Percentage:</span> <Money>{item.markUpPercentage}</Money>
           </p>
           <p className={s.attribute}>
-            {/* <span className={s.label}>Mapped:</span> {dayjs(item.mapped).format()/} */}
+            <span className={s.label}>Mapped:</span> {dayjs(item.classificationMappedTimestamp).format('ddd, MMM D, YYYY h:mm A')}
+          </p>
+          <p className={s.attribute}>
+            <span className={s.label}>Database Record ID:</span> {item.recordId}
           </p>
         </div>
       }
