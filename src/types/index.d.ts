@@ -64,12 +64,13 @@ interface CatalogQueryResult {
   matchedRecords: number
   keyWords: string[]
   itemKeys: ItemKey[]
+  matchedItemKeys?: MatchedItemKeys
 }
 
-
-
+type MatchedItemKeys = Record<RecordId, ItemKey[]>//Item key per office
 
 interface CatalogQuery {
+  searchType?: 'general' | 'comparison'
   officeIds?: string[]
   classificationIds?: string[]
   subClassificationIds?: string[]
@@ -88,7 +89,10 @@ interface SearcherSearchMessage {
 
 interface SearcherLoadMessage {
   type: 'load'
-  payload: Catalogs
+  payload: {
+    catalogs: Catalogs
+    offices: Offices
+  }
 }
 
 interface SearcherLoadMessageReturn {
@@ -101,6 +105,7 @@ interface UseSearchCatalogReturn {
   status: SearchStatus
   result: CatalogQueryResult | undefined
   page: ItemKey[] | undefined
+  matchedItemKeys: MatchedItemKeys | undefined
 }
 
 

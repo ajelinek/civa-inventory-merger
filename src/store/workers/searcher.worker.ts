@@ -2,7 +2,8 @@ import Fuse from 'fuse.js'
 import { removeStopwords } from 'stopword'
 
 let searcher: Fuse<SearchItem> | null = null
-let catalog: Catalogs | null = null
+let catalogs: Catalogs | null = null
+let offices: Offices | null = null
 let id = Math.random() * 100
 
 onmessage = (event: MessageEvent<SearcherMessage>) => {
@@ -16,9 +17,14 @@ onmessage = (event: MessageEvent<SearcherMessage>) => {
   }
 }
 
-function load(catalog: Catalogs) {
-  catalog = catalog
-  searcher = new Fuse<SearchItem>(mergeCatalogs(catalog), {
+interface loadProps {
+  catalogs: Catalogs
+  offices: Offices
+}
+function load(payload: loadProps) {
+  catalogs = payload.catalogs
+  offices = payload.offices
+  searcher = new Fuse<SearchItem>(mergeCatalogs(payload.catalogs), {
     keys: ['searchString', 'classificationId', 'subClassificationId', 'officeId', 'itemId', 'classificationMappedTimestamp', 'itemLinkedTimestamp', 'recordId'],
     threshold: 0.5,
     ignoreLocation: true,
@@ -39,13 +45,14 @@ type SearchItem = Pick<ItemRecord,
   'itemId' |
   'recordId' |
   'classificationMappedTimestamp' |
-  'itemLinkedTimestamp'
+  'itemLinkedTimestamp' |
+  'originalItemId'
 > & {
   searchString: string
 }
 
-function mergeCatalogs(catalogs: Catalogs) {
-  const merged = Object.values(catalogs).reduce((acc, catalog: Catalog) => {
+function mergeCatalogs(inCatalogs: Catalogs) {
+  const merged = Object.values(inCatalogs).reduce((acc, catalog: Catalog) => {
     acc = [
       ...acc,
       ...Object.values(catalog).map((item: ItemRecord) => ({
@@ -54,6 +61,7 @@ function mergeCatalogs(catalogs: Catalogs) {
         subClassificationId: item.subClassificationId,
         officeId: item.officeId,
         itemId: item.itemId,
+        originalItemId: item.originalItemId,
         recordId: item.recordId,
         classificationMappedTimestamp: item.classificationMappedTimestamp,
         itemLinkedTimestamp: item.itemLinkedTimestamp
@@ -70,7 +78,47 @@ function search(query: CatalogQuery) {
     postMessage({ type: 'searched', payload: [] })
     return
   }
+  const payload = query.searchType === 'comparison' ? comparisonSearch(query, searcher) : generalSearch(query, searcher)
+  postMessage({ type: 'searched', payload })
+}
 
+function comparisonSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
+  if (!offices) throw new Error('Offices not loaded')
+  const officeIds = Object.keys(offices).filter(officeId => officeId !== 'CIVA') as OfficeId[]
+
+  const list = searcher.search(buildLogicalQuery(query), { limit: 2 })
+
+  const itemKeys = list
+    .filter(i => {
+      if (query.excludeMapped === true && i.item?.classificationMappedTimestamp) return false
+      if (query.excludeLinked === true && i.item?.itemLinkedTimestamp) return false
+      return true
+    })
+    .map(result => ({
+      recordId: result.item.recordId,
+      officeId: result.item.officeId,
+    }))
+
+  const matchedItemKeys = itemKeys.reduce((acc, itemKey) => {
+    const officeMatches = officeIds.map(officeId => {
+      const searchText = catalogs?.[officeId]?.[itemKey.recordId]?.itemDescription
+      const results = searcher.search(buildLogicalQuery({
+        officeIds: [officeId],
+        searchText
+      }), { limit: 1 })
+
+      return {
+        recordId: results[0]?.item?.recordId,
+        officeId: officeId
+      }
+    })
+    return { ...acc, [itemKey.recordId]: officeMatches }
+  }, {} as MatchedItemKeys)
+
+  return { itemKeys, matchedItemKeys }
+}
+
+function generalSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
   const results = searcher.search(buildLogicalQuery(query), { limit: 1000 })
   const itemKeys = results
     .filter(i => {
@@ -85,16 +133,7 @@ function search(query: CatalogQuery) {
   const matchedCatalogs = new Set(itemKeys.map(item => item.officeId)).size
   const matchedRecords = results.length
   const keyWords = identifyKeyWords(results, query)
-
-  postMessage({
-    type: 'searched',
-    payload: {
-      itemKeys,
-      matchedCatalogs,
-      matchedRecords,
-      keyWords
-    }
-  })
+  return { itemKeys, matchedCatalogs, matchedRecords, keyWords }
 }
 
 function identifyKeyWords(results: Fuse.FuseResult<SearchItem>[], query: CatalogQuery) {
@@ -136,5 +175,6 @@ function buildLogicalQuery(query: CatalogQuery): Fuse.Expression {
     logicalQuery.$and.push({ $or: officeIds })
   }
 
+  console.log("🚀 ~ file: searcher.worker.ts:179 ~ buildLogicalQuery ~ logicalQuery:", logicalQuery)
   return logicalQuery
 }

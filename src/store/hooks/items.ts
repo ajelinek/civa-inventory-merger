@@ -8,3 +8,7 @@ export function useUpdateClassifications() {
 export function useUpsertItem() {
   return useAsyncCallback(createItem)
 }
+
+export function useLinkItems() {
+  return useAsyncCallback(() => { })
+}

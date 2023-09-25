@@ -50,10 +50,12 @@ export function useCatalogSearchParamQuery(): CatalogQuery | undefined {
 type SearchStatus = 'initial' | 'loading' | 'loaded' | 'searching' | 'searched'
 export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSearchCatalogReturn {
   const searcher = useRef<Worker>()
-  const catalog = useStore(state => state.catalog)
+  const catalogs = useStore(state => state.catalog)
+  const offices = useStore(state => state.org?.offices)
   const [status, setStatus] = useState<SearchStatus>('initial')
   const [result, setResult] = useState<CatalogQueryResult>()
   const [page, setPage] = useState<ItemKey[]>()
+  const [matchedItemKeys, setMatchedItemKeys] = useState<MatchedItemKeys>()
 
 
   useEffect(() => {
@@ -76,28 +78,29 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSea
   }, [])
 
   useEffect(() => {
-    if (!(result && catalog)) return
+    if (!(result && catalogs)) return
     // const itemKeys = result?.itemKeys?.slice(0, 500)
     const itemKeys = result?.itemKeys
     //@ts-ignore
     // const newPage = itemKeys?.map(item => catalog[item.officeId][item.recordId])
     setPage(itemKeys)
+    setMatchedItemKeys(result?.matchedItemKeys)
   }, [result])
 
   useEffect(() => {
-    if (!(catalog && searcher.current)) return
+    if (!(catalogs && searcher.current)) return
     setStatus('loading')
-    searcher.current.postMessage({ type: 'load', payload: catalog })
-  }, [catalog])
+    searcher.current.postMessage({ type: 'load', payload: { catalogs, offices } })
+  }, [catalogs])
 
 
   useEffect(() => {
     if (!(searcher.current && query)) return
     setStatus('searching')
     searcher.current.postMessage({ type: 'search', payload: query })
-  }, [query, catalog])
+  }, [query, catalogs])
 
-  return { status, result, page }
+  return { status, result, page, matchedItemKeys }
 }
 
 export function useCatalogItem(itemKey: ItemKey) {

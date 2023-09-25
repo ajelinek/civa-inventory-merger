@@ -2,3 +2,13 @@
   padding: 0 1rem;
   /* overflow: hidden; */
 }
+
+.group {
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  padding: 1rem;
+}
+
+.matched {
+  margin-left: 2rem;
+}
