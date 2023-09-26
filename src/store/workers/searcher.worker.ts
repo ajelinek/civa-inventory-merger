@@ -84,31 +84,18 @@ function search(query: CatalogQuery) {
 
 function comparisonSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
   if (!offices) throw new Error('Offices not loaded')
+  const { itemKeys } = basicSearch(query, searcher, query.comparisonCount)
+
   const officeIds = Object.keys(offices).filter(officeId => officeId !== 'CIVA') as OfficeId[]
-
-  const list = searcher.search(buildLogicalQuery(query), { limit: 2 })
-
-  const itemKeys = list
-    .filter(i => {
-      if (query.excludeMapped === true && i.item?.classificationMappedTimestamp) return false
-      if (query.excludeLinked === true && i.item?.itemLinkedTimestamp) return false
-      return true
-    })
-    .map(result => ({
-      recordId: result.item.recordId,
-      officeId: result.item.officeId,
-    }))
-
-  const matchedItemKeys = itemKeys.reduce((acc, itemKey) => {
+  const matchedItemKeys = itemKeys.reduce((acc, itemKey, index) => {
+    const searchText = catalogs?.[itemKey.officeId]?.[itemKey.recordId]?.itemDescription
+    postMessage({ type: 'compare-status', payload: { text: `(${index + 1} of ${query.comparisonCount}) - Searching For ${searchText}  ` } })
     const officeMatches = officeIds.map(officeId => {
-      const searchText = catalogs?.[officeId]?.[itemKey.recordId]?.itemDescription
-      const results = searcher.search(buildLogicalQuery({
-        officeIds: [officeId],
-        searchText
-      }), { limit: 1 })
+      const query = { officeIds: [officeId], searchText, excludeLinked: true }
+      const officeResult = basicSearch(query, searcher, 1)
 
       return {
-        recordId: results[0]?.item?.recordId,
+        recordId: officeResult?.itemKeys?.[0]?.recordId,
         officeId: officeId
       }
     })
@@ -119,7 +106,15 @@ function comparisonSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
 }
 
 function generalSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
-  const results = searcher.search(buildLogicalQuery(query), { limit: 1000 })
+  const { itemKeys, results } = basicSearch(query, searcher)
+  const matchedCatalogs = new Set(itemKeys.map(item => item.officeId)).size
+  const matchedRecords = itemKeys.length
+  const keyWords = identifyKeyWords(results, query)
+  return { itemKeys, matchedCatalogs, matchedRecords, keyWords }
+}
+
+function basicSearch(query: CatalogQuery, searcher: Fuse<SearchItem>, limit: number = 1000) {
+  const results = searcher.search(buildLogicalQuery(query), { limit })
   const itemKeys = results
     .filter(i => {
       if (query.excludeMapped === true && i.item?.classificationMappedTimestamp) return false
@@ -130,11 +125,9 @@ function generalSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
       recordId: result.item.recordId,
       officeId: result.item.officeId
     }))
-  const matchedCatalogs = new Set(itemKeys.map(item => item.officeId)).size
-  const matchedRecords = results.length
-  const keyWords = identifyKeyWords(results, query)
-  return { itemKeys, matchedCatalogs, matchedRecords, keyWords }
+  return { itemKeys, results }
 }
+
 
 function identifyKeyWords(results: Fuse.FuseResult<SearchItem>[], query: CatalogQuery) {
   const tokens = new Set<string>()
@@ -175,6 +168,5 @@ function buildLogicalQuery(query: CatalogQuery): Fuse.Expression {
     logicalQuery.$and.push({ $or: officeIds })
   }
 
-  console.log("🚀 ~ file: searcher.worker.ts:179 ~ buildLogicalQuery ~ logicalQuery:", logicalQuery)
   return logicalQuery
 }

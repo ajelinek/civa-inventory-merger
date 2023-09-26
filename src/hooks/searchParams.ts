@@ -74,7 +74,19 @@ export function useSearchParamsListToggle(param: SelectParams) {
   }
 }
 
-type SearchParams = 'o' | 'c' | 'sc' | 'st' | 'exm' | 'exl' | 'mc' | 'msc'
+type SearchParams = 'o' | 'c' | 'sc' | 'st' | 'exm' | 'exl' | 'mc' | 'msc' | 'cc'
+/**
+ * o: officeIds
+ * c: classificationIds
+ * sc: subClassificationIds
+ * st: searchText
+ * exm: excludeMapped
+ * exl: excludeLinked
+ * mc: matchedCatalogs
+ * msc: matchedRecords
+ * cc: comparisonCount
+ */
+
 export function useSearchParam(param: SearchParams) {
   const [searchParams, setSearchParams] = useSearchParams()
   const value = searchParams.get(param)

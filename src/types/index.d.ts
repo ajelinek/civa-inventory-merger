@@ -71,6 +71,7 @@ type MatchedItemKeys = Record<RecordId, ItemKey[]>//Item key per office
 
 interface CatalogQuery {
   searchType?: 'general' | 'comparison'
+  comparisonCount?: number
   officeIds?: string[]
   classificationIds?: string[]
   subClassificationIds?: string[]
@@ -99,6 +100,7 @@ interface SearcherLoadMessageReturn {
   type: 'loaded'
 }
 
+
 type SearcherMessage = SearcherSearchMessage | SearcherLoadMessage
 
 interface UseSearchCatalogReturn {
@@ -106,6 +108,8 @@ interface UseSearchCatalogReturn {
   result: CatalogQueryResult | undefined
   page: ItemKey[] | undefined
   matchedItemKeys: MatchedItemKeys | undefined
+  error: Error | undefined
+  comparingText: string | undefined
 }
 
 

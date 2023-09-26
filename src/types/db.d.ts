@@ -5,17 +5,6 @@ type ItemKey = { recordId: RecordId, officeId: OfficeId }
 interface RealDbSchema {
   org: Org
   catalogs: Catalogs
-  prevId: {
-    [OfficeId]: {
-      [itemId]: string
-    }
-  }
-  catalogHistory: {
-    [OfficeId]: {
-      metadata: OfficeCatalogMetadata
-      [itemId]: ItemRecord
-    }
-  }
 }
 type Catalogs = Record<OfficeId, Catalog>
 type Catalog = Record<RecordId, ItemRecord>

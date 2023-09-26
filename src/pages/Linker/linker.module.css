@@ -2,6 +2,16 @@
   padding: 0 1rem;
   /* overflow: hidden; */
 }
+.form {
+  display: flex;
+  column-gap: 1rem;
+  align-items: center;
+}
+
+.submitButton {
+  margin-top: 0.75rem;
+  width: 10rem;
+}
 
 .group {
   margin-bottom: 1rem;

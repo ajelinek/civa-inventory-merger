@@ -21,9 +21,29 @@ export default function ItemSummary({ itemKey, selector }: { itemKey: ItemKey, s
           />
         </div>
         <div className={s.summaryContent} onClick={() => setActive(!active)}>
-          <div  >
+          <div className={s.summaryTitle} >
             <p className={s.title}><span className={s.id}>{item.officeId}-{item.itemId}</span> - {item.itemDescription} </p>
             <p className={s.subTitle}>C -{item.classificationName} <RxDividerVertical className={s.divider} />  SC - {item.subClassificationName}</p>
+          </div>
+          <div className={s.costInfo}>
+            <p className={s.costItem}>
+              {item.unitPrice ? <>
+                <span className={s.label}>UP:</span>
+                <span className={s.moneyValue}><Money>{item.unitPrice}</Money></span>
+              </> : null}
+            </p>
+            <p className={s.costItem}>
+              {item.unitPrice ? <>
+                <span className={s.label}>MU:</span>
+                <span className={s.moneyValue}>{item.markUpPercentage}%</span>
+              </> : null}
+            </p>
+            <p className={s.costItem}>
+              {item.dispensingFee ? <>
+                <span className={s.label}>DF:</span>
+                <span className={s.moneyValue}><Money>{item.dispensingFee}</Money></span>
+              </> : null}
+            </p>
           </div>
           <button className={s.hideShowButton}
             onClick={() => setActive(!active)}>
@@ -56,7 +76,9 @@ export default function ItemSummary({ itemKey, selector }: { itemKey: ItemKey, s
             <span className={s.label}>Mark Up Percentage:</span> <Money>{item.markUpPercentage}</Money>
           </p>
           <p className={s.attribute}>
-            <span className={s.label}>Mapped:</span> {dayjs(item.classificationMappedTimestamp).format('ddd, MMM D, YYYY h:mm A')}
+            <span className={s.label}>Mapped:
+            </span> {item.classificationMappedTimestamp && dayjs(item.classificationMappedTimestamp).format('ddd, MMM D, YYYY h:mm A')
+            }
           </p>
           <p className={s.attribute}>
             <span className={s.label}>Database Record ID:</span> {item.recordId}

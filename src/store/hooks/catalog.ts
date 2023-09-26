@@ -6,6 +6,7 @@ import { useStore } from ".."
 import { loadCatalog, updateClassifications } from "../providers/catalog"
 import { processImportFile } from "../providers/import"
 import Searcher from "../workers/searcher.worker?worker"
+import { set } from "firebase/database"
 
 export function useFileImport() {
   const email = useStore.getState().user?.email ?? 'unknown'
@@ -56,6 +57,8 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSea
   const [result, setResult] = useState<CatalogQueryResult>()
   const [page, setPage] = useState<ItemKey[]>()
   const [matchedItemKeys, setMatchedItemKeys] = useState<MatchedItemKeys>()
+  const [error, setError] = useState<Error | undefined>()
+  const [comparingText, setComparingText] = useState<string>()
 
 
   useEffect(() => {
@@ -68,8 +71,16 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSea
         case 'searched':
           setStatus('searched')
           setResult(e.data.payload)
+          setComparingText(undefined)
+          break
+        case 'compare-status':
+          setComparingText(e.data.payload.text)
           break
       }
+    }
+    searcher.current.onerror = (e) => {
+      setError(e.error)
+      setStatus('initial')
     }
 
     return () => {
@@ -95,12 +106,13 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSea
 
 
   useEffect(() => {
-    if (!(searcher.current && query)) return
+    console.log("🚀 ~ file: catalog.ts:110 ~ useEffect ~ query:", query)
+    if (!(searcher.current && query && catalogs)) return
     setStatus('searching')
     searcher.current.postMessage({ type: 'search', payload: query })
   }, [query, catalogs])
 
-  return { status, result, page, matchedItemKeys }
+  return { status, result, page, matchedItemKeys, error, comparingText }
 }
 
 export function useCatalogItem(itemKey: ItemKey) {
