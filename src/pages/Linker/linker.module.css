@@ -17,8 +17,25 @@
   margin-bottom: 1rem;
   border: 1px solid #ccc;
   padding: 1rem;
+  width: 75%;
+  min-width: 40rem;
+  max-width: 70rem;
 }
 
 .matched {
   margin-left: 2rem;
+}
+
+.matchedToItem {
+  display: flex;
+  justify-content: space-between;
+}
+
+.linkButton {
+  width: 10rem;
+}
+
+.matchedToItemTitle {
+  font-weight: bold;
+  font-size: 1.25rem;
 }

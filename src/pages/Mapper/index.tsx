@@ -15,8 +15,8 @@ export default function Mapper() {
   const classificationId = classification.value || ''
   const subClassificationId = subClassification.value || ''
 
-  const mapFromSelector = useListSelector<ItemRecord>([], 'recordId')
-  const mappedSelector = useListSelector<ItemRecord>([], 'recordId')
+  const mapFromSelector = useListSelector<ItemKey>([], 'recordId')
+  const mappedSelector = useListSelector<ItemKey>([], 'recordId')
   const classifications = useStore(state => state.org?.classifications)
   const classificationUpdates = useClassificationUpdate()
   const query = useCatalogSearchParamQuery()

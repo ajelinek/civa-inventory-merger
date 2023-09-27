@@ -1,13 +1,15 @@
+import dayjs from 'dayjs'
 import { useState } from 'react'
 import { FaCaretDown, FaCaretRight } from 'react-icons/fa6'
 import { RxDividerVertical } from 'react-icons/rx'
+import { useNavigate } from 'react-router-dom'
+import { useCatalogItem } from '../../store'
 import Money from '../Money'
 import s from './itemSummary.module.css'
-import dayjs from 'dayjs'
-import { useCatalogItem } from '../../store'
 
-export default function ItemSummary({ itemKey, selector }: { itemKey: ItemKey, selector: Selector<ItemRecord> }) {
+export default function ItemSummary({ itemKey, selector }: { itemKey: ItemKey, selector: Selector<ItemKey> }) {
   const item = useCatalogItem(itemKey)
+  const nav = useNavigate()
   const [active, setActive] = useState(false)
   if (!item) return null
 
@@ -16,12 +18,12 @@ export default function ItemSummary({ itemKey, selector }: { itemKey: ItemKey, s
       <div className={s.summary}>
         <div>
           <input type='checkbox'
-            onChange={(e) => selector.onSelect(e, item)}
-            checked={selector.isSelected(item)}
+            onChange={(e) => selector.onSelect(e, itemKey)}
+            checked={selector.isSelected(itemKey)}
           />
         </div>
-        <div className={s.summaryContent} onClick={() => setActive(!active)}>
-          <div className={s.summaryTitle} >
+        <div className={s.summaryContent} >
+          <div className={s.summaryTitle} onClick={() => nav(`/item/${itemKey.recordId}/${itemKey.officeId}`)}>
             <p className={s.title}><span className={s.id}>{item.officeId}-{item.itemId}</span> - {item.itemDescription} </p>
             <p className={s.subTitle}>C -{item.classificationName} <RxDividerVertical className={s.divider} />  SC - {item.subClassificationName}</p>
           </div>

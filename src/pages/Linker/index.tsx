@@ -1,15 +1,16 @@
+import { nanoid } from 'nanoid'
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { AlertMessage } from '../../components/AlertMessage'
-import ItemSummary from '../../components/ItemSummary'
+import { ClassificationSelector, SubClassificationSelector } from '../../components/CommonInputFields/selectors'
+import LinkedItemsList from '../../components/LinkedItemsList'
+import { useSearchParam } from '../../hooks/searchParams'
 import useListSelector from '../../hooks/useListSelector'
-import { useCatalogItem, useLinkItems, useSearchCatalog, useStore } from '../../store'
+import { useCatalogItem, useCreateLinkedItem, useLinkItems, useSearchCatalog, useStore } from '../../store'
 import { officesForSelectInput } from '../../store/selectors/offices'
 import s from './linker.module.css'
-import { ClassificationSelector, SubClassificationSelector } from '../../components/CommonInputFields/selectors'
-import { useSearchParam } from '../../hooks/searchParams'
 export default function LinkerPage() {
   const offices = useStore(state => state.org?.offices)!
-  const selector = useListSelector<ItemRecord>([], 'recordId')
   const officeArray = officesForSelectInput(offices)
   const classification = useSearchParam('mc')
   const subClassification = useSearchParam('msc')
@@ -67,33 +68,51 @@ export default function LinkerPage() {
         {(itemGroup.status !== 'searched' && query) && <div>Loading...</div>}
         {itemGroup.status === 'searched' && itemGroup.page?.length === 0 && <div>No items found</div>}
         {(itemGroup.status === 'searched' && itemGroup.page?.length || 0 > 0) &&
-          itemGroup.page?.map((item) => {
-            return (
-              <div key={item.recordId} className={s.group}>
-                <LinkItemTitle itemKey={item} />
-                <div className={s.matched}>
-                  {itemGroup?.matchedItemKeys?.[item.recordId].map((matchedItemKey) =>
-                    <>
-                      {!matchedItemKey.recordId && <p>{matchedItemKey.officeId} - No match found</p>}
-                      {matchedItemKey.recordId && <ItemSummary itemKey={matchedItemKey} selector={selector} />}
-                    </>
-                  )}
-                </div>
-              </div>
-            )
-          })}
+          itemGroup.page?.map((item) =>
+            <ItemGroup key={item.recordId} itemGroup={itemGroup} itemKey={item} />)}
       </section>
     </div>
   )
 }
 
-function LinkItemTitle({ itemKey }: { itemKey: ItemKey }) {
+type ItemGroupProps = { itemKey: ItemKey, itemGroup: UseSearchCatalogReturn }
+function ItemGroup({ itemKey, itemGroup }: ItemGroupProps) {
+  const matchedItemKeys = useMemo(() => itemGroup?.matchedItemKeys?.[itemKey.recordId] || [], [itemGroup, itemKey])
+  const selector = useListSelector<ItemKey>([], 'recordId')
   const item = useCatalogItem(itemKey)
+  const nav = useNavigate()
+  const createItem = useCreateLinkedItem()
+
+  async function handelCreateItem() {
+    const recordId = nanoid(8)
+    await createItem.execute({
+      recordId,
+      officeId: 'CIVA',
+      itemDescription: item?.itemDescription || '',
+      status: 'active',
+      itemId: item?.itemId || '',
+      itemType: item?.itemType || '',
+      markUpPercentage: item?.markUpPercentage || null,
+      minimumPrice: item?.minimumPrice || null,
+      unitOfMeasure: item?.unitOfMeasure || '',
+      unitPrice: item?.unitPrice || null,
+      linkedItems: selector?.getSelected() || []
+    })
+
+    nav(`/item/${recordId}/CIVA`)
+  }
 
   return (
-    <div className={s.matchedToItem}>
-      <p className={s.title}>{item?.officeId} - {item?.itemDescription}</p>
+    <div key={itemKey.recordId} className={s.group}>
+      {JSON.stringify(selector.getSelected())}
+      <div className={s.matchedToItem}>
+        <p className={s.matchedToItemTitle}>{item?.officeId} - {item?.itemDescription}</p>
+        <AlertMessage message={createItem.error?.message} />
+        <button className={s.linkButton} aria-busy={createItem.loading} onClick={() => handelCreateItem()}>Create Item</button>
+      </div>
+      <LinkedItemsList itemKeys={matchedItemKeys} selector={selector} />
     </div>
   )
+
 }
 

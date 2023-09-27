@@ -6,7 +6,6 @@ import { useStore } from ".."
 import { loadCatalog, updateClassifications } from "../providers/catalog"
 import { processImportFile } from "../providers/import"
 import Searcher from "../workers/searcher.worker?worker"
-import { set } from "firebase/database"
 
 export function useFileImport() {
   const email = useStore.getState().user?.email ?? 'unknown'
@@ -25,7 +24,7 @@ export function useClassificationUpdate() {
 
 export function useCatalogSearchParamQuery(): CatalogQuery | undefined {
   const classificationsMap = useStore(state => state.org?.classifications)
-  const subClassificationMap = useStore(state => state.subClassifications)
+  // const subClassificationMap = useStore(state => state.subClassifications)
   const [query, setQuery] = useState<CatalogQuery>()
   const [searchParams] = useSearchParams()
   const queryBuilder = useDebouncedCallback(() => {
@@ -38,12 +37,12 @@ export function useCatalogSearchParamQuery(): CatalogQuery | undefined {
       searchText: searchParams.get('st') || '',
       excludeMapped: searchParams.get('exm') === 'true',
       excludeLinked: searchParams.get('exl') === 'true',
-      subClassificationNames: searchParams.getAll('cs').map(id => subClassificationMap?.[id]?.name ?? '')
+      // subClassificationNames: searchParams.getAll('cs').map(id => subClassificationMap?.[id]?.name ?? '')
     }
     setQuery(newQuery)
   }, 500)
 
-  useEffect(() => queryBuilder(), [classificationsMap, subClassificationMap, searchParams])
+  useEffect(() => queryBuilder(), [classificationsMap, searchParams])
 
   return query
 }
@@ -90,8 +89,8 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSea
 
   useEffect(() => {
     if (!(result && catalogs)) return
-    // const itemKeys = result?.itemKeys?.slice(0, 500)
-    const itemKeys = result?.itemKeys
+    const itemKeys = result?.itemKeys?.slice(0, 50)
+    // const itemKeys = result?.itemKeys
     //@ts-ignore
     // const newPage = itemKeys?.map(item => catalog[item.officeId][item.recordId])
     setPage(itemKeys)
@@ -115,6 +114,7 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSea
   return { status, result, page, matchedItemKeys, error, comparingText }
 }
 
-export function useCatalogItem(itemKey: ItemKey) {
+export function useCatalogItem(itemKey?: ItemKey) {
+  if (!itemKey) return
   return useStore(state => state.catalog?.[itemKey.officeId][itemKey.recordId])
 }

@@ -3,7 +3,6 @@ type FirebaseUser = import('firebase/auth').User
 interface Store {
   user: FirebaseUser | null | undefined
   org: Org | undefined
-  subClassifications: SubClassifications | undefined
   catalog: Catalogs | undefined //all of the data from the database
   catalogSearcher: CatalogSearcher | undefined //the searcher that is used to search the catalog
   catalogLastUpdateTimestamp: Date | undefined

@@ -9,7 +9,7 @@ export default function FacetedSearch() {
   const offices = useStore(state => state.org?.offices)!
   const officeParams = useSearchParamsListToggle('o')
   const classificationParams = useSearchParamsListToggle('c')
-  const subClassificationParams = useSearchParamsListToggle('cs')
+  const subClassificationParams = useSearchParamsListToggle('sc')
 
 
   return (

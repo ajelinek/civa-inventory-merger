@@ -1,0 +1,11 @@
+.notFoundMessage {
+  font-size: 1.25rem;
+  font-weight: bold;
+  border-bottom: 1px solid var(--muted-color);
+  padding: 1rem 2.75rem;
+}
+
+.officeId {
+  font-size: 1rem;
+  color: var(--primary);
+}

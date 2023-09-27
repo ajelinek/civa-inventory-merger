@@ -4,7 +4,6 @@ import { removeStopwords } from 'stopword'
 let searcher: Fuse<SearchItem> | null = null
 let catalogs: Catalogs | null = null
 let offices: Offices | null = null
-let id = Math.random() * 100
 
 onmessage = (event: MessageEvent<SearcherMessage>) => {
   switch (event.data.type) {

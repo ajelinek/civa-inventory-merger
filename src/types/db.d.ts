@@ -33,8 +33,7 @@ type OfficeId =
   'BH' |
   'WV' |
   'MC' |
-  'CIVA' |
-  ''
+  'CIVA'
 
 interface OfficeCatalogMetadata {
   lastImportDate: Date
@@ -57,14 +56,17 @@ interface ItemRecord {
   itemType: string
   itemTypeDescription: string
   unitOfMeasure: string
-  unitPrice: number
-  dispensingFee: number
-  minimumPrice: number
-  markUpPercentage: number
+  unitPrice: number | null
+  dispensingFee: number | null
+  minimumPrice: number | null
+  markUpPercentage: number | null
   originalItemId: string //Set on import
   lastUpdateTimestamp?: Date
   classificationMappedTimestamp?: Date | undefined
+  linkedItems?: ItemKey[]
   itemLinkedTimestamp?: Date | undefined
+  status?: 'active' | 'inactive'
+
 }
 
 interface UpdateClassificationInput {
@@ -72,7 +74,7 @@ interface UpdateClassificationInput {
   classificationName: string
   subClassificationId?: string
   subClassificationName?: string
-  items: ItemRecord[]
+  items: ItemKeys[]
 }
 
 type CreateItemRecordInput = Pick<ItemRecord,
@@ -87,5 +89,8 @@ type CreateItemRecordInput = Pick<ItemRecord,
   'unitOfMeasure' |
   'itemType' |
   'minimumPrice' |
-  'markUpPercentage'
+  'markUpPercentage' |
+  'status' |
+  'unitPrice' |
+  'linkedItems'
 >

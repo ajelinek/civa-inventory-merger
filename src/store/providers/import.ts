@@ -1,8 +1,7 @@
+import { nanoid } from "nanoid"
 import Papa from "papaparse"
 import { offices } from "../const"
 import { createCatalog } from "./catalog"
-import { itemRecordId } from "../selectors/item"
-import { nanoid } from "nanoid"
 
 export async function processImportFile(file: File, email: string) {
   if (!file) throw new Error('No file provided')
