@@ -1,8 +1,13 @@
 .container {
   padding: 0 1rem;
   display: flex;
+  justify-content: space-between;
 }
 
 .contentForm {
-  width: 45%;
+  flex-basis: calc(50% - 1rem);
+}
+
+.linkedItems {
+  flex-basis: calc(50% - 1rem);
 }

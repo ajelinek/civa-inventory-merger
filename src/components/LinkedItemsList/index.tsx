@@ -6,7 +6,6 @@ type props = {
 }
 
 export default function LinkedItemsList({ selector, itemKeys }: props) {
-  console.log("🚀 ~ file: index.tsx:9 ~ LinkedItemsList ~ itemKeys:", itemKeys)
 
   return (<div className={s.matched}>
     <input type="checkbox"

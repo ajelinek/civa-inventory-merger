@@ -104,7 +104,6 @@ function ItemGroup({ itemKey, itemGroup }: ItemGroupProps) {
 
   return (
     <div key={itemKey.recordId} className={s.group}>
-      {JSON.stringify(selector.getSelected())}
       <div className={s.matchedToItem}>
         <p className={s.matchedToItemTitle}>{item?.officeId} - {item?.itemDescription}</p>
         <AlertMessage message={createItem.error?.message} />
