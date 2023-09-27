@@ -8,7 +8,7 @@ export function useOrgSettings() {
       offices: r.offices,
       classifications: r.classifications,
     },
-    subClassifications: r.subClassifications
+    // subClassifications: r.subClassifications
   })), [])
 }
 

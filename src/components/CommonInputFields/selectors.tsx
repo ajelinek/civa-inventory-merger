@@ -7,15 +7,15 @@ type props = {
   value: string | undefined
   className?: string,
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
-}
-export function OfficeSelector({ value, onChange, className }: props) {
+} & React.SelectHTMLAttributes<HTMLSelectElement>
+export function OfficeSelector({ value, onChange, className, ...attr }: props) {
   const offices = useStore(state => state.org?.offices)!
   const officesOptions = officesForSelectInput(offices)
 
   return (
     <fieldset className={className}>
       <label htmlFor="office">Office</label>
-      <select id="office" name="officeId" value={value || ''} onChange={onChange}>
+      <select id="office" name="officeId" value={value || ''} onChange={onChange} {...attr}>
         <option value="" disabled={true}>Select an office</option>
         {officesOptions.map(office => (
           <option key={office.value} value={office.value}>{office.label}</option>
@@ -26,7 +26,6 @@ export function OfficeSelector({ value, onChange, className }: props) {
 }
 
 export function ClassificationSelector({ value, onChange, className }: props) {
-  console.log("🚀 ~ file: selectors.tsx:29 ~ ClassificationSelector ~ value:", value)
   const classifications = useStore(state => state.org?.classifications)!
   const classificationsOptions = classificationsForSelectInput(classifications)
 

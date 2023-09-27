@@ -3,7 +3,6 @@ type FirebaseUser = import('firebase/auth').User
 interface Store {
   user: FirebaseUser | null | undefined
   org: Org | undefined
-  subClassifications: SubClassifications | undefined
   catalog: Catalogs | undefined //all of the data from the database
   catalogSearcher: CatalogSearcher | undefined //the searcher that is used to search the catalog
   catalogLastUpdateTimestamp: Date | undefined
@@ -64,13 +63,14 @@ interface CatalogQueryResult {
   matchedRecords: number
   keyWords: string[]
   itemKeys: ItemKey[]
+  matchedItemKeys?: MatchedItemKeys
 }
-type ItemKey = { itemId: ItemId, officeId: OfficeId }
 
-
-
+type MatchedItemKeys = Record<RecordId, ItemKey[]>//Item key per office
 
 interface CatalogQuery {
+  searchType?: 'general' | 'comparison'
+  comparisonCount?: number
   officeIds?: string[]
   classificationIds?: string[]
   subClassificationIds?: string[]
@@ -89,19 +89,26 @@ interface SearcherSearchMessage {
 
 interface SearcherLoadMessage {
   type: 'load'
-  payload: Catalogs
+  payload: {
+    catalogs: Catalogs
+    offices: Offices
+  }
 }
 
 interface SearcherLoadMessageReturn {
   type: 'loaded'
 }
 
+
 type SearcherMessage = SearcherSearchMessage | SearcherLoadMessage
 
 interface UseSearchCatalogReturn {
   status: SearchStatus
   result: CatalogQueryResult | undefined
-  page: ItemRecord[] | undefined
+  page: ItemKey[] | undefined
+  matchedItemKeys: MatchedItemKeys | undefined
+  error: Error | undefined
+  comparingText: string | undefined
 }
 
 

@@ -24,7 +24,7 @@ export function useClassificationUpdate() {
 
 export function useCatalogSearchParamQuery(): CatalogQuery | undefined {
   const classificationsMap = useStore(state => state.org?.classifications)
-  const subClassificationMap = useStore(state => state.subClassifications)
+  // const subClassificationMap = useStore(state => state.subClassifications)
   const [query, setQuery] = useState<CatalogQuery>()
   const [searchParams] = useSearchParams()
   const queryBuilder = useDebouncedCallback(() => {
@@ -37,12 +37,12 @@ export function useCatalogSearchParamQuery(): CatalogQuery | undefined {
       searchText: searchParams.get('st') || '',
       excludeMapped: searchParams.get('exm') === 'true',
       excludeLinked: searchParams.get('exl') === 'true',
-      subClassificationNames: searchParams.getAll('cs').map(id => subClassificationMap?.[id]?.name ?? '')
+      // subClassificationNames: searchParams.getAll('cs').map(id => subClassificationMap?.[id]?.name ?? '')
     }
     setQuery(newQuery)
   }, 500)
 
-  useEffect(() => queryBuilder(), [classificationsMap, subClassificationMap, searchParams])
+  useEffect(() => queryBuilder(), [classificationsMap, searchParams])
 
   return query
 }
@@ -50,10 +50,14 @@ export function useCatalogSearchParamQuery(): CatalogQuery | undefined {
 type SearchStatus = 'initial' | 'loading' | 'loaded' | 'searching' | 'searched'
 export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSearchCatalogReturn {
   const searcher = useRef<Worker>()
-  const catalog = useStore(state => state.catalog)
+  const catalogs = useStore(state => state.catalog)
+  const offices = useStore(state => state.org?.offices)
   const [status, setStatus] = useState<SearchStatus>('initial')
   const [result, setResult] = useState<CatalogQueryResult>()
-  const [page, setPage] = useState<ItemRecord[]>()
+  const [page, setPage] = useState<ItemKey[]>()
+  const [matchedItemKeys, setMatchedItemKeys] = useState<MatchedItemKeys>()
+  const [error, setError] = useState<Error | undefined>()
+  const [comparingText, setComparingText] = useState<string>()
 
 
   useEffect(() => {
@@ -66,8 +70,16 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSea
         case 'searched':
           setStatus('searched')
           setResult(e.data.payload)
+          setComparingText(undefined)
+          break
+        case 'compare-status':
+          setComparingText(e.data.payload.text)
           break
       }
+    }
+    searcher.current.onerror = (e) => {
+      setError(e.error)
+      setStatus('initial')
     }
 
     return () => {
@@ -76,26 +88,33 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSea
   }, [])
 
   useEffect(() => {
-    if (!(result && catalog)) return
+    if (!(result && catalogs)) return
     const itemKeys = result?.itemKeys?.slice(0, 50)
+    // const itemKeys = result?.itemKeys
     //@ts-ignore
-    const newPage = itemKeys?.map(item => catalog[item.officeId][item.recordId])
-    setPage(newPage)
+    // const newPage = itemKeys?.map(item => catalog[item.officeId][item.recordId])
+    setPage(itemKeys)
+    setMatchedItemKeys(result?.matchedItemKeys)
   }, [result])
 
   useEffect(() => {
-    if (!(catalog && searcher.current)) return
+    if (!(catalogs && searcher.current)) return
     setStatus('loading')
-    searcher.current.postMessage({ type: 'load', payload: catalog })
-  }, [catalog])
+    searcher.current.postMessage({ type: 'load', payload: { catalogs, offices } })
+  }, [catalogs])
 
 
   useEffect(() => {
-    if (!(searcher.current && query)) return
+    console.log("🚀 ~ file: catalog.ts:110 ~ useEffect ~ query:", query)
+    if (!(searcher.current && query && catalogs)) return
     setStatus('searching')
     searcher.current.postMessage({ type: 'search', payload: query })
-  }, [query, catalog])
+  }, [query, catalogs])
 
-  return { status, result, page }
+  return { status, result, page, matchedItemKeys, error, comparingText }
 }
 
+export function useCatalogItem(itemKey?: ItemKey) {
+  if (!itemKey) return
+  return useStore(state => state.catalog?.[itemKey.officeId][itemKey.recordId])
+}

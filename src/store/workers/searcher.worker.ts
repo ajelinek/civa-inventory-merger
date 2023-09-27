@@ -2,8 +2,8 @@ import Fuse from 'fuse.js'
 import { removeStopwords } from 'stopword'
 
 let searcher: Fuse<SearchItem> | null = null
-let catalog: Catalogs | null = null
-let id = Math.random() * 100
+let catalogs: Catalogs | null = null
+let offices: Offices | null = null
 
 onmessage = (event: MessageEvent<SearcherMessage>) => {
   switch (event.data.type) {
@@ -16,9 +16,14 @@ onmessage = (event: MessageEvent<SearcherMessage>) => {
   }
 }
 
-function load(catalog: Catalogs) {
-  catalog = catalog
-  searcher = new Fuse<SearchItem>(mergeCatalogs(catalog), {
+interface loadProps {
+  catalogs: Catalogs
+  offices: Offices
+}
+function load(payload: loadProps) {
+  catalogs = payload.catalogs
+  offices = payload.offices
+  searcher = new Fuse<SearchItem>(mergeCatalogs(payload.catalogs), {
     keys: ['searchString', 'classificationId', 'subClassificationId', 'officeId', 'itemId', 'classificationMappedTimestamp', 'itemLinkedTimestamp', 'recordId'],
     threshold: 0.5,
     ignoreLocation: true,
@@ -32,19 +37,21 @@ function load(catalog: Catalogs) {
   postMessage({ type: 'loaded' })
 }
 
-interface SearchItem {
+type SearchItem = Pick<ItemRecord,
+  'classificationId' |
+  'subClassificationId' |
+  'officeId' |
+  'itemId' |
+  'recordId' |
+  'classificationMappedTimestamp' |
+  'itemLinkedTimestamp' |
+  'originalItemId'
+> & {
   searchString: string
-  classificationId: string
-  subClassificationId: string
-  officeId: string
-  itemId: string
-  recordId: string
-  classificationMappedTimestamp: Date
-  itemLinkedTimestamp: Date
 }
 
-function mergeCatalogs(catalogs: Catalogs) {
-  const merged = Object.values(catalogs).reduce((acc, catalog: Catalogs) => {
+function mergeCatalogs(inCatalogs: Catalogs) {
+  const merged = Object.values(inCatalogs).reduce((acc, catalog: Catalog) => {
     acc = [
       ...acc,
       ...Object.values(catalog).map((item: ItemRecord) => ({
@@ -53,6 +60,7 @@ function mergeCatalogs(catalogs: Catalogs) {
         subClassificationId: item.subClassificationId,
         officeId: item.officeId,
         itemId: item.itemId,
+        originalItemId: item.originalItemId,
         recordId: item.recordId,
         classificationMappedTimestamp: item.classificationMappedTimestamp,
         itemLinkedTimestamp: item.itemLinkedTimestamp
@@ -69,8 +77,43 @@ function search(query: CatalogQuery) {
     postMessage({ type: 'searched', payload: [] })
     return
   }
+  const payload = query.searchType === 'comparison' ? comparisonSearch(query, searcher) : generalSearch(query, searcher)
+  postMessage({ type: 'searched', payload })
+}
 
-  const results = searcher.search(buildLogicalQuery(query), { limit: 100 })
+function comparisonSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
+  if (!offices) throw new Error('Offices not loaded')
+  const { itemKeys } = basicSearch(query, searcher, query.comparisonCount)
+
+  const officeIds = Object.keys(offices).filter(officeId => officeId !== 'CIVA') as OfficeId[]
+  const matchedItemKeys = itemKeys.reduce((acc, itemKey, index) => {
+    const searchText = catalogs?.[itemKey.officeId]?.[itemKey.recordId]?.itemDescription
+    postMessage({ type: 'compare-status', payload: { text: `(${index + 1} of ${query.comparisonCount}) - Searching For ${searchText}  ` } })
+    const officeMatches = officeIds.map(officeId => {
+      const query = { officeIds: [officeId], searchText, excludeLinked: true }
+      const officeResult = basicSearch(query, searcher, 1)
+
+      return {
+        recordId: officeResult?.itemKeys?.[0]?.recordId,
+        officeId: officeId
+      }
+    })
+    return { ...acc, [itemKey.recordId]: officeMatches }
+  }, {} as MatchedItemKeys)
+
+  return { itemKeys, matchedItemKeys }
+}
+
+function generalSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
+  const { itemKeys, results } = basicSearch(query, searcher)
+  const matchedCatalogs = new Set(itemKeys.map(item => item.officeId)).size
+  const matchedRecords = itemKeys.length
+  const keyWords = identifyKeyWords(results, query)
+  return { itemKeys, matchedCatalogs, matchedRecords, keyWords }
+}
+
+function basicSearch(query: CatalogQuery, searcher: Fuse<SearchItem>, limit: number = 1000) {
+  const results = searcher.search(buildLogicalQuery(query), { limit })
   const itemKeys = results
     .filter(i => {
       if (query.excludeMapped === true && i.item?.classificationMappedTimestamp) return false
@@ -81,20 +124,9 @@ function search(query: CatalogQuery) {
       recordId: result.item.recordId,
       officeId: result.item.officeId
     }))
-  const matchedCatalogs = new Set(itemKeys.map(item => item.officeId)).size
-  const matchedRecords = results.length
-  const keyWords = identifyKeyWords(results, query)
-
-  postMessage({
-    type: 'searched',
-    payload: {
-      itemKeys,
-      matchedCatalogs,
-      matchedRecords,
-      keyWords
-    }
-  })
+  return { itemKeys, results }
 }
+
 
 function identifyKeyWords(results: Fuse.FuseResult<SearchItem>[], query: CatalogQuery) {
   const tokens = new Set<string>()

@@ -1,8 +1,7 @@
+import { nanoid } from "nanoid"
 import Papa from "papaparse"
 import { offices } from "../const"
 import { createCatalog } from "./catalog"
-import { itemRecordId } from "../selectors/item"
-import { nanoid } from "nanoid"
 
 export async function processImportFile(file: File, email: string) {
   if (!file) throw new Error('No file provided')
@@ -80,7 +79,7 @@ function convertImportRecordToItemRecord(importRecord: ImportRecord): ItemRecord
   } as ItemRecord
 
   const officeKeys = Object.keys(offices) as OfficeId[]
-  const officeId = itemRecord.officeId = officeKeys.find(
+  const officeId = officeKeys.find(
     (key) => offices[key]?.name?.toLocaleLowerCase() === importRecord.locationName?.toLocaleLowerCase()
   ) //Hacky, but we know it will be there, .. or hope
   if (!officeId) throw new Error('No office found')

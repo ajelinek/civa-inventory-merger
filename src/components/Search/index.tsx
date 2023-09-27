@@ -61,6 +61,7 @@ export default function Search({ keyWords, excludeLinkedDefault, excludeMappedDe
             value={searchTerm.value || undefined}
             onChange={(e) => searchTerm.setValue(e.target.value)}
           />
+
         </fieldset>
         <div className={s.includeOptions}>
           <fieldset>

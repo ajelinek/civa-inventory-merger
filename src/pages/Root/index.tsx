@@ -9,7 +9,7 @@ export default function App() {
   const nav = useNavigate()
 
   useEffect(() => {
-    if (!user) nav('/')
+    if (!user && user !== undefined) nav('/')
   }, [user])
 
   if (user === undefined) return (<div aria-busy={true}>Loading...</div>)

@@ -1,25 +1,13 @@
+type ItemId = string
+type RecordId = string
+type ItemKey = { recordId: RecordId, officeId: OfficeId }
+
 interface RealDbSchema {
   org: Org
   catalogs: Catalogs
-  prevId: {
-    [OfficeId]: {
-      [itemId]: string
-    }
-  }
-  catalogHistory: {
-    [OfficeId]: {
-      metadata: OfficeCatalogMetadata
-      [itemId]: ItemRecord
-    }
-  }
 }
-type itemId = string
-interface Catalogs {
-  [OfficeId]: {
-    metadata: OfficeCatalogMetadata
-    [itemId]: ItemRecord
-  }
-}
+type Catalogs = Record<OfficeId, Catalog>
+type Catalog = Record<RecordId, ItemRecord>
 
 interface Org {
   offices: Offices | undefined
@@ -38,7 +26,8 @@ interface Classification {
   subClassifications?: SubClassifications
 }
 
-type OfficeId = 'VC' |
+type OfficeId =
+  'VC' |
   'LS' |
   'EC' |
   'BH' |
@@ -55,26 +44,29 @@ interface OfficeCatalogMetadata {
 }
 
 interface ItemRecord {
-  recordId: string //random uuid
-  officeId: OfficeAbbreviation
+  recordId: RecordId
+  officeId: OfficeId
   classificationId: string
   classificationName: string
   subClassificationId: string
   subClassificationName: string
-  itemId: string
+  itemId: ItemId
   itemDescription: string
   definition: string
   itemType: string
   itemTypeDescription: string
   unitOfMeasure: string
-  unitPrice: number
-  dispensingFee: number
-  minimumPrice: number
-  markUpPercentage: number
+  unitPrice: number | null
+  dispensingFee: number | null
+  minimumPrice: number | null
+  markUpPercentage: number | null
   originalItemId: string //Set on import
   lastUpdateTimestamp?: Date
-  classificationMappedTimestamp?: Date
-  itemLinkedTimestamp?: Date
+  classificationMappedTimestamp?: Date | undefined
+  linkedItems?: ItemKey[]
+  itemLinkedTimestamp?: Date | undefined
+  status?: 'active' | 'inactive'
+
 }
 
 interface UpdateClassificationInput {
@@ -82,7 +74,7 @@ interface UpdateClassificationInput {
   classificationName: string
   subClassificationId?: string
   subClassificationName?: string
-  items: ItemRecord[]
+  items: ItemKeys[]
 }
 
 type CreateItemRecordInput = Pick<ItemRecord,
@@ -97,5 +89,8 @@ type CreateItemRecordInput = Pick<ItemRecord,
   'unitOfMeasure' |
   'itemType' |
   'minimumPrice' |
-  'markUpPercentage'
+  'markUpPercentage' |
+  'status' |
+  'unitPrice' |
+  'linkedItems'
 >
