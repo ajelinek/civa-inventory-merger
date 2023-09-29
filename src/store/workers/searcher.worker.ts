@@ -97,7 +97,7 @@ function comparisonSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
         recordId: officeResult?.itemKeys?.[0]?.recordId,
         officeId: officeId
       }
-    })
+    }).filter(item => item.recordId) as ItemKey[]
     return { ...acc, [itemKey.recordId]: officeMatches }
   }, {} as MatchedItemKeys)
 

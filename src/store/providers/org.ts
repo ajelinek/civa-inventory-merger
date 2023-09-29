@@ -1,9 +1,10 @@
-import { classifications, offices } from "../const"
+import { classifications, offices, itemTypes } from "../const"
 
 interface SettingsCallback {
   offices: Offices
   classifications: Classifications
   subClassifications: SubClassifications
+  itemTypes: ItemTypes
 }
 export function fetchOrgSettings(cb: (org: SettingsCallback) => void) {
   // const orgRef = ref(rdb, 'org')
@@ -18,5 +19,5 @@ export function fetchOrgSettings(cb: (org: SettingsCallback) => void) {
     return acc
   }, {} as SubClassifications)
 
-  cb({ offices, classifications, subClassifications })
+  cb({ offices, classifications, subClassifications, itemTypes })
 }

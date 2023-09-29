@@ -4,10 +4,13 @@ import { rdb } from "../firebase"
 
 export async function upsertItem(item: CreateItemRecordInput) {
   if (!item.classificationId) throw new Error('ClassificationId is required')
-  if (!item.subClassificationId) throw new Error('Sub-classification is required')
   if (!item.officeId) throw new Error('Office is required')
   if (!item.itemId) throw new Error('ItemId is required')
-  if (!(item.itemId.startsWith(item.subClassificationId))) throw new Error('Item Id must start with sub-classification id')
+  if (item.subClassificationId) {
+    if (!item.itemId.startsWith(item.subClassificationId)) throw new Error('ItemId must start with the sub classification id')
+  } else {
+    if (!item.itemId.startsWith(item.classificationId)) throw new Error('ItemId must start with the classification id')
+  }
   if (!item.itemDescription) throw new Error('Description is required')
   const itemRef = ref(rdb, `catalogs/${item.officeId}/${item.recordId}`)
   await set(itemRef, item)
@@ -20,6 +23,10 @@ export async function upsertItem(item: CreateItemRecordInput) {
       acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/subClassificationName`] = item.subClassificationName
       acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/itemId`] = item.itemId
       acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/itemDescription`] = item.itemDescription
+      acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/status`] = item.status || 'active'
+      acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/itemType`] = item.itemType
+      acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/itemTypeDescription`] = item.itemTypeDescription
+      acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/status`] = item.status || 'active'
       acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/classificationMappedTimestamp`] = new Date().toISOString()
       acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/itemLinkedTimestamp`] = new Date().toISOString()
       return acc

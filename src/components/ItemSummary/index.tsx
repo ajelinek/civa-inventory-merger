@@ -25,7 +25,11 @@ export default function ItemSummary({ itemKey, selector }: { itemKey: ItemKey, s
         <div className={s.summaryContent} >
           <div className={s.summaryTitle} onClick={() => nav(`/item/${itemKey.recordId}/${itemKey.officeId}`)}>
             <p className={s.title}><span className={s.id}>{item.officeId}-{item.itemId}</span> - {item.itemDescription} </p>
-            <p className={s.subTitle}>C -{item.classificationName} <RxDividerVertical className={s.divider} />  SC - {item.subClassificationName}</p>
+            {item.subClassificationName
+              ? <p className={s.subTitle}>C -{item.classificationName}
+                <RxDividerVertical className={s.divider} />  SC - {item.subClassificationName}
+              </p>
+              : <p className={s.subTitle}>C - {item.classificationName}</p>}
           </div>
           <div className={s.costInfo}>
             <p className={s.costItem}>
@@ -81,6 +85,9 @@ export default function ItemSummary({ itemKey, selector }: { itemKey: ItemKey, s
             <span className={s.label}>Mapped:
             </span> {item.classificationMappedTimestamp && dayjs(item.classificationMappedTimestamp).format('ddd, MMM D, YYYY h:mm A')
             }
+          </p>
+          <p className={s.attribute}>
+            <span className={s.label}>Original Item ID:</span> {item.originalItemId}
           </p>
           <p className={s.attribute}>
             <span className={s.label}>Database Record ID:</span> {item.recordId}

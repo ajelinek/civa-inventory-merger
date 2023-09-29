@@ -91,7 +91,7 @@ function ItemGroup({ itemKey, itemGroup }: ItemGroupProps) {
       itemDescription: item?.itemDescription || '',
       status: 'active',
       itemId: item?.itemId || '',
-      itemType: item?.itemType || '',
+      itemType: item?.itemType || 'I',
       markUpPercentage: item?.markUpPercentage || null,
       minimumPrice: item?.minimumPrice || null,
       unitOfMeasure: item?.unitOfMeasure || '',

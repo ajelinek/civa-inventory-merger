@@ -7,6 +7,7 @@ export function useOrgSettings() {
     org: {
       offices: r.offices,
       classifications: r.classifications,
+      itemTypes: r.itemTypes
     },
     // subClassifications: r.subClassifications
   })), [])

@@ -3,7 +3,7 @@ import { useEffect } from "react"
 import useFormManagement from "../../hooks/userFormManagement"
 import { useCatalogItem, useStore, useUpsertItem } from "../../store"
 import { AlertMessage } from "../AlertMessage"
-import { ClassificationSelector, OfficeSelector, SubClassificationSelector } from "../CommonInputFields/selectors"
+import { ClassificationSelector, ItemTypeSelector, OfficeSelector, SubClassificationSelector } from "../CommonInputFields/selectors"
 import s from './itemForm.module.css'
 
 type props = {
@@ -14,9 +14,11 @@ export default function ItemForm({ itemKey }: props) {
   const item = useCatalogItem(itemKey)
   const createItem = useUpsertItem()
   const classifications = useStore(state => state.org?.classifications)
+  const itemTypes = useStore(state => state.org?.itemTypes)
   const form = useFormManagement(initItem(item), async (item) => {
     item.classificationName = classifications?.[item.classificationId].name || ""
     item.subClassificationName = classifications?.[item.classificationId]?.subClassifications?.[item.subClassificationId]?.name || ""
+    item.itemTypeDescription = itemTypes?.[item.itemType].name || ""
     await createItem.execute(item)
   })
 
@@ -33,7 +35,8 @@ export default function ItemForm({ itemKey }: props) {
       subClassificationId: item?.subClassificationId || "",
       subClassificationName: item?.subClassificationName || "",
       unitOfMeasure: item?.unitOfMeasure || "",
-      itemType: item?.itemType || "",
+      itemType: item?.itemType || "U",
+      itemTypeDescription: item?.itemTypeDescription || "",
       minimumPrice: item?.minimumPrice || 0,
       markUpPercentage: item?.markUpPercentage || 0,
       unitPrice: item?.unitPrice || 0,
@@ -64,10 +67,7 @@ export default function ItemForm({ itemKey }: props) {
           <input type="text" id="itemDescription" name="itemDescription" value={form.data.itemDescription} onChange={form.onChange} />
         </fieldset>
         <div className={s.formGroup}>
-          <fieldset className={s.fieldset}>
-            <label htmlFor="itemType">Item Type</label>
-            <input type="text" id="itemType" name="itemType" value={form.data.itemType} onChange={form.onChange} />
-          </fieldset>
+          <ItemTypeSelector className={s.fieldset} value={form.data.itemType} onChange={form.onChange} />
           <fieldset className={s.fieldset}>
             <label htmlFor="unitOfMeasure">Unit of Measure</label>
             <input type="text" id="unitOfMeasure" name="unitOfMeasure" value={form.data.unitOfMeasure} onChange={form.onChange} />
