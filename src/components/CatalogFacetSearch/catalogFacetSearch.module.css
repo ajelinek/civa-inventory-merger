@@ -19,5 +19,5 @@
 .toWord {
   font-size: 1.25rem;
   color: var(--primary);
-  weight: 600;
+  font-weight: 600;
 }

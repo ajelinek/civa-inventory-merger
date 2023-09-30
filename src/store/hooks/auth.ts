@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useAsyncCallback } from 'react-async-hook'
 import { useStore } from '..'
-import { login, logout, subScribeToAuthChanges } from '../providers/auth'
+import { login, logout, resetPassword, subScribeToAuthChanges } from '../providers/auth'
 
 export function useAuthorizedUser() {
   useEffect(() => {
@@ -19,4 +19,8 @@ export function useLogin() {
 
 export function useLogout() {
   return useAsyncCallback(logout)
+}
+
+export function usePasswordReset() {
+  return useAsyncCallback(resetPassword)
 }
