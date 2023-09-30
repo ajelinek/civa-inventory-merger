@@ -6,3 +6,18 @@
 .subClassificationSection {
   margin-left: 1.5rem;
 }
+
+.range fieldset {
+  display: flex;
+  column-gap: 1.5rem;
+  align-items: center;
+}
+
+.inputNumber {
+  font-size: 0.95rem;
+}
+.toWord {
+  font-size: 1.25rem;
+  color: var(--primary);
+  weight: 600;
+}

@@ -43,8 +43,6 @@ type SearchItem = Pick<ItemRecord,
   'officeId' |
   'itemId' |
   'recordId' |
-  'classificationMappedTimestamp' |
-  'itemLinkedTimestamp' |
   'originalItemId'
 > & {
   searchString: string
@@ -114,17 +112,29 @@ function generalSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
 
 function basicSearch(query: CatalogQuery, searcher: Fuse<SearchItem>, limit: number = 100) {
   const results = searcher.search(buildLogicalQuery(query), { limit })
-  const itemKeys = results
-    .filter(i => {
-      if (query.excludeMapped === true && i.item?.classificationMappedTimestamp) return false
-      if (query.excludeLinked === true && i.item?.itemLinkedTimestamp) return false
-      return true
-    })
+  const itemKeys = filterResultsByQueryOptions(results, query)
     .map(result => ({
       recordId: result.item.recordId,
       officeId: result.item.officeId
     }))
   return { itemKeys, results }
+}
+
+function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], query: CatalogQuery) {
+  return results.filter(result => {
+    const item = catalogs?.[result.item.officeId]?.[result.item.recordId]
+    if (!item) return false
+    if (query.excludeMapped === true && item.classificationMappedTimestamp) return false
+    if (query.excludeLinked === true && item.itemLinkedTimestamp) return false
+
+    if (query.unitPriceLow && (item.unitPrice ?? 0) < query.unitPriceLow) return false
+    if (query.unitPriceHigh && (item.unitPrice ?? 0) > query.unitPriceHigh) return false
+    if (query.dispensingFeeLow && (item.dispensingFee ?? 0) < query.dispensingFeeLow) return false
+    if (query.dispensingFeeHigh && (item.dispensingFee ?? 0) > query.dispensingFeeHigh) return false
+    if (query.markUpPercentageLow && (item.markUpPercentage ?? 0) < query.markUpPercentageLow) return false
+    if (query.markUpPercentageHigh && (item.markUpPercentage ?? 0) > query.markUpPercentageHigh) return false
+    return true
+  })
 }
 
 
