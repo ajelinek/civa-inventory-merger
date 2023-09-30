@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import { useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 import { removeStopwords } from "stopword"
 import ItemForm from "../../components/ItemForm"
 import LinkedItemsList from "../../components/LinkedItemsList"
@@ -10,8 +10,8 @@ import { useMatchedOfficeIds, useOfficeIds } from "../../store/selectors/offices
 import s from './item.module.css'
 
 export default function ItemPage() {
-  const recordId = useParams<{ recordId: string }>().recordId
-  const officeId = useParams<{ officeId: string }>().officeId as OfficeId
+  const recordId = useParams<{ recordId: string }>()?.recordId
+  const officeId = useParams<{ officeId: string }>()?.officeId as OfficeId
   const linkedSelector = useListSelector<ItemKey>([], 'recordId')
   const unLinkedSelector = useListSelector<ItemKey>([], 'recordId')
   const itemKey: ItemKey | undefined = (recordId && officeId) ? { recordId, officeId } : undefined
@@ -34,37 +34,39 @@ export default function ItemPage() {
           <span className={s.recordId}>{item?.recordId}</span></h2>
         <ItemForm itemKey={itemKey} />
       </section>
-      <section className={s.linkedItems}>
-        <h3>Linked Items</h3>
-        {itemKey && <button className={s.unLinkSubmit}
-          onClick={() => {
-            unLinkItems.execute(itemKey, unLinkedSelector.getSelected())
-            unLinkedSelector.unSelectAll()
-          }}
-          aria-busy={unLinkItems.loading}>
-          UnLink Items {unLinkedSelector.getSelected().length > 0 && `(${unLinkedSelector.getSelected().length})`}
-        </button>}
-
-        {(item?.linkedItems?.length || 0 > 0) &&
-          <LinkedItemsList selector={unLinkedSelector} itemKeys={item?.linkedItems!} />}
-
-        <div className={s.unMatchedSearch}>
-          <h3>Unlinked Items</h3>
-          <UnmatchedSearch
-            initialSearchString={initialSearchString}
-            officeIds={unMatchedOfficeIds}
-            selector={linkedSelector} />
-          {itemKey && <button className={s.linkSubmit}
+      {itemKey &&
+        <section className={s.linkedItems}>
+          <h3>Linked Items</h3>
+          {itemKey && <button className={s.unLinkSubmit}
             onClick={() => {
-              linkItems.execute(itemKey, linkedSelector.getSelected())
-              linkedSelector.unSelectAll()
+              unLinkItems.execute(itemKey, unLinkedSelector.getSelected())
+              unLinkedSelector.unSelectAll()
             }}
-            aria-busy={linkItems.loading}>
-            Link Items
-            {linkedSelector.getSelected().length > 0 && `(${linkedSelector.getSelected().length})`}
+            aria-busy={unLinkItems.loading}>
+            UnLink Items {unLinkedSelector.getSelected().length > 0 && `(${unLinkedSelector.getSelected().length})`}
           </button>}
-        </div>
-      </section>
+
+          {(item?.linkedItems?.length || 0 > 0) &&
+            <LinkedItemsList selector={unLinkedSelector} itemKeys={item?.linkedItems!} />}
+
+          <div className={s.unMatchedSearch}>
+            <h3>Unlinked Items</h3>
+            <UnmatchedSearch
+              initialSearchString={initialSearchString}
+              officeIds={unMatchedOfficeIds}
+              selector={linkedSelector} />
+            {itemKey && <button className={s.linkSubmit}
+              onClick={() => {
+                linkItems.execute(itemKey, linkedSelector.getSelected())
+                linkedSelector.unSelectAll()
+              }}
+              aria-busy={linkItems.loading}>
+              Link Items
+              {linkedSelector.getSelected().length > 0 && `(${linkedSelector.getSelected().length})`}
+            </button>}
+          </div>
+        </section>
+      }
     </div>
   )
 }

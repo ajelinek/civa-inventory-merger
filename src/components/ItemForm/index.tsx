@@ -5,12 +5,14 @@ import { useCatalogItem, useStore, useUpsertItem } from "../../store"
 import { AlertMessage } from "../AlertMessage"
 import { ClassificationSelector, ItemTypeSelector, OfficeSelector, SubClassificationSelector } from "../CommonInputFields/selectors"
 import s from './itemForm.module.css'
+import { useNavigate } from "react-router-dom"
 
 type props = {
   itemKey?: ItemKey
 }
 
 export default function ItemForm({ itemKey }: props) {
+  const nav = useNavigate()
   const item = useCatalogItem(itemKey)
   const createItem = useUpsertItem()
   const classifications = useStore(state => state.org?.classifications)
@@ -20,6 +22,7 @@ export default function ItemForm({ itemKey }: props) {
     item.subClassificationName = classifications?.[item.classificationId]?.subClassifications?.[item.subClassificationId]?.name || ""
     item.itemTypeDescription = itemTypes?.[item.itemType].name || ""
     await createItem.execute(item)
+    if (!itemKey) nav(`/item/${item.recordId}/${item.officeId}`)
   })
 
   const createEditText = !!item ? 'Update' : 'Create'
