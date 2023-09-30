@@ -1,5 +1,6 @@
 import { ref, set, update } from "firebase/database"
 import { rdb } from "../firebase"
+import { useStore } from ".."
 
 
 export async function upsertItem(item: CreateItemRecordInput) {
@@ -27,19 +28,46 @@ export async function upsertItem(item: CreateItemRecordInput) {
       acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/itemType`] = item.itemType
       acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/itemTypeDescription`] = item.itemTypeDescription
       acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/status`] = item.status || 'active'
-      acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/classificationMappedTimestamp`] = new Date().toISOString()
-      acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/itemLinkedTimestamp`] = new Date().toISOString()
+      acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/lastUpdateTimestamp`] = new Date()
       return acc
-    }, {} as Record<string, string>)
+    }, {} as Record<string, any>)
 
     return update(ref(rdb), updates)
   }
 }
 
-export function createInitialLinkedItem(item: Partial<CreateItemRecordInput>) {
+export async function createInitialLinkedItem(item: Partial<CreateItemRecordInput>) {
   if (!item.recordId) throw new Error('RecordId is required')
   if (!item.officeId) throw new Error('OfficeId is required')
 
   const itemRef = ref(rdb, `catalogs/${item.officeId}/${item.recordId}`)
-  return set(itemRef, item)
+  const linkedItems = item.linkedItems || []
+  delete item.linkedItems
+  await set(itemRef, item)
+  return linkItems({ officeId: item.officeId, recordId: item.recordId }, linkedItems)
+}
+
+export function linkItems(linkToItemId: ItemKey, linkedItemKeys: ItemKey[]) {
+  const currentItems = useStore.getState().catalog?.[linkToItemId.officeId][linkToItemId.recordId].linkedItems || []
+  const newItems = [...currentItems, ...linkedItemKeys]
+
+  const updates = linkedItemKeys.reduce((acc, itemKey) => {
+    acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/itemLinkedTimestamp`] = new Date()
+    return acc
+  }, {} as Record<string, any>)
+  updates[`catalogs/${linkToItemId.officeId}/${linkToItemId.recordId}/linkedItems`] = newItems
+
+  return update(ref(rdb), updates)
+}
+
+export function unlinkItems(linkToItemId: ItemKey, removeItemKeys: ItemKey[]) {
+  const currentItems = useStore.getState().catalog?.[linkToItemId.officeId][linkToItemId.recordId].linkedItems || []
+  const newItems = currentItems.filter(itemKey => !removeItemKeys.find(removeItemKey => removeItemKey.recordId === itemKey.recordId))
+  const updates = removeItemKeys.reduce((acc, itemKey) => {
+    acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/itemLinkedTimestamp`] = null
+    return acc
+  }, {} as Record<string, any>)
+  updates[`catalogs/${linkToItemId.officeId}/${linkToItemId.recordId}/linkedItems`] = newItems
+
+  return update(ref(rdb), updates)
 }

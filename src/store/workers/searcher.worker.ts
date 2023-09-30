@@ -112,7 +112,7 @@ function generalSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
   return { itemKeys, matchedCatalogs, matchedRecords, keyWords }
 }
 
-function basicSearch(query: CatalogQuery, searcher: Fuse<SearchItem>, limit: number = 1000) {
+function basicSearch(query: CatalogQuery, searcher: Fuse<SearchItem>, limit: number = 100) {
   const results = searcher.search(buildLogicalQuery(query), { limit })
   const itemKeys = results
     .filter(i => {

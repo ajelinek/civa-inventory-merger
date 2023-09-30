@@ -2,6 +2,8 @@
   padding: 0 1rem;
   display: flex;
   justify-content: space-between;
+  height: calc(100vh - 10rem);
+  overflow: hidden;
 }
 
 .contentForm {
@@ -10,4 +12,32 @@
 
 .linkedItems {
   flex-basis: calc(50% - 1rem);
+  position: relative;
+}
+
+.recordId {
+  margin: 0 0.5rem;
+  font-size: 0.75rem;
+}
+
+.unLinkSubmit {
+  width: 10rem;
+  position: absolute;
+  top: 0;
+  right: 1rem;
+}
+
+.unMatchedSearch {
+  position: relative;
+  height: calc(100vh - 23rem);
+  overflow: auto;
+  margin-top: 1rem;
+  padding: 0 1rem 0 0;
+}
+
+.linkSubmit {
+  width: 10rem;
+  position: fixed;
+  bottom: 2rem;
+  right: 2.5rem;
 }

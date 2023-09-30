@@ -4,10 +4,11 @@ import { useNavigate } from 'react-router-dom'
 import { AlertMessage } from '../../components/AlertMessage'
 import { ClassificationSelector, SubClassificationSelector } from '../../components/CommonInputFields/selectors'
 import LinkedItemsList from '../../components/LinkedItemsList'
+import { UnMatchedDisplay } from '../../components/UnMatchedDisplay'
 import { useSearchParam } from '../../hooks/searchParams'
 import useListSelector from '../../hooks/useListSelector'
 import { useCatalogItem, useCreateLinkedItem, useLinkItems, useSearchCatalog, useStore } from '../../store'
-import { officesForSelectInput } from '../../store/selectors/offices'
+import { officesForSelectInput, useMatchedOfficeIds, useOfficeIds } from '../../store/selectors/offices'
 import s from './linker.module.css'
 export default function LinkerPage() {
   const offices = useStore(state => state.org?.offices)!
@@ -102,6 +103,9 @@ function ItemGroup({ itemKey, itemGroup }: ItemGroupProps) {
     nav(`/item/${recordId}/CIVA`)
   }
 
+  const officeIds = useOfficeIds(['CIVA'])
+  const unMatchedOfficeIds = useMatchedOfficeIds(matchedItemKeys, officeIds)
+
   return (
     <div key={itemKey.recordId} className={s.group}>
       <div className={s.matchedToItem}>
@@ -110,6 +114,7 @@ function ItemGroup({ itemKey, itemGroup }: ItemGroupProps) {
         <button className={s.linkButton} aria-busy={createItem.loading} onClick={() => handelCreateItem()}>Create Item</button>
       </div>
       <LinkedItemsList itemKeys={matchedItemKeys} selector={selector} />
+      <UnMatchedDisplay unMatchedOfficeIds={unMatchedOfficeIds} />
     </div>
   )
 

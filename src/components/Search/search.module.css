@@ -28,7 +28,17 @@
 }
 
 .searchInput {
+  position: relative;
   margin-bottom: 0;
+}
+
+.submitButton {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4rem;
+  border-top-right-radius: 5rem;
+  border-bottom-right-radius: 5rem;
 }
 
 .includeOptions {

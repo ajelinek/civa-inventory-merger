@@ -87,6 +87,11 @@ export default function ItemSummary({ itemKey, selector }: { itemKey: ItemKey, s
             }
           </p>
           <p className={s.attribute}>
+            <span className={s.label}>Linked:
+            </span> {item.itemLinkedTimestamp && dayjs(item.itemLinkedTimestamp).format('ddd, MMM D, YYYY h:mm A')
+            }
+          </p>
+          <p className={s.attribute}>
             <span className={s.label}>Original Item ID:</span> {item.originalItemId}
           </p>
           <p className={s.attribute}>
