@@ -82,6 +82,7 @@ function search(query: CatalogQuery) {
 function comparisonSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
   if (!offices) throw new Error('Offices not loaded')
   const { itemKeys } = basicSearch(query, searcher, query.comparisonCount)
+  console.log("🚀 ~ file: searcher.worker.ts:85 ~ comparisonSearch ~ itemKeys:", itemKeys)
 
   const officeIds = Object.keys(offices).filter(officeId => officeId !== 'CIVA') as OfficeId[]
   const matchedItemKeys = itemKeys.reduce((acc, itemKey, index) => {
@@ -111,8 +112,8 @@ function generalSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
 }
 
 function basicSearch(query: CatalogQuery, searcher: Fuse<SearchItem>, limit: number = 100) {
-  const results = searcher.search(buildLogicalQuery(query), { limit })
-  const itemKeys = filterResultsByQueryOptions(results, query)
+  const results = searcher.search(buildLogicalQuery(query))
+  const itemKeys = filterResultsByQueryOptions(results, query).slice(0, limit)
     .map(result => ({
       recordId: result.item.recordId,
       officeId: result.item.officeId
