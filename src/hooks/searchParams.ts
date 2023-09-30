@@ -54,6 +54,13 @@ export function useSearchParamsListToggle(param: SelectParams) {
     }, { replace: true })
   }
 
+  function removeMany(values: string[]) {
+    setSearchParams(prev => {
+      values.forEach(value => prev.delete(param, value))
+      return prev
+    }, { replace: true })
+  }
+
   function addAll(values: string[]) {
     setSearchParams(prev => {
       prev.delete(param)
@@ -70,7 +77,7 @@ export function useSearchParamsListToggle(param: SelectParams) {
   }
 
   return {
-    values, toggle, isSelected, removeAll, addAll, add
+    values, toggle, isSelected, removeAll, addAll, add, removeMany
   }
 }
 

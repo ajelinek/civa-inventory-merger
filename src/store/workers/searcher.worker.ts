@@ -97,7 +97,7 @@ function comparisonSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
         recordId: officeResult?.itemKeys?.[0]?.recordId,
         officeId: officeId
       }
-    })
+    }).filter(item => item.recordId) as ItemKey[]
     return { ...acc, [itemKey.recordId]: officeMatches }
   }, {} as MatchedItemKeys)
 
@@ -112,7 +112,7 @@ function generalSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
   return { itemKeys, matchedCatalogs, matchedRecords, keyWords }
 }
 
-function basicSearch(query: CatalogQuery, searcher: Fuse<SearchItem>, limit: number = 1000) {
+function basicSearch(query: CatalogQuery, searcher: Fuse<SearchItem>, limit: number = 100) {
   const results = searcher.search(buildLogicalQuery(query), { limit })
   const itemKeys = results
     .filter(i => {

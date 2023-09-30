@@ -1,7 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParam, useSearchParamsListToggle } from '../../hooks/searchParams'
 import s from './search.module.css'
 import { useSearchParams } from 'react-router-dom'
+import { PiSneakerMoveBold } from 'react-icons/pi'
 
 type SearchProps = {
   keyWords?: string[]
@@ -13,8 +14,13 @@ export default function Search({ keyWords, excludeLinkedDefault, excludeMappedDe
   const excludeMapped = useSearchParam('exm')
   const excludeLinked = useSearchParam('exl')
   const searchTerm = useSearchParam('st')
+  const [searchInput, setSearchInput] = useState(searchTerm.value || '')
   const selectedTokens = useSearchParamsListToggle('kw')
   const [_, setParams] = useSearchParams()
+
+  useEffect(() => {
+    if (searchTerm.value) setSearchInput(searchTerm.value)
+  }, [searchTerm.value])
 
   useEffect(() => {
     setParams((prevParams) => {
@@ -28,8 +34,13 @@ export default function Search({ keyWords, excludeLinkedDefault, excludeMappedDe
     if (keyWords && keyWords.length > 0) selectedTokens.addAll(keyWords)
   }, [keyWords])
 
+  function handleOnSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    searchTerm.setValue(searchInput)
+  }
+
   return (
-    <div className={s.form}>
+    <form className={s.form} onSubmit={handleOnSubmit}>
       {(keyWords?.length || 0 > 0) &&
         <>
           <fieldset>
@@ -58,10 +69,10 @@ export default function Search({ keyWords, excludeLinkedDefault, excludeMappedDe
             type="search"
             id="searchInput"
             placeholder='Search for an item'
-            value={searchTerm.value || undefined}
-            onChange={(e) => searchTerm.setValue(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
           />
-
+          <button type="submit" className={s.submitButton}><PiSneakerMoveBold /></button>
         </fieldset>
         <div className={s.includeOptions}>
           <fieldset>
@@ -88,6 +99,6 @@ export default function Search({ keyWords, excludeLinkedDefault, excludeMappedDe
           </fieldset>
         </div>
       </div>
-    </div>
+    </form>
   )
 }

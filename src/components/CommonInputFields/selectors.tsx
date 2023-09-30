@@ -1,5 +1,6 @@
 import { useStore } from "../../store"
 import { classificationsForSelectInput, subClassificationsForSelectInput } from "../../store/selectors/classifications"
+import { itemTypesForSelectInput } from "../../store/selectors/itemType"
 import { officesForSelectInput } from "../../store/selectors/offices"
 
 
@@ -58,5 +59,22 @@ export function SubClassificationSelector({ value, onChange, classification, cla
       </select>
     </fieldset>
   )
-
 }
+
+export function ItemTypeSelector({ value, onChange, className }: props) {
+  const itemTypes = useStore(state => state.org?.itemTypes)!
+  const itemTypeOptions = itemTypesForSelectInput(itemTypes)
+
+  return (
+    <fieldset className={className}>
+      <label htmlFor="itemType">Item Type</label>
+      <select id="itemType" name="itemType" value={value || ''} onChange={onChange}>
+        <option value="" disabled={true}>Select an item type</option>
+        {itemTypeOptions.map(itemType => (
+          <option key={itemType.value} value={itemType.value}>{itemType.label}</option>
+        ))}
+      </select>
+    </fieldset>
+  )
+}
+

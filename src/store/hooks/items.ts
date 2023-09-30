@@ -1,5 +1,5 @@
 import { useAsyncCallback } from "react-async-hook"
-import { createInitialLinkedItem, upsertItem } from "../providers/items"
+import { createInitialLinkedItem, linkItems, unlinkItems, upsertItem } from "../providers/items"
 
 export function useUpdateClassifications() {
   throw new Error('Function not implemented.')
@@ -14,5 +14,9 @@ export function useCreateLinkedItem() {
 }
 
 export function useLinkItems() {
-  return useAsyncCallback(() => { })
+  return useAsyncCallback(linkItems)
+}
+
+export function useUnLinkItems() {
+  return useAsyncCallback(unlinkItems)
 }

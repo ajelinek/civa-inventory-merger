@@ -4,10 +4,11 @@ import { useNavigate } from 'react-router-dom'
 import { AlertMessage } from '../../components/AlertMessage'
 import { ClassificationSelector, SubClassificationSelector } from '../../components/CommonInputFields/selectors'
 import LinkedItemsList from '../../components/LinkedItemsList'
+import { UnMatchedDisplay } from '../../components/UnMatchedDisplay'
 import { useSearchParam } from '../../hooks/searchParams'
 import useListSelector from '../../hooks/useListSelector'
 import { useCatalogItem, useCreateLinkedItem, useLinkItems, useSearchCatalog, useStore } from '../../store'
-import { officesForSelectInput } from '../../store/selectors/offices'
+import { officesForSelectInput, useMatchedOfficeIds, useOfficeIds } from '../../store/selectors/offices'
 import s from './linker.module.css'
 export default function LinkerPage() {
   const offices = useStore(state => state.org?.offices)!
@@ -91,7 +92,7 @@ function ItemGroup({ itemKey, itemGroup }: ItemGroupProps) {
       itemDescription: item?.itemDescription || '',
       status: 'active',
       itemId: item?.itemId || '',
-      itemType: item?.itemType || '',
+      itemType: item?.itemType || 'I',
       markUpPercentage: item?.markUpPercentage || null,
       minimumPrice: item?.minimumPrice || null,
       unitOfMeasure: item?.unitOfMeasure || '',
@@ -102,15 +103,18 @@ function ItemGroup({ itemKey, itemGroup }: ItemGroupProps) {
     nav(`/item/${recordId}/CIVA`)
   }
 
+  const officeIds = useOfficeIds(['CIVA'])
+  const unMatchedOfficeIds = useMatchedOfficeIds(matchedItemKeys, officeIds)
+
   return (
     <div key={itemKey.recordId} className={s.group}>
-      {JSON.stringify(selector.getSelected())}
       <div className={s.matchedToItem}>
         <p className={s.matchedToItemTitle}>{item?.officeId} - {item?.itemDescription}</p>
         <AlertMessage message={createItem.error?.message} />
         <button className={s.linkButton} aria-busy={createItem.loading} onClick={() => handelCreateItem()}>Create Item</button>
       </div>
       <LinkedItemsList itemKeys={matchedItemKeys} selector={selector} />
+      <UnMatchedDisplay unMatchedOfficeIds={unMatchedOfficeIds} />
     </div>
   )
 

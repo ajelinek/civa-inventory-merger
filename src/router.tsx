@@ -7,6 +7,7 @@ import Mapper from "./pages/Mapper"
 import CatalogViewer from "./pages/CatalogViewer"
 import LinkerPage from "./pages/Linker"
 import ItemPage from "./pages/Item"
+import NewItemPage from "./pages/NewItem"
 
 export const router = createBrowserRouter([
   {
@@ -35,7 +36,7 @@ export const router = createBrowserRouter([
           },
           {
             path: "item/new",
-            element: <ItemPage />,
+            element: <NewItemPage />,
           },
           {
             path: "item/:recordId/:officeId",

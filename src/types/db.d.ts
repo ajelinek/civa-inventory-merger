@@ -12,6 +12,13 @@ type Catalog = Record<RecordId, ItemRecord>
 interface Org {
   offices: Offices | undefined
   classifications: Classifications | undefined
+  itemTypes: ItemTypes | undefined
+}
+
+type ItemTypeId = 'I' | 'S' | 'G' | 'D' | 'U'
+type ItemTypes = Record<ItemTypeId, ItemTypeRecord>
+interface ItemTypeRecord {
+  name: string
 }
 
 type Offices = Record<OfficeId, OfficeRecord>
@@ -53,7 +60,7 @@ interface ItemRecord {
   itemId: ItemId
   itemDescription: string
   definition: string
-  itemType: string
+  itemType: ItemTypeId
   itemTypeDescription: string
   unitOfMeasure: string
   unitPrice: number | null
@@ -88,6 +95,7 @@ type CreateItemRecordInput = Pick<ItemRecord,
   'subClassificationName' |
   'unitOfMeasure' |
   'itemType' |
+  'itemTypeDescription' |
   'minimumPrice' |
   'markUpPercentage' |
   'status' |

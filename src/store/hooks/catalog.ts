@@ -22,11 +22,10 @@ export function useClassificationUpdate() {
   return useAsyncCallback(updateClassifications)
 }
 
-export function useCatalogSearchParamQuery(): CatalogQuery | undefined {
+export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): CatalogQuery | undefined {
   const classificationsMap = useStore(state => state.org?.classifications)
-  // const subClassificationMap = useStore(state => state.subClassifications)
   const [query, setQuery] = useState<CatalogQuery>()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const queryBuilder = useDebouncedCallback(() => {
     const newQuery = {
       officeIds: searchParams.getAll('o'),
@@ -37,11 +36,38 @@ export function useCatalogSearchParamQuery(): CatalogQuery | undefined {
       searchText: searchParams.get('st') || '',
       excludeMapped: searchParams.get('exm') === 'true',
       excludeLinked: searchParams.get('exl') === 'true',
-      // subClassificationNames: searchParams.getAll('cs').map(id => subClassificationMap?.[id]?.name ?? '')
     }
     setQuery(newQuery)
-  }, 500)
+  }, 50)
 
+  useEffect(() => {
+    if (!initialQuery) return
+    setSearchParams(prev => {
+      prev.delete('o')
+      prev.delete('c')
+      prev.delete('cs')
+      prev.delete('kw')
+      prev.delete('st')
+      prev.delete('exm')
+      prev.delete('exl')
+      if (initialQuery?.officeIds?.length ?? 0 > 0) {
+        initialQuery?.officeIds?.forEach(id => prev.append('o', id))
+      }
+      if (initialQuery?.classificationIds?.length ?? 0 > 0) {
+        initialQuery?.classificationIds?.forEach(id => prev.append('c', id))
+      }
+      if (initialQuery?.subClassificationIds?.length ?? 0 > 0) {
+        initialQuery?.subClassificationIds?.forEach(id => prev.append('cs', id))
+      }
+      if (initialQuery?.keyWords?.length ?? 0 > 0) {
+        initialQuery?.keyWords?.forEach(id => prev.append('kw', id))
+      }
+      if (initialQuery?.searchText) prev.append('st', initialQuery.searchText)
+      if (initialQuery?.excludeMapped !== undefined) prev.append('exm', initialQuery.excludeMapped?.toString() ?? 'false')
+      if (initialQuery?.excludeLinked !== undefined) prev.append('exl', initialQuery.excludeLinked?.toString() ?? 'false')
+      return prev
+    })
+  }, [])
   useEffect(() => queryBuilder(), [classificationsMap, searchParams])
 
   return query

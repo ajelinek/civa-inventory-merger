@@ -8,6 +8,13 @@ export const offices: Offices = {
   "CIVA": { name: "Central Illinois Veterinary Associates" },
 }
 
+export const itemTypes: ItemTypes = {
+  "I": { name: "Inventory Item" },
+  "S": { name: "Service Item" },
+  "G": { name: "Group" },
+  "D": { name: "Dispensing Item" },
+  "U": { name: "Unknown" },
+}
 
 export const classifications: Classifications = {
   "100": {
