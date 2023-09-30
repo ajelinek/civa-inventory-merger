@@ -82,7 +82,6 @@ function search(query: CatalogQuery) {
 function comparisonSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
   if (!offices) throw new Error('Offices not loaded')
   const { itemKeys } = basicSearch(query, searcher, query.comparisonCount)
-  console.log("🚀 ~ file: searcher.worker.ts:85 ~ comparisonSearch ~ itemKeys:", itemKeys)
 
   const officeIds = Object.keys(offices).filter(officeId => officeId !== 'CIVA') as OfficeId[]
   const matchedItemKeys = itemKeys.reduce((acc, itemKey, index) => {
@@ -104,21 +103,23 @@ function comparisonSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
 }
 
 function generalSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
-  const { itemKeys, results } = basicSearch(query, searcher)
+  const { itemKeys, results, matchedRecords } = basicSearch(query, searcher)
   const matchedCatalogs = new Set(itemKeys.map(item => item.officeId)).size
-  const matchedRecords = itemKeys.length
   const keyWords = identifyKeyWords(results, query)
   return { itemKeys, matchedCatalogs, matchedRecords, keyWords }
 }
 
 function basicSearch(query: CatalogQuery, searcher: Fuse<SearchItem>, limit: number = 100) {
   const results = searcher.search(buildLogicalQuery(query))
-  const itemKeys = filterResultsByQueryOptions(results, query).slice(0, limit)
+  const filtered = filterResultsByQueryOptions(results, query)
+  const matchedRecords = filtered.length
+  const itemKeys = filtered
+    .slice(0, limit)
     .map(result => ({
       recordId: result.item.recordId,
       officeId: result.item.officeId
     }))
-  return { itemKeys, results }
+  return { itemKeys, results, matchedRecords }
 }
 
 function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], query: CatalogQuery) {

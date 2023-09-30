@@ -153,7 +153,6 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSea
 
 
   useEffect(() => {
-    console.log("🚀 ~ file: catalog.ts:110 ~ useEffect ~ query:", query)
     if (!(searcher.current && query && catalogs)) return
     setStatus('searching')
     searcher.current.postMessage({ type: 'search', payload: query })
