@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { AlertMessage } from '../../components/AlertMessage'
 import useFormManagement from '../../hooks/userFormManagement'
 import s from './home.module.css'
@@ -34,7 +34,9 @@ export default function Home() {
             <input type="password" id="password" name="password" onChange={form.onChange} />
           </fieldset>
           <button type="submit" aria-busy={login.loading}>Login</button>
+          <Link to="/resetPassword">Reset Password</Link>
         </form>
+        <p className={s.warning}>This is a private system. Unauthorized access is prohibited. Use of this system constitutes consent to security monitoring and testing. All activity is logged with your host name and IP address.</p>
       </div>
     </div>
   )

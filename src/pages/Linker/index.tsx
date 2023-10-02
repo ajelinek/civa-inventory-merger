@@ -20,6 +20,7 @@ export default function LinkerPage() {
   const linkItems = useLinkItems()
   const itemGroup = useSearchCatalog(query)
 
+
   function handleStartComparison(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setQuery({
@@ -68,7 +69,7 @@ export default function LinkerPage() {
         {itemGroup.comparingText}
         {(itemGroup.status !== 'searched' && query) && <div>Loading...</div>}
         {itemGroup.status === 'searched' && itemGroup.page?.length === 0 && <div>No items found</div>}
-        {(itemGroup.status === 'searched' && itemGroup.page?.length || 0 > 0) &&
+        {(itemGroup.page?.length || 0 > 0) &&
           itemGroup.page?.map((item) =>
             <ItemGroup key={item.recordId} itemGroup={itemGroup} itemKey={item} />)}
       </section>
@@ -100,7 +101,7 @@ function ItemGroup({ itemKey, itemGroup }: ItemGroupProps) {
       linkedItems: selector?.getSelected() || []
     })
 
-    nav(`/item/${recordId}/CIVA`)
+    // nav(`/item/${recordId}/CIVA`)
   }
 
   const officeIds = useOfficeIds(['CIVA'])

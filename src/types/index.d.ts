@@ -80,6 +80,12 @@ interface CatalogQuery {
   excludeLinked?: boolean
   classificationNames?: string[]
   subClassificationNames?: string[]
+  unitPriceLow?: number
+  unitPriceHigh?: number
+  dispensingFeeLow?: number
+  dispensingFeeHigh?: number
+  markUpPercentageLow?: number
+  markUpPercentageHigh?: number
 }
 
 interface SearcherSearchMessage {

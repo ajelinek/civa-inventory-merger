@@ -36,9 +36,15 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       searchText: searchParams.get('st') || '',
       excludeMapped: searchParams.get('exm') === 'true',
       excludeLinked: searchParams.get('exl') === 'true',
-    }
+      unitPriceLow: searchParams.get('upl') ? Number(searchParams.get('upl')) : undefined,
+      unitPriceHigh: searchParams.get('uph') ? Number(searchParams.get('uph')) : undefined,
+      dispensingFeeLow: searchParams.get('dfl') ? Number(searchParams.get('dfl')) : undefined,
+      dispensingFeeHigh: searchParams.get('dfh') ? Number(searchParams.get('dfh')) : undefined,
+      markUpPercentageLow: searchParams.get('mpl') ? Number(searchParams.get('mpl')) : undefined,
+      markUpPercentageHigh: searchParams.get('mph') ? Number(searchParams.get('mph')) : undefined,
+    } as CatalogQuery
     setQuery(newQuery)
-  }, 50)
+  }, 500)
 
   useEffect(() => {
     if (!initialQuery) return
@@ -50,6 +56,16 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       prev.delete('st')
       prev.delete('exm')
       prev.delete('exl')
+      prev.delete('mc')
+      prev.delete('msc')
+      prev.delete('cc')
+      prev.delete('upl')
+      prev.delete('uph')
+      prev.delete('dfl')
+      prev.delete('dfh')
+      prev.delete('mpl')
+      prev.delete('mph')
+
       if (initialQuery?.officeIds?.length ?? 0 > 0) {
         initialQuery?.officeIds?.forEach(id => prev.append('o', id))
       }
@@ -65,6 +81,12 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       if (initialQuery?.searchText) prev.append('st', initialQuery.searchText)
       if (initialQuery?.excludeMapped !== undefined) prev.append('exm', initialQuery.excludeMapped?.toString() ?? 'false')
       if (initialQuery?.excludeLinked !== undefined) prev.append('exl', initialQuery.excludeLinked?.toString() ?? 'false')
+      if (initialQuery?.unitPriceLow !== undefined) prev.append('upl', initialQuery.unitPriceLow?.toString() ?? '')
+      if (initialQuery?.unitPriceHigh !== undefined) prev.append('uph', initialQuery.unitPriceHigh?.toString() ?? '')
+      if (initialQuery?.dispensingFeeLow !== undefined) prev.append('dfl', initialQuery.dispensingFeeLow?.toString() ?? '')
+      if (initialQuery?.dispensingFeeHigh !== undefined) prev.append('dfh', initialQuery.dispensingFeeHigh?.toString() ?? '')
+      if (initialQuery?.markUpPercentageLow !== undefined) prev.append('mpl', initialQuery.markUpPercentageLow?.toString() ?? '')
+      if (initialQuery?.markUpPercentageHigh !== undefined) prev.append('mph', initialQuery.markUpPercentageHigh?.toString() ?? '')
       return prev
     })
   }, [])
@@ -131,7 +153,6 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSea
 
 
   useEffect(() => {
-    console.log("🚀 ~ file: catalog.ts:110 ~ useEffect ~ query:", query)
     if (!(searcher.current && query && catalogs)) return
     setStatus('searching')
     searcher.current.postMessage({ type: 'search', payload: query })

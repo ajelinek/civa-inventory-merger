@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import { useNavigate, useParams } from "react-router-dom"
+import { useParams } from "react-router-dom"
 import { removeStopwords } from "stopword"
 import ItemForm from "../../components/ItemForm"
 import LinkedItemsList from "../../components/LinkedItemsList"

@@ -81,18 +81,22 @@ export function useSearchParamsListToggle(param: SelectParams) {
   }
 }
 
-type SearchParams = 'o' | 'c' | 'sc' | 'st' | 'exm' | 'exl' | 'mc' | 'msc' | 'cc'
-/**
- * o: officeIds
- * c: classificationIds
- * sc: subClassificationIds
- * st: searchText
- * exm: excludeMapped
- * exl: excludeLinked
- * mc: matchedCatalogs
- * msc: matchedRecords
- * cc: comparisonCount
- */
+type SearchParams =
+  'o' // officeIds
+  | 'c' // classificationIds
+  | 'sc' // subClassificationIds
+  | 'st' // searchText
+  | 'exm' // excludeMapped
+  | 'exl' // excludeLinked
+  | 'mc' // matchedCatalogs page specific
+  | 'msc' // matchedRecords page specific
+  | 'cc' // comparisonCount page specific
+  | 'upl' // unit price low
+  | 'uph' // unit price high
+  | 'dfl' // dispensing fee from low
+  | 'dfh' // dispensing fee from high
+  | 'mpl' // markup low
+  | 'mph' // markup high
 
 export function useSearchParam(param: SearchParams) {
   const [searchParams, setSearchParams] = useSearchParams()

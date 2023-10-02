@@ -1,9 +1,16 @@
-import { signInWithEmailAndPassword } from 'firebase/auth'
+import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth'
 import { useStore } from '..'
 import { auth } from '../firebase'
 
 export function subScribeToAuthChanges(cb: (user: any) => void) {
   return auth.onAuthStateChanged(cb)
+}
+
+export async function resetPassword(email: string) {
+  return sendPasswordResetEmail(auth, email, {
+    url: 'https://civa-business-insights.web.app',
+    handleCodeInApp: false
+  })
 }
 
 export async function login(email: string | null | undefined, password: string | null | undefined) {

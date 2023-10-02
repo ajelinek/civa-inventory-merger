@@ -1,9 +1,8 @@
-import { useMemo, useEffect } from "react"
-import { useSearchParam, useSearchParamsListToggle } from "../../hooks/searchParams"
-import useListSelector from "../../hooks/useListSelector"
+import { useEffect } from "react"
+import { useSearchParamsListToggle } from "../../hooks/searchParams"
 import { useCatalogSearchParamQuery, useSearchCatalog } from "../../store"
-import SearchResults from "../SearchResults"
 import Search from "../Search"
+import SearchResults from "../SearchResults"
 import s from './unMatchedSearch.module.css'
 
 type UnmatchedSearchProps = {

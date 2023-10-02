@@ -8,6 +8,7 @@ import CatalogViewer from "./pages/CatalogViewer"
 import LinkerPage from "./pages/Linker"
 import ItemPage from "./pages/Item"
 import NewItemPage from "./pages/NewItem"
+import PasswordReset from "./pages/PasswordReset"
 
 export const router = createBrowserRouter([
   {
@@ -43,6 +44,10 @@ export const router = createBrowserRouter([
             element: <ItemPage />,
           },
         ],
+      },
+      {
+        path: "resetPassword*",
+        element: <PasswordReset />,
       }
     ],
   }

@@ -7,6 +7,7 @@ const initialState: Store = {
   org: {
     offices: undefined,
     classifications: undefined,
+    itemTypes: undefined
   },
   catalogLastUpdateTimestamp: undefined,
   catalog: undefined,
