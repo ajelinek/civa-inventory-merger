@@ -3,7 +3,7 @@ import { useEffect } from "react"
 import useFormManagement from "../../hooks/userFormManagement"
 import { useCatalogItem, useStore, useUpsertItem } from "../../store"
 import { AlertMessage } from "../AlertMessage"
-import { ClassificationSelector, ItemTypeSelector, OfficeSelector, SubClassificationSelector } from "../CommonInputFields/selectors"
+import { ClassificationSelector, ItemTypeSelector, OfficeSelector, StatusSelector, SubClassificationSelector } from "../CommonInputFields/selectors"
 import s from './itemForm.module.css'
 import { useNavigate } from "react-router-dom"
 
@@ -18,7 +18,7 @@ export default function ItemForm({ itemKey }: props) {
   const classifications = useStore(state => state.org?.classifications)
   const itemTypes = useStore(state => state.org?.itemTypes)
   const form = useFormManagement(initItem(item), async (item) => {
-    item.classificationName = classifications?.[item.classificationId].name || ""
+    item.classificationName = classifications?.[item.classificationId]?.name || ""
     item.subClassificationName = classifications?.[item.classificationId]?.subClassifications?.[item.subClassificationId]?.name || ""
     item.itemTypeDescription = itemTypes?.[item.itemType].name || ""
     await createItem.execute(item)
@@ -43,6 +43,7 @@ export default function ItemForm({ itemKey }: props) {
       minimumPrice: item?.minimumPrice || 0,
       markUpPercentage: item?.markUpPercentage || 0,
       unitPrice: item?.unitPrice || 0,
+      dispensingFee: item?.dispensingFee || 0,
       status: item?.status || "active",
       linkedItems: item?.linkedItems || [],
     })
@@ -57,13 +58,12 @@ export default function ItemForm({ itemKey }: props) {
       <AlertMessage message={createItem.error?.message} />
       <form className={s.form} onSubmit={form.onSubmit}>
         <div className={s.formGroup}>
+          <OfficeSelector className={s.fieldset} value={form.data.officeId} onChange={form.onChange} disabled={!!item} />
+          <StatusSelector className={s.fieldset} value={form.data.status} onChange={form.onChange} />
+        </div>
+        <div className={s.formGroup}>
           <ClassificationSelector className={s.fieldset} value={form.data.classificationId} onChange={form.onChange} />
           <SubClassificationSelector className={s.fieldset} value={form.data.subClassificationId} onChange={form.onChange} classification={form.data.classificationId} />
-          <OfficeSelector className={s.fieldset} value={form.data.officeId} onChange={form.onChange} disabled={!!item} />
-          <fieldset className={s.fieldset}>
-            <label htmlFor="itemId">Item Id</label>
-            <input type="text" id="itemId" name="itemId" value={form.data.itemId} onChange={form.onChange} />
-          </fieldset>
         </div>
         <fieldset className={s.itemDescription}>
           <label htmlFor="itemDescription">Item Description</label>
@@ -71,6 +71,14 @@ export default function ItemForm({ itemKey }: props) {
         </fieldset>
         <div className={s.formGroup}>
           <ItemTypeSelector className={s.fieldset} value={form.data.itemType} onChange={form.onChange} />
+          <fieldset className={s.fieldset}>
+            <label htmlFor="itemId">Item Id</label>
+            <input type="text" id="itemId" name="itemId" value={form.data.itemId} onChange={form.onChange} />
+          </fieldset>
+          <fieldset className={s.fieldset}>
+            <label htmlFor="dispensingFee">Dispensing Fee</label>
+            <input type="text" id="dispensingFee" name="dispensingFee" value={'' + form.data.dispensingFee} onChange={form.onChange} />
+          </fieldset>
           <fieldset className={s.fieldset}>
             <label htmlFor="unitOfMeasure">Unit of Measure</label>
             <input type="text" id="unitOfMeasure" name="unitOfMeasure" value={form.data.unitOfMeasure} onChange={form.onChange} />

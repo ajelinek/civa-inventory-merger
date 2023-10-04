@@ -72,6 +72,7 @@ interface ItemRecord {
   classificationMappedTimestamp?: Date | undefined
   linkedItems?: ItemKey[]
   itemLinkedTimestamp?: Date | undefined
+  itemLinkedTo?: ItemKey
   status?: 'active' | 'inactive'
 
 }
@@ -100,6 +101,7 @@ type CreateItemRecordInput = Pick<ItemRecord,
   'markUpPercentage' |
   'status' |
   'unitPrice' |
+  'dispensingFee' |
   'linkedItems'
 >
 

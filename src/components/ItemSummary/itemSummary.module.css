@@ -44,6 +44,9 @@
 .attribute {
   margin: 0.2rem;
 }
+.inactiveTitle {
+  text-decoration: line-through;
+}
 
 .label {
   font-weight: bold;

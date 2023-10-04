@@ -84,6 +84,7 @@ interface CatalogQuery {
   searchText?: string
   excludeMapped?: boolean
   excludeLinked?: boolean
+  excludeInactive?: boolean
   classificationNames?: string[]
   subClassificationNames?: string[]
   unitPriceLow?: number
@@ -92,6 +93,10 @@ interface CatalogQuery {
   dispensingFeeHigh?: number
   markUpPercentageLow?: number
   markUpPercentageHigh?: number
+  unitPriceVarianceLow?: number
+  unitPriceVarianceHigh?: number
+  dispensingFeeVarianceLow?: number
+  dispensingFeeVarianceHigh?: number
   sort?: SortField[]
 }
 

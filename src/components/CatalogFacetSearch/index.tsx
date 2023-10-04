@@ -38,16 +38,27 @@ function BusinessFacet() {
   const dispensingFeeHigh = useSearchParam('dfh')
   const markUpPercentageLow = useSearchParam('mpl')
   const markUpPercentageHigh = useSearchParam('mph')
+  const unitPriceVarianceLow = useSearchParam('upvl')
+  const unitPriceVarianceHigh = useSearchParam('upvh')
+  const dispensingFeeVarianceLow = useSearchParam('dfvl')
+  const dispensingFeeVarianceHigh = useSearchParam('dfvh')
 
   return (
     <div>
       <div className={s.range}>
         <label>Unit Price</label>
-
         <fieldset>
           <input type="number" id="unitPriceLow" value={unitPriceLow.value || ''} onChange={(e) => unitPriceLow.setValue(e.target.value)} className={s.inputNumber} />
           <span className={s.toWord}>to</span>
           <input type="number" id="unitPriceHigh" value={unitPriceHigh.value || ''} onChange={(e) => unitPriceHigh.setValue(e.target.value)} className={s.inputNumber} />
+        </fieldset>
+      </div>
+      <div className={s.range}>
+        <label>Unit Price Variance</label>
+        <fieldset>
+          <input type="number" id="unitPriceVarianceLow" value={unitPriceVarianceLow.value || ''} onChange={(e) => unitPriceVarianceLow.setValue(e.target.value)} className={s.inputNumber} />
+          <span className={s.toWord}>to</span>
+          <input type="number" id="unitPriceVarianceHigh" value={unitPriceVarianceHigh.value || ''} onChange={(e) => unitPriceVarianceHigh.setValue(e.target.value)} className={s.inputNumber} />
         </fieldset>
       </div>
       <div className={s.range}>
@@ -56,6 +67,14 @@ function BusinessFacet() {
           <input type="number" id="dispensingFeeLow" value={dispensingFeeLow.value || ''} onChange={(e) => dispensingFeeLow.setValue(e.target.value)} className={s.inputNumber} />
           <span className={s.toWord}>to</span>
           <input type="number" id="dispensingFeeHigh" value={dispensingFeeHigh.value || ''} onChange={(e) => dispensingFeeHigh.setValue(e.target.value)} className={s.inputNumber} />
+        </fieldset>
+      </div>
+      <div className={s.range}>
+        <label>Dispensing Fee Variance</label>
+        <fieldset>
+          <input type="number" id="dispensingFeeVarianceLow" value={dispensingFeeVarianceLow.value || ''} onChange={(e) => dispensingFeeVarianceLow.setValue(e.target.value)} className={s.inputNumber} />
+          <span className={s.toWord}>to</span>
+          <input type="number" id="dispensingFeeVarianceHigh" value={dispensingFeeVarianceHigh.value || ''} onChange={(e) => dispensingFeeVarianceHigh.setValue(e.target.value)} className={s.inputNumber} />
         </fieldset>
       </div>
       <div className={s.range}>

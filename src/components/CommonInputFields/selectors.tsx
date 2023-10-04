@@ -93,3 +93,15 @@ export function ItemSortSelector({ value, onChange, className }: props) {
     </fieldset>
   )
 }
+
+export function StatusSelector({ value, onChange, className }: props) {
+  return (
+    <fieldset className={className}>
+      <label htmlFor="status">Status</label>
+      <select id="status" name="status" value={value || 'active'} onChange={onChange}>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </fieldset>
+  )
+}

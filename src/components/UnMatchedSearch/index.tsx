@@ -15,7 +15,8 @@ export default function UnmatchedSearch({ officeIds, initialSearchString, select
   const query = useCatalogSearchParamQuery({
     officeIds: officeIds,
     searchText: initialSearchString,
-    excludeLinked: true
+    excludeLinked: true,
+    excludeInactive: true,
   })
   const search = useSearchCatalog(query)
 

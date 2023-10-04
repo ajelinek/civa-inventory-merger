@@ -1,43 +1,33 @@
 import { useEffect, useState } from 'react'
+import { PiSneakerMoveBold } from 'react-icons/pi'
 import { useSearchParam, useSearchParamsListToggle } from '../../hooks/searchParams'
 import s from './search.module.css'
-import { useSearchParams } from 'react-router-dom'
-import { PiSneakerMoveBold } from 'react-icons/pi'
+import AdvancedSearchTable from '../AdvancedSearchHelp'
 
 type SearchProps = {
   keyWords?: string[]
-  excludeMappedDefault?: boolean | undefined
-  excludeLinkedDefault?: boolean | undefined
 }
 
-export default function Search({ keyWords, excludeLinkedDefault, excludeMappedDefault }: SearchProps) {
+export default function Search({ keyWords }: SearchProps) {
   const excludeMapped = useSearchParam('exm')
   const excludeLinked = useSearchParam('exl')
+  const excludeInactive = useSearchParam('exi')
   const searchTerm = useSearchParam('st')
   const [showAllAutoTerms, setShowAutoTerms] = useState(false)
   const [searchInput, setSearchInput] = useState(searchTerm.value || '')
   const selectedTokens = useSearchParamsListToggle('kw')
-  const [_, setParams] = useSearchParams()
 
   useEffect(() => {
     if (searchTerm.value) setSearchInput(searchTerm.value)
   }, [searchTerm.value])
 
-  useEffect(() => {
-    setParams((prevParams) => {
-      if (excludeLinkedDefault !== undefined) prevParams.set('exl', excludeLinkedDefault ? 'true' : 'false')
-      if (excludeMappedDefault !== undefined) prevParams.set('exm', excludeMappedDefault ? 'true' : 'false')
-      return prevParams
-    }, { replace: true })
-  }, [excludeLinkedDefault, excludeMappedDefault])
 
   useEffect(() => {
     if (keyWords && keyWords.length > 0) {
       selectedTokens.addAll(keyWords)
     } else {
-      selectedTokens.removeAll()
+      if (selectedTokens.values.length > 0) selectedTokens.removeAll()
     }
-
   }, [keyWords])
 
   function handleOnSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -79,6 +69,7 @@ export default function Search({ keyWords, excludeLinkedDefault, excludeMappedDe
         </>
       }
       <div className={s.searchContainer}>
+        <AdvancedSearchTable className={s.searchHelp} />
         <fieldset className={s.searchInput}>
           <input
             type="search"
@@ -90,6 +81,17 @@ export default function Search({ keyWords, excludeLinkedDefault, excludeMappedDe
           <button type="submit" className={s.submitButton}><PiSneakerMoveBold /></button>
         </fieldset>
         <div className={s.includeOptions}>
+          <fieldset>
+            <input
+              type="checkbox"
+              role='switch'
+              id="excludeInactive"
+              className={s.checkbox}
+              checked={!!excludeInactive.value}
+              onChange={() => !!excludeInactive.value ? excludeInactive.remove() : excludeInactive.setValue('true')}
+            />
+            <label htmlFor="excludeInactive" className={s.label}>Exclude inactive items</label>
+          </fieldset>
           <fieldset>
             <input
               type="checkbox"

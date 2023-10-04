@@ -36,7 +36,8 @@ export default function ItemSummary({ itemKey, selector }: { itemKey: ItemKey, s
 
         <div className={s.summaryContent} >
           <div className={s.summaryTitle} >
-            <p className={s.title} onClick={() => nav(`/item/${itemKey.recordId}/${itemKey.officeId}`)}>
+            <p className={`${s.title} ${item.status === 'inactive' ? s.inactiveTitle : ''}`}
+              onClick={() => nav(`/item/${itemKey.recordId}/${itemKey.officeId}`)}>
               <span className={s.id}>{item.officeId}-{item.itemId}</span> - {item.itemDescription} </p>
           </div>
           <div className={s.secondaryInfo}>
@@ -76,6 +77,9 @@ export default function ItemSummary({ itemKey, selector }: { itemKey: ItemKey, s
             <span className={s.label}>Mark Up Percentage:</span> <Money>{item.markUpPercentage}</Money>
           </p>
           <p className={s.attribute}>
+            <span className={s.label}>Status:</span> {item.status ? item.status : 'active'}
+          </p>
+          <p className={s.attribute}>
             <span className={s.label}>Mapped:
             </span> {item.classificationMappedTimestamp && dayjs(item.classificationMappedTimestamp).format('ddd, MMM D, YYYY h:mm A')
             }
@@ -107,7 +111,7 @@ function MasterCostingInfo({ item }: { item: ItemRecord }) {
 
   return (
     <div className={s.costInfo}>
-      <p className={s.costItem}>
+      <div className={s.costItem}>
         {costs.avgDispensingFee ? <>
           <span className={s.label}>DF:</span>
           <div className={s.fieldSet}>
@@ -119,8 +123,8 @@ function MasterCostingInfo({ item }: { item: ItemRecord }) {
             <span className={s.moneyValue}>{costs.dispensingFeeVariance.toFixed(1)}%</span>
           </div>
         </> : null}
-      </p>
-      <p className={s.costItem}>
+      </div>
+      <div className={s.costItem}>
         {costs.avgUnitPrice ? <>
           <span className={s.label}>UP:</span>
           <div className={s.fieldSet}>
@@ -132,15 +136,15 @@ function MasterCostingInfo({ item }: { item: ItemRecord }) {
             <span className={s.moneyValue}>{costs.unitPriceVariance.toFixed(1)}%</span>
           </div>
         </> : null}
-      </p>
-      <p className={s.costItem}>
+      </div>
+      <div className={s.costItem}>
         {costs.avgMarkupPercentage ? <>
           <div className={s.fieldSet}>
             <span className={s.label}>MU:</span>
             <span className={s.moneyValue}>{costs.avgMarkupPercentage}%</span>
           </div>
         </> : null}
-      </p>
+      </div>
     </div>
   )
 }

@@ -1,0 +1,6 @@
+.helpButton {
+  width: 11.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

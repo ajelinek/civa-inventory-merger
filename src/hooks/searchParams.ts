@@ -88,6 +88,7 @@ type SearchParams =
   | 'st' // searchText
   | 'exm' // excludeMapped
   | 'exl' // excludeLinked
+  | 'exi' // excludeInactive
   | 'mc' // matchedCatalogs page specific
   | 'msc' // matchedRecords page specific
   | 'cc' // comparisonCount page specific
@@ -97,6 +98,10 @@ type SearchParams =
   | 'dfh' // dispensing fee from high
   | 'mpl' // markup low
   | 'mph' // markup high
+  | 'upvl' // unit price variance low
+  | 'upvh' // unit price variance high
+  | 'dfvl' // dispensing fee variance low
+  | 'dfvh' // dispensing fee variance high
   | 'srt' // sort
 
 export function useSearchParam(param: SearchParams) {

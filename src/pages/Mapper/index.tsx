@@ -8,9 +8,11 @@ import useListSelector from '../../hooks/useListSelector'
 import { useCatalogSearchParamQuery, useClassificationUpdate, useSearchCatalog, useStore } from '../../store'
 import s from './mapper.module.css'
 import { useSearchParams } from 'react-router-dom'
+import { getItem } from '../../store/selectors/item'
 
 export default function Mapper() {
   const [_, setParams] = useSearchParams()
+  const catalogs = useStore(state => state.catalog)!
   const classification = useSearchParam('mc')
   const subClassification = useSearchParam('msc')
   const officeId = useSearchParam('o')
@@ -24,11 +26,13 @@ export default function Mapper() {
   const classificationUpdates = useClassificationUpdate()
   const query = useCatalogSearchParamQuery({
     excludeMapped: true,
+    excludeInactive: true,
   })
   const search = useSearchCatalog(query)
   const [formError, setFormError] = useState('')
 
   const mappedQuery = useMemo(() => {
+    if (!(officeId.value && (classificationId || subClassificationId))) return null
     const mQuery = {
       classificationIds: undefined,
       subClassificationIds: undefined,
@@ -50,6 +54,14 @@ export default function Mapper() {
   const mappedResult = useSearchCatalog(mappedQuery)
 
   async function handleUpdateClassifications() {
+    const itemKeys = []
+    mapFromSelector.getSelected().forEach(itemKey => {
+      itemKeys.push(itemKey)
+      getItem(itemKey, catalogs)?.linkedItems?.forEach(linkedItem => {
+        itemKeys.push(linkedItem)
+      })
+    })
+
     await classificationUpdates.execute({
       classificationId,
       subClassificationId,
@@ -88,10 +100,7 @@ export default function Mapper() {
         <div className={s.column}>
           <div className={s.searchMapping} >
             <h3>Suggested Mappings</h3>
-            <Search
-              keyWords={mappedResult.result?.keyWords || []}
-              excludeMappedDefault={true}
-            />
+            <Search keyWords={mappedResult.result?.keyWords || []} />
             <button
               className={s.mapButton}
               aria-busy={classificationUpdates.loading}

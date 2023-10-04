@@ -1,6 +1,7 @@
 import { sort } from 'fast-sort'
 import Fuse from 'fuse.js'
 import { removeStopwords } from 'stopword'
+import { calculateLinkItemTotals } from '../selectors/item'
 
 let searcher: Fuse<SearchItem> | null = null
 let catalogs: Catalogs | null = null
@@ -111,6 +112,7 @@ function generalSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
 }
 
 function basicSearch(query: CatalogQuery, searcher: Fuse<SearchItem>, limit: number = 100) {
+  console.log("🚀 ~ file: searcher.worker.ts:114 ~ basicSearch ~ query:", query)
   const results = searcher.search(buildLogicalQuery(query))
   const filtered = filterResultsByQueryOptions(results, query)
   const matchedRecords = filtered.length
@@ -126,11 +128,16 @@ function basicSearch(query: CatalogQuery, searcher: Fuse<SearchItem>, limit: num
 }
 
 function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], query: CatalogQuery) {
+  if (!catalogs) throw new Error('Catalogs not loaded')
+
   return results.filter(result => {
     const item = catalogs?.[result.item.officeId]?.[result.item.recordId]
+    const costs = calculateLinkItemTotals(item?.linkedItems ?? [], catalogs!)
+
     if (!item) return false
     if (query.excludeMapped === true && item.classificationMappedTimestamp) return false
     if (query.excludeLinked === true && item.itemLinkedTimestamp) return false
+    if (query.excludeInactive === true && item.status === 'inactive') return false
 
     if (query.unitPriceLow && (item.unitPrice ?? 0) < query.unitPriceLow) return false
     if (query.unitPriceHigh && (item.unitPrice ?? 0) > query.unitPriceHigh) return false
@@ -138,6 +145,10 @@ function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], que
     if (query.dispensingFeeHigh && (item.dispensingFee ?? 0) > query.dispensingFeeHigh) return false
     if (query.markUpPercentageLow && (item.markUpPercentage ?? 0) < query.markUpPercentageLow) return false
     if (query.markUpPercentageHigh && (item.markUpPercentage ?? 0) > query.markUpPercentageHigh) return false
+    if (query.unitPriceVarianceLow && (costs.unitPriceVariance ?? 0) < query.unitPriceVarianceLow) return false
+    if (query.unitPriceVarianceHigh && (costs.unitPriceVariance ?? 0) > query.unitPriceVarianceHigh) return false
+    if (query.dispensingFeeVarianceLow && (costs.dispensingFeeVariance ?? 0) < query.dispensingFeeVarianceLow) return false
+    if (query.dispensingFeeVarianceHigh && (costs.dispensingFeeVariance ?? 0) > query.dispensingFeeVarianceHigh) return false
     return true
   })
 }
@@ -167,7 +178,15 @@ function buildLogicalQuery(query: CatalogQuery): Fuse.Expression {
     logicalQuery.$and.push({ $or: autoTokens })
   }
 
-  if (query.searchText) logicalQuery.$and.push({ searchString: query.searchText })
+  if (query.searchText) {
+    logicalQuery.$and.push({
+      $or: [
+        { searchString: query.searchText },
+        { itemId: `'${query.searchText}` },
+        { originalItemId: `'${query.searchText}` }
+      ]
+    })
+  }
   if (query.classificationIds?.length ?? 0 > 0) {
     const classificationIds = query.classificationIds?.map(cId => ({ classificationId: `="${cId}"` }))
     logicalQuery.$and.push({ $or: classificationIds })
@@ -184,13 +203,17 @@ function buildLogicalQuery(query: CatalogQuery): Fuse.Expression {
 
   return logicalQuery
 }
+
 function getField(item: SearchItem, field: string): any {
-  if (field === 'unitPrice') return catalogs?.[item.officeId]?.[item.recordId]?.unitPrice
-  if (field === 'dispensingFee') return catalogs?.[item.officeId]?.[item.recordId]?.dispensingFee
-  if (field === 'classificationName') return catalogs?.[item.officeId]?.[item.recordId]?.classificationName
-  if (field === 'subClassificationName') return catalogs?.[item.officeId]?.[item.recordId]?.subClassificationName
-  if (field === 'markUpPercentage') return catalogs?.[item.officeId]?.[item.recordId]?.markUpPercentage
-  if (field === 'lastUpdateTimestamp') return catalogs?.[item.officeId]?.[item.recordId]?.lastUpdateTimestamp
-  if (field === 'priceVariance') return catalogs?.[item.officeId]?.[item.recordId]?.unitPrice//TODO: Implement
+  const cost = calculateLinkItemTotals(catalogs?.[item.officeId]?.[item.recordId]?.linkedItems ?? [], catalogs!)
+  const itemRecord = catalogs?.[item.officeId]?.[item.recordId]
+  if (field === 'unitPrice') return itemRecord?.unitPrice
+  if (field === 'dispensingFee') return itemRecord?.dispensingFee
+  if (field === 'classificationName') return itemRecord?.classificationName
+  if (field === 'subClassificationName') return itemRecord?.subClassificationName
+  if (field === 'markUpPercentage') return itemRecord?.markUpPercentage
+  if (field === 'lastUpdateTimestamp') return itemRecord?.lastUpdateTimestamp
+  if (field === 'unitPriceVariance') return cost.unitPriceVariance
+  if (field === 'dispensingFeeVariance') return cost.dispensingFeeVariance
 }
 

@@ -5,11 +5,12 @@ import LinkedItemsList from '../../components/LinkedItemsList'
 import { UnMatchedDisplay } from '../../components/UnMatchedDisplay'
 import { useSearchParam } from '../../hooks/searchParams'
 import useListSelector from '../../hooks/useListSelector'
-import { useCatalogItem, useCatalogSearchCallback, useCreateLinkedItem, useLinkItems, useStore } from '../../store'
+import { useCatalogItem, useCatalogSearchCallback, useCreateLinkedItem, useInactivateItems, useLinkItems, useStore } from '../../store'
 import { officesForSelectInput, useMatchedOfficeIds, useOfficeIds } from '../../store/selectors/offices'
 import s from './linker.module.css'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { inactiveItems } from '../../store/providers/items'
 export default function LinkerPage() {
   const offices = useStore(state => state.org?.offices)!
   const officeArray = officesForSelectInput(offices)
@@ -60,7 +61,7 @@ export default function LinkerPage() {
             <option value={50}>{50}</option>
           </select>
         </fieldset>
-        <button className={s.submitButton} type="submit" aria-busy={linkItems.loading}>Start Comparison</button>
+        <button className={s.submitButton} type="submit" disabled={search.loading} aria-busy={search.loading}>Start Comparison</button>
       </form>
 
       <section className={s.groups}>
@@ -81,10 +82,20 @@ type ItemGroupProps = { itemKey: ItemKey, matchedItemKeys: ItemKey[] | undefined
 function ItemGroup({ itemKey, matchedItemKeys = [] }: ItemGroupProps) {
   const selector = useListSelector<ItemKey>(matchedItemKeys, 'recordId')
   const createItem = useCreateLinkedItem()
+  const inactivate = useInactivateItems()
   const [recordId, setRecordId] = useState<RecordId>('')
+  const [inactive, setInactive] = useState(false)
   const itemToDisplay: ItemKey = recordId ? { recordId, officeId: 'CIVA' } : itemKey
   const item = useCatalogItem(itemToDisplay)
   const itemTitle = `${item?.officeId} - ${item?.itemDescription}`
+
+  async function handelInactivateItem() {
+    const itemKeys = selector?.getSelected() || []
+    itemKeys.push(itemKey)
+    await inactivate.execute(itemKeys)
+    setInactive(true)
+    selector.unSelectAll()
+  }
 
   async function handelCreateItem() {
     const recordId = nanoid(8)
@@ -106,6 +117,8 @@ function ItemGroup({ itemKey, matchedItemKeys = [] }: ItemGroupProps) {
       unitPrice: item?.unitPrice || null,
       linkedItems: selector?.getSelected() || []
     })
+
+    selector.unSelectAll()
   }
 
   const officeIds = useOfficeIds(['CIVA'])
@@ -116,15 +129,23 @@ function ItemGroup({ itemKey, matchedItemKeys = [] }: ItemGroupProps) {
       <div className={s.matchedToItem}>
         {recordId
           ? <Link to={`/item/${recordId}/CIVA`}><p className={s.matchedToItemTitle}>{itemTitle}</p></Link>
-          : <p className={s.matchedToItemTitle}>{itemTitle}</p>
+          : <p className={`${s.matchedToItemTitle} ${inactive ? s.inactiveTitle : ''}`}>{itemTitle}</p>
         }
         <AlertMessage message={createItem.error?.message} />
       </div>
       <LinkedItemsList itemKeys={matchedItemKeys} selector={selector} />
       <UnMatchedDisplay unMatchedOfficeIds={unMatchedOfficeIds} />
-      {!recordId && <button className={s.linkButton} aria-busy={createItem.loading} disabled={!!recordId} onClick={() => handelCreateItem()}>
-        Create CIVA Item & Link {selector.getSelected().length ? `(${selector.getSelected().length})` : ''}
-      </button>}
+      {(!recordId && !inactive) &&
+        <div className={s.actionButtons}>
+
+          <button className={s.linkButton} aria-busy={createItem.loading} disabled={!!recordId} onClick={() => handelCreateItem()}>
+            Create CIVA Item & Link {selector.getSelected().length ? `(${selector.getSelected().length})` : ''}
+          </button>
+          <button className={s.inactivateButton} aria-busy={inactivate.loading} disabled={!!recordId} onClick={() => handelInactivateItem()}>
+            Inactivate {selector.getSelected().length ? `(${selector.getSelected().length})` : ''}
+          </button>
+        </div>
+      }
     </div>
   )
 

@@ -32,6 +32,12 @@
   margin-right: 0.25rem;
 }
 
+.searchHelp {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.25rem;
+}
 .searchInput {
   position: relative;
   margin-bottom: 0;
