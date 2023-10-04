@@ -129,15 +129,18 @@ function basicSearch(query: CatalogQuery, searcher: Fuse<SearchItem>, limit: num
 
 function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], query: CatalogQuery) {
   if (!catalogs) throw new Error('Catalogs not loaded')
+  if (!offices) throw new Error('Offices not loaded')
 
   return results.filter(result => {
     const item = catalogs?.[result.item.officeId]?.[result.item.recordId]
+    const officeCount = Object.keys(offices!).length - 1 //exclude CIVA
     const costs = calculateLinkItemTotals(item?.linkedItems ?? [], catalogs!)
 
     if (!item) return false
     if (query.excludeMapped === true && item.classificationMappedTimestamp) return false
     if (query.excludeLinked === true && item.itemLinkedTimestamp) return false
     if (query.excludeInactive === true && item.status === 'inactive') return false
+    if (query.missingOfficeIds === true && item.linkedItems?.length === officeCount) return false
 
     if (query.unitPriceLow && (item.unitPrice ?? 0) < query.unitPriceLow) return false
     if (query.unitPriceHigh && (item.unitPrice ?? 0) > query.unitPriceHigh) return false

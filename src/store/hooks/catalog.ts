@@ -37,6 +37,7 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       excludeMapped: searchParams.get('exm') === 'true',
       excludeLinked: searchParams.get('exl') === 'true',
       excludeInactive: searchParams.get('exi') === 'true',
+      missingOfficeIds: searchParams.get('mo') === 'true',
       unitPriceLow: searchParams.get('upl') ? Number(searchParams.get('upl')) : undefined,
       unitPriceHigh: searchParams.get('uph') ? Number(searchParams.get('uph')) : undefined,
       dispensingFeeLow: searchParams.get('dfl') ? Number(searchParams.get('dfl')) : undefined,
@@ -59,6 +60,7 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       prev.delete('exm')
       prev.delete('exl')
       prev.delete('exi')
+      prev.delete('mo')
       prev.delete('mc')
       prev.delete('msc')
       prev.delete('cc')
@@ -86,6 +88,7 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       if (initialQuery?.excludeMapped !== undefined) prev.append('exm', initialQuery.excludeMapped?.toString() ?? 'false')
       if (initialQuery?.excludeLinked !== undefined) prev.append('exl', initialQuery.excludeLinked?.toString() ?? 'false')
       if (initialQuery?.excludeInactive !== undefined) prev.append('exi', initialQuery.excludeInactive?.toString() ?? 'true')
+      if (initialQuery?.missingOfficeIds !== undefined) prev.append('mo', initialQuery.missingOfficeIds?.toString() ?? 'false')
       if (initialQuery?.unitPriceLow !== undefined) prev.append('upl', initialQuery.unitPriceLow?.toString() ?? '')
       if (initialQuery?.unitPriceHigh !== undefined) prev.append('uph', initialQuery.unitPriceHigh?.toString() ?? '')
       if (initialQuery?.dispensingFeeLow !== undefined) prev.append('dfl', initialQuery.dispensingFeeLow?.toString() ?? '')

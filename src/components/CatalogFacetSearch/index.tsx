@@ -25,10 +25,27 @@ export default function FacetedSearch() {
       <div className={s.business}>
         <h3>Business</h3>
         <BusinessFacet />
+      </div>
 
+      <div className={s.misc}>
+        <h3>Mapping Helpers</h3>
+        <MappingHelperFacets />
       </div>
     </div>
   )
+}
+
+function MappingHelperFacets() {
+  const missingOfficeIds = useSearchParam('mo')
+  return (
+    <div>
+      <fieldset>
+        <input type="checkbox" id="missingOfficeIds" checked={!!missingOfficeIds.value} onChange={() => missingOfficeIds.toggle()} />
+        <label htmlFor="missingOfficeIds">Missing Office Ids</label>
+      </fieldset>
+    </div>
+  )
+
 }
 
 function BusinessFacet() {

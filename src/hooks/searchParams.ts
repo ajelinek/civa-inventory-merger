@@ -1,3 +1,4 @@
+import { set } from 'firebase/database'
 import { useSearchParams } from 'react-router-dom'
 
 type Modal = 'import' | 'add' | null
@@ -89,6 +90,7 @@ type SearchParams =
   | 'exm' // excludeMapped
   | 'exl' // excludeLinked
   | 'exi' // excludeInactive
+  | 'mo' // missingOfficeIds
   | 'mc' // matchedCatalogs page specific
   | 'msc' // matchedRecords page specific
   | 'cc' // comparisonCount page specific
@@ -122,6 +124,18 @@ export function useSearchParam(param: SearchParams) {
     }, { replace: true })
   }
 
-  return { value, setValue, remove }
+  function toggle() {
+    setSearchParams(prev => {
+      if (prev.get(param)) {
+        prev.delete(param)
+      } else {
+        prev.set(param, 'true')
+      }
+      return prev
+    }, { replace: true })
+  }
+
+
+  return { value, setValue, remove, toggle }
 }
 

@@ -85,6 +85,7 @@ interface CatalogQuery {
   excludeMapped?: boolean
   excludeLinked?: boolean
   excludeInactive?: boolean
+  missingOfficeIds?: boolean
   classificationNames?: string[]
   subClassificationNames?: string[]
   unitPriceLow?: number
