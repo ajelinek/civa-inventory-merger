@@ -1,16 +1,15 @@
 import { nanoid } from 'nanoid'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { AlertMessage } from '../../components/AlertMessage'
 import { ClassificationSelector, SubClassificationSelector } from '../../components/CommonInputFields/selectors'
 import LinkedItemsList from '../../components/LinkedItemsList'
-import { UnMatchedDisplay } from '../../components/UnMatchedDisplay'
+import { OfficeIdsDisplay } from '../../components/OfficeIdDisplay'
 import { useSearchParam } from '../../hooks/searchParams'
 import useListSelector from '../../hooks/useListSelector'
 import { useCatalogItem, useCatalogSearchCallback, useCreateLinkedItem, useInactivateItems, useLinkItems, useStore } from '../../store'
 import { officesForSelectInput, useMatchedOfficeIds, useOfficeIds } from '../../store/selectors/offices'
 import s from './linker.module.css'
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { inactiveItems } from '../../store/providers/items'
 export default function LinkerPage() {
   const offices = useStore(state => state.org?.offices)!
   const officeArray = officesForSelectInput(offices)
@@ -134,7 +133,7 @@ function ItemGroup({ itemKey, matchedItemKeys = [] }: ItemGroupProps) {
         <AlertMessage message={createItem.error?.message} />
       </div>
       <LinkedItemsList itemKeys={matchedItemKeys} selector={selector} />
-      <UnMatchedDisplay unMatchedOfficeIds={unMatchedOfficeIds} />
+      <OfficeIdsDisplay label="Unmatched Offices:" officeIds={unMatchedOfficeIds} />
       {(!recordId && !inactive) &&
         <div className={s.actionButtons}>
 

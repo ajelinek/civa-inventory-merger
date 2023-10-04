@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { useCatalogItem, useStore } from '../../store'
 import { calculateLinkItemTotals } from '../../store/selectors/item'
 import Money from '../Money'
+import { OfficeIdsDisplay } from '../OfficeIdDisplay'
 import s from './itemSummary.module.css'
 
 export default function ItemSummary({ itemKey, selector }: { itemKey: ItemKey, selector: Selector<ItemKey> }) {
@@ -38,7 +39,9 @@ export default function ItemSummary({ itemKey, selector }: { itemKey: ItemKey, s
           <div className={s.summaryTitle} >
             <p className={`${s.title} ${item.status === 'inactive' ? s.inactiveTitle : ''}`}
               onClick={() => nav(`/item/${itemKey.recordId}/${itemKey.officeId}`)}>
-              <span className={s.id}>{item.officeId}-{item.itemId}</span> - {item.itemDescription} </p>
+              <span className={s.id}>{item.officeId}-{item.itemId}</span> - {item.itemDescription}
+            </p>
+            {item.officeId === 'CIVA' && <><OfficeIdList item={item} /></>}
           </div>
           <div className={s.secondaryInfo}>
             <ClassificationDisplay />
@@ -108,39 +111,40 @@ export default function ItemSummary({ itemKey, selector }: { itemKey: ItemKey, s
 function MasterCostingInfo({ item }: { item: ItemRecord }) {
   const catalogs = useStore(state => state.catalog)!
   const costs = useMemo(() => calculateLinkItemTotals(item.linkedItems || [], catalogs), [item])
+  console.log("🚀 ~ file: index.tsx:114 ~ MasterCostingInfo ~ costs:", costs)
 
   return (
     <div className={s.costInfo}>
       <div className={s.costItem}>
         {costs.avgDispensingFee ? <>
-          <span className={s.label}>DF:</span>
+          <span className={s.costLabel}>DF:</span>
           <div className={s.fieldSet}>
-            <span className={s.label}>&mu;</span>
+            <span className={s.costLabel}>&mu;</span>
             <span className={s.moneyValue}><Money>{costs.avgDispensingFee}</Money></span>
           </div>
           <div className={s.fieldSet}>
-            <span className={s.label}>&sigma;^2</span>
+            <span className={s.costLabel}>&sigma;^2</span>
             <span className={s.moneyValue}>{costs.dispensingFeeVariance.toFixed(1)}%</span>
           </div>
         </> : null}
       </div>
       <div className={s.costItem}>
         {costs.avgUnitPrice ? <>
-          <span className={s.label}>UP:</span>
+          <span className={s.cotLabel}>UP:</span>
           <div className={s.fieldSet}>
-            <span className={s.label}>&mu;</span>
+            <span className={s.costLabel}>&mu;</span>
             <span className={s.moneyValue}><Money>{costs.avgUnitPrice}</Money></span>
           </div>
           <div className={s.fieldSet}>
-            <span className={s.label}>&sigma;^2</span>
+            <span className={s.costLabel}>&sigma;^2</span>
             <span className={s.moneyValue}>{costs.unitPriceVariance.toFixed(1)}%</span>
           </div>
         </> : null}
       </div>
       <div className={s.costItem}>
-        {costs.avgMarkupPercentage ? <>
+        {costs.avgUnitPrice ? <>
           <div className={s.fieldSet}>
-            <span className={s.label}>MU:</span>
+            <span className={s.costLabel}>MU:</span>
             <span className={s.moneyValue}>{costs.avgMarkupPercentage}%</span>
           </div>
         </> : null}
@@ -154,21 +158,26 @@ function OfficeCostingInfo({ item }: { item: ItemRecord }) {
     <div className={s.costInfo}>
       <p className={s.costItem}>
         {item.dispensingFee ? <>
-          <span className={s.label}>DF:</span>
+          <span className={s.costLabel}>DF:</span>
           <span className={s.moneyValue}><Money>{item.dispensingFee}</Money></span>
         </> : null}
       </p>   <p className={s.costItem}>
         {item.unitPrice ? <>
-          <span className={s.label}>UP:</span>
+          <span className={s.costLabel}>UP:</span>
           <span className={s.moneyValue}><Money>{item.unitPrice}</Money></span>
         </> : null}
       </p>
       <p className={s.costItem}>
         {item.unitPrice ? <>
-          <span className={s.label}>MU:</span>
+          <span className={s.costLabel}>MU:</span>
           <span className={s.moneyValue}>{item.markUpPercentage}%</span>
         </> : null}
       </p>
     </div>
   )
+}
+
+function OfficeIdList({ item }: { item: ItemRecord }) {
+  const officeIds = item.linkedItems?.map(linkedItem => linkedItem.officeId) || []
+  return <OfficeIdsDisplay officeIds={officeIds} />
 }
