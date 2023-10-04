@@ -1,29 +1,27 @@
 import { nanoid } from 'nanoid'
-import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { AlertMessage } from '../../components/AlertMessage'
 import { ClassificationSelector, SubClassificationSelector } from '../../components/CommonInputFields/selectors'
 import LinkedItemsList from '../../components/LinkedItemsList'
 import { UnMatchedDisplay } from '../../components/UnMatchedDisplay'
 import { useSearchParam } from '../../hooks/searchParams'
 import useListSelector from '../../hooks/useListSelector'
-import { useCatalogItem, useCreateLinkedItem, useLinkItems, useSearchCatalog, useStore } from '../../store'
+import { useCatalogItem, useCatalogSearchCallback, useCreateLinkedItem, useLinkItems, useStore } from '../../store'
 import { officesForSelectInput, useMatchedOfficeIds, useOfficeIds } from '../../store/selectors/offices'
 import s from './linker.module.css'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
 export default function LinkerPage() {
   const offices = useStore(state => state.org?.offices)!
   const officeArray = officesForSelectInput(offices)
   const classification = useSearchParam('mc')
   const subClassification = useSearchParam('msc')
   const comparisonCount = useSearchParam('cc')
-  const [query, setQuery] = useState<CatalogQuery>()
   const linkItems = useLinkItems()
-  const itemGroup = useSearchCatalog(query)
-
+  const { comparingText, search } = useCatalogSearchCallback()
 
   function handleStartComparison(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setQuery({
+    search.execute({
       searchType: 'comparison',
       classificationIds: classification.value ? [classification.value] : undefined,
       subClassificationIds: subClassification.value ? [subClassification.value] : undefined,
@@ -66,30 +64,38 @@ export default function LinkerPage() {
       </form>
 
       <section className={s.groups}>
-        {itemGroup.comparingText}
-        {(itemGroup.status !== 'searched' && query) && <div>Loading...</div>}
-        {itemGroup.status === 'searched' && itemGroup.page?.length === 0 && <div>No items found</div>}
-        {(itemGroup.page?.length || 0 > 0) &&
-          itemGroup.page?.map((item) =>
-            <ItemGroup key={item.recordId} itemGroup={itemGroup} itemKey={item} />)}
+        {comparingText}
+        {search.loading && <div>Loading...</div>}
+        {search.status === 'success' &&
+          search.result?.itemKeys.map((item) =>
+            <ItemGroup key={item.recordId}
+              itemKey={item}
+              matchedItemKeys={search.result?.matchedItemKeys?.[item.recordId]}
+            />)}
       </section>
     </div>
   )
 }
 
-type ItemGroupProps = { itemKey: ItemKey, itemGroup: UseSearchCatalogReturn }
-function ItemGroup({ itemKey, itemGroup }: ItemGroupProps) {
-  const matchedItemKeys = useMemo(() => itemGroup?.matchedItemKeys?.[itemKey.recordId] || [], [itemGroup, itemKey])
-  const selector = useListSelector<ItemKey>([], 'recordId')
-  const item = useCatalogItem(itemKey)
-  const nav = useNavigate()
+type ItemGroupProps = { itemKey: ItemKey, matchedItemKeys: ItemKey[] | undefined }
+function ItemGroup({ itemKey, matchedItemKeys = [] }: ItemGroupProps) {
+  const selector = useListSelector<ItemKey>(matchedItemKeys, 'recordId')
   const createItem = useCreateLinkedItem()
+  const [recordId, setRecordId] = useState<RecordId>('')
+  const itemToDisplay: ItemKey = recordId ? { recordId, officeId: 'CIVA' } : itemKey
+  const item = useCatalogItem(itemToDisplay)
+  const itemTitle = `${item?.officeId} - ${item?.itemDescription}`
 
   async function handelCreateItem() {
     const recordId = nanoid(8)
+    setRecordId(recordId)
     await createItem.execute({
       recordId,
       officeId: 'CIVA',
+      classificationId: item?.classificationId || '',
+      subClassificationId: item?.subClassificationId || '',
+      classificationName: item?.classificationName || '',
+      subClassificationName: item?.subClassificationName || '',
       itemDescription: item?.itemDescription || '',
       status: 'active',
       itemId: item?.itemId || '',
@@ -100,8 +106,6 @@ function ItemGroup({ itemKey, itemGroup }: ItemGroupProps) {
       unitPrice: item?.unitPrice || null,
       linkedItems: selector?.getSelected() || []
     })
-
-    // nav(`/item/${recordId}/CIVA`)
   }
 
   const officeIds = useOfficeIds(['CIVA'])
@@ -110,12 +114,17 @@ function ItemGroup({ itemKey, itemGroup }: ItemGroupProps) {
   return (
     <div key={itemKey.recordId} className={s.group}>
       <div className={s.matchedToItem}>
-        <p className={s.matchedToItemTitle}>{item?.officeId} - {item?.itemDescription}</p>
+        {recordId
+          ? <Link to={`/item/${recordId}/CIVA`}><p className={s.matchedToItemTitle}>{itemTitle}</p></Link>
+          : <p className={s.matchedToItemTitle}>{itemTitle}</p>
+        }
         <AlertMessage message={createItem.error?.message} />
-        <button className={s.linkButton} aria-busy={createItem.loading} onClick={() => handelCreateItem()}>Create Item</button>
       </div>
       <LinkedItemsList itemKeys={matchedItemKeys} selector={selector} />
       <UnMatchedDisplay unMatchedOfficeIds={unMatchedOfficeIds} />
+      {!recordId && <button className={s.linkButton} aria-busy={createItem.loading} disabled={!!recordId} onClick={() => handelCreateItem()}>
+        Create CIVA Item & Link {selector.getSelected().length ? `(${selector.getSelected().length})` : ''}
+      </button>}
     </div>
   )
 

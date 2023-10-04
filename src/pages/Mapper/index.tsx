@@ -1,16 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AlertMessage } from '../../components/AlertMessage'
-import { ClassificationSelector, SubClassificationSelector } from '../../components/CommonInputFields/selectors'
+import { ClassificationSelector, OfficeSelector, SubClassificationSelector } from '../../components/CommonInputFields/selectors'
 import Search from '../../components/Search'
 import SearchResults from '../../components/SearchResults'
 import { useSearchParam } from '../../hooks/searchParams'
 import useListSelector from '../../hooks/useListSelector'
 import { useCatalogSearchParamQuery, useClassificationUpdate, useSearchCatalog, useStore } from '../../store'
 import s from './mapper.module.css'
+import { useSearchParams } from 'react-router-dom'
 
 export default function Mapper() {
+  const [_, setParams] = useSearchParams()
   const classification = useSearchParam('mc')
   const subClassification = useSearchParam('msc')
+  const officeId = useSearchParam('o')
   const searchTerm = useSearchParam('st')
   const classificationId = classification.value || ''
   const subClassificationId = subClassification.value || ''
@@ -19,35 +22,38 @@ export default function Mapper() {
   const mappedSelector = useListSelector<ItemKey>([], 'recordId')
   const classifications = useStore(state => state.org?.classifications)
   const classificationUpdates = useClassificationUpdate()
-  const query = useCatalogSearchParamQuery()
+  const query = useCatalogSearchParamQuery({
+    excludeMapped: true,
+  })
   const search = useSearchCatalog(query)
   const [formError, setFormError] = useState('')
 
   const mappedQuery = useMemo(() => {
-    if (!classificationId || !subClassificationId) return
-    return {
-      classificationIds: [classificationId],
-      subClassificationIds: [subClassificationId],
-    }
-  }, [classificationId, subClassificationId])
+    const mQuery = {
+      classificationIds: undefined,
+      subClassificationIds: undefined,
+      officeIds: undefined
+    } as CatalogQuery
+    if (classificationId) mQuery.classificationIds = [classificationId]
+    if (subClassificationId) mQuery.subClassificationIds = [subClassificationId]
+    if (officeId.value) mQuery.officeIds = [officeId.value]
+    return mQuery
+  }, [subClassification.value, classification.value, officeId.value])
 
   useEffect(() => {
-    if (!subClassification.value) return
-    const name = classifications?.[classificationId]?.subClassifications?.[subClassification.value].name
-    name && searchTerm.setValue(name)
-  }, [subClassification.value])
+    const clasName = classifications?.[classificationId]?.name
+    const subClassName = classifications?.[classificationId]?.subClassifications?.[subClassificationId]?.name
+    const text = subClassName || clasName || ''
+    if (text) searchTerm.setValue(text)
+  }, [classification.value, subClassification.value])
+
   const mappedResult = useSearchCatalog(mappedQuery)
 
   async function handleUpdateClassifications() {
-    if (!classifications || !classificationId || !subClassificationId) {
-      setFormError('Please select a classification and sub classification')
-      return
-    }
-
     await classificationUpdates.execute({
       classificationId,
       subClassificationId,
-      classificationName: classifications?.[classificationId].name,
+      classificationName: classifications?.[classificationId]?.name || '',
       subClassificationName: classifications?.[classificationId]?.subClassifications?.[subClassificationId]?.name,
       items: mapFromSelector.getSelected()
     })
@@ -59,13 +65,18 @@ export default function Mapper() {
   return (
     <div className={s.container}>
       <AlertMessage message={classificationUpdates.error?.message || formError} />
-      {/* <MapperInstructions /> */}
-
       <section className={s.mappings}>
         <div className={s.column}>
           <h3>Mappings</h3>
           <div className={s.classifications}>
-            <ClassificationSelector value={classificationId} onChange={e => classification.setValue(e.target.value)} />
+            <OfficeSelector value={officeId.value || ''} onChange={e => officeId.setValue(e.target.value)} />
+            <ClassificationSelector value={classificationId} onChange={e => {
+              setParams(prev => {
+                prev.set('mc', e.target.value)
+                prev.delete('msc')
+                return prev
+              })
+            }} />
             <SubClassificationSelector
               classification={classificationId}
               value={subClassificationId}
@@ -79,7 +90,6 @@ export default function Mapper() {
             <h3>Suggested Mappings</h3>
             <Search
               keyWords={mappedResult.result?.keyWords || []}
-              excludeLinkedDefault={true}
               excludeMappedDefault={true}
             />
             <button

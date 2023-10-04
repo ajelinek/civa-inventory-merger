@@ -42,6 +42,7 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       dispensingFeeHigh: searchParams.get('dfh') ? Number(searchParams.get('dfh')) : undefined,
       markUpPercentageLow: searchParams.get('mpl') ? Number(searchParams.get('mpl')) : undefined,
       markUpPercentageHigh: searchParams.get('mph') ? Number(searchParams.get('mph')) : undefined,
+      sort: searchParams.get('srt') ? JSON.parse(atob(searchParams.get('srt') ?? '')) : undefined,
     } as CatalogQuery
     setQuery(newQuery)
   }, 500)
@@ -65,6 +66,7 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       prev.delete('dfh')
       prev.delete('mpl')
       prev.delete('mph')
+      prev.delete('srt')
 
       if (initialQuery?.officeIds?.length ?? 0 > 0) {
         initialQuery?.officeIds?.forEach(id => prev.append('o', id))
@@ -87,6 +89,7 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       if (initialQuery?.dispensingFeeHigh !== undefined) prev.append('dfh', initialQuery.dispensingFeeHigh?.toString() ?? '')
       if (initialQuery?.markUpPercentageLow !== undefined) prev.append('mpl', initialQuery.markUpPercentageLow?.toString() ?? '')
       if (initialQuery?.markUpPercentageHigh !== undefined) prev.append('mph', initialQuery.markUpPercentageHigh?.toString() ?? '')
+      if (initialQuery?.sort?.length ?? 0 > 0) prev.append('srt', btoa(JSON.stringify(initialQuery?.sort)))
       return prev
     })
   }, [])
@@ -154,11 +157,42 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSea
 
   useEffect(() => {
     if (!(searcher.current && query && catalogs)) return
+    console.log("🚀 ~ file: catalog.ts:157 ~ useEffect ~ query:", query)
     setStatus('searching')
     searcher.current.postMessage({ type: 'search', payload: query })
   }, [query, catalogs])
 
   return { status, result, page, matchedItemKeys, error, comparingText }
+}
+
+export function useCatalogSearchCallback() {
+  const [comparingText, setComparingText] = useState<string>()
+
+  function executeSearchPromise(query: CatalogQuery): Promise<CatalogQueryResult> {
+    return new Promise((resolve, reject) => {
+      const worker = new Searcher()
+      worker.postMessage({ type: 'load', payload: { catalogs: useStore.getState().catalog, offices: useStore.getState().org?.offices } })
+      worker.onmessage = (e) => {
+        switch (e.data.type) {
+          case 'loaded':
+            worker.postMessage({ type: 'search', payload: query })
+            break
+          case 'searched':
+            resolve(e.data.payload)
+            break
+          case 'compare-status':
+            setComparingText(e.data.payload.text)
+            break
+        }
+      }
+      worker.onerror = (err) => {
+        reject(err)
+      }
+    })
+  }
+
+  const search = useAsyncCallback(executeSearchPromise)
+  return { search, comparingText }
 }
 
 export function useCatalogItem(itemKey?: ItemKey) {

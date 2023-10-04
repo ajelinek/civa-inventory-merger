@@ -102,3 +102,17 @@ type CreateItemRecordInput = Pick<ItemRecord,
   'unitPrice' |
   'linkedItems'
 >
+
+interface LinkItemTotals {
+  maxUnitPrice: number
+  minUnitPrice: number
+  avgUnitPrice: number
+  unitPriceVariance: number
+  maxDispensingFee: number
+  minDispensingFee: number
+  avgDispensingFee: number
+  dispensingFeeVariance: number
+  maxMarkupPercentage: number
+  minMarkupPercentage: number
+  avgMarkupPercentage: number
+}

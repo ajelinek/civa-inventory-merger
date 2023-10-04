@@ -97,6 +97,7 @@ type SearchParams =
   | 'dfh' // dispensing fee from high
   | 'mpl' // markup low
   | 'mph' // markup high
+  | 'srt' // sort
 
 export function useSearchParam(param: SearchParams) {
   const [searchParams, setSearchParams] = useSearchParams()

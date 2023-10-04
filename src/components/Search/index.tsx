@@ -14,6 +14,7 @@ export default function Search({ keyWords, excludeLinkedDefault, excludeMappedDe
   const excludeMapped = useSearchParam('exm')
   const excludeLinked = useSearchParam('exl')
   const searchTerm = useSearchParam('st')
+  const [showAllAutoTerms, setShowAutoTerms] = useState(false)
   const [searchInput, setSearchInput] = useState(searchTerm.value || '')
   const selectedTokens = useSearchParamsListToggle('kw')
   const [_, setParams] = useSearchParams()
@@ -24,14 +25,19 @@ export default function Search({ keyWords, excludeLinkedDefault, excludeMappedDe
 
   useEffect(() => {
     setParams((prevParams) => {
-      if (excludeLinked.value === null && excludeLinkedDefault !== undefined) prevParams.set('exl', excludeLinkedDefault ? 'true' : 'false')
-      if (excludeMapped.value === null && excludeMappedDefault !== undefined) prevParams.set('exm', excludeMappedDefault ? 'true' : 'false')
+      if (excludeLinkedDefault !== undefined) prevParams.set('exl', excludeLinkedDefault ? 'true' : 'false')
+      if (excludeMappedDefault !== undefined) prevParams.set('exm', excludeMappedDefault ? 'true' : 'false')
       return prevParams
-    })
-  }, [])
+    }, { replace: true })
+  }, [excludeLinkedDefault, excludeMappedDefault])
 
   useEffect(() => {
-    if (keyWords && keyWords.length > 0) selectedTokens.addAll(keyWords)
+    if (keyWords && keyWords.length > 0) {
+      selectedTokens.addAll(keyWords)
+    } else {
+      selectedTokens.removeAll()
+    }
+
   }, [keyWords])
 
   function handleOnSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -39,14 +45,21 @@ export default function Search({ keyWords, excludeLinkedDefault, excludeMappedDe
     searchTerm.setValue(searchInput)
   }
 
+  const displayKeywords: string[] = (showAllAutoTerms ? keyWords : keyWords?.slice(0, 5)) || []
+
   return (
     <form className={s.form} onSubmit={handleOnSubmit}>
-      {(keyWords?.length || 0 > 0) &&
+      {(displayKeywords?.length > 0) &&
         <>
           <fieldset>
-            <label htmlFor="pillbox" className={s.label}>Automatic Terms</label>
+            <div className={s.keyWordsLabel}>
+              <label htmlFor="pillbox" className={s.label}>Automatic Terms</label>
+              <div className={s.searchOptions}>
+                <a onClick={() => selectedTokens.removeAll()}>Unselect All</a>
+              </div>
+            </div>
             <div id='pillbox' className={s.pillbox}>
-              {keyWords?.map((token) => (
+              {displayKeywords.map((token) => (
                 <button
                   type='button'
                   key={token}
@@ -56,11 +69,13 @@ export default function Search({ keyWords, excludeLinkedDefault, excludeMappedDe
                   {token}
                 </button>
               ))}
+              {(keyWords?.length || 0 > 5) &&
+                <button className={s.more} onClick={() => setShowAutoTerms(!showAllAutoTerms)}>
+                  {showAllAutoTerms ? '-' : '+'} {keyWords?.length! - 5}
+                </button>
+              }
             </div>
           </fieldset>
-          <div className={s.searchOptions}>
-            <a onClick={() => selectedTokens.removeAll()}>Unselect All</a>
-          </div>
         </>
       }
       <div className={s.searchContainer}>

@@ -1,9 +1,10 @@
 import dayjs from 'dayjs'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { FaCaretDown, FaCaretRight } from 'react-icons/fa6'
 import { RxDividerVertical } from 'react-icons/rx'
 import { useNavigate } from 'react-router-dom'
-import { useCatalogItem } from '../../store'
+import { useCatalogItem, useStore } from '../../store'
+import { calculateLinkItemTotals } from '../../store/selectors/item'
 import Money from '../Money'
 import s from './itemSummary.module.css'
 
@@ -13,49 +14,42 @@ export default function ItemSummary({ itemKey, selector }: { itemKey: ItemKey, s
   const [active, setActive] = useState(false)
   if (!item) return null
 
+  function ClassificationDisplay() {
+    return (
+      <>
+        {item?.subClassificationName
+          ? <p className={s.subTitle}>C -{item.classificationName}
+            <RxDividerVertical className={s.divider} />  SC - {item.subClassificationName}
+          </p>
+          : <p className={s.subTitle}>C - {item?.classificationName}</p>}
+      </>
+    )
+  }
+
   return (
     <div className={s.container} >
       <div className={s.summary}>
-        <div>
-          <input type='checkbox'
-            onChange={(e) => selector.onSelect(e, itemKey)}
-            checked={selector.isSelected(itemKey)}
-          />
-        </div>
+        <input type='checkbox'
+          onChange={(e) => selector.onSelect(e, itemKey)}
+          checked={selector.isSelected(itemKey)}
+        />
+
         <div className={s.summaryContent} >
-          <div className={s.summaryTitle} onClick={() => nav(`/item/${itemKey.recordId}/${itemKey.officeId}`)}>
-            <p className={s.title}><span className={s.id}>{item.officeId}-{item.itemId}</span> - {item.itemDescription} </p>
-            {item.subClassificationName
-              ? <p className={s.subTitle}>C -{item.classificationName}
-                <RxDividerVertical className={s.divider} />  SC - {item.subClassificationName}
-              </p>
-              : <p className={s.subTitle}>C - {item.classificationName}</p>}
+          <div className={s.summaryTitle} >
+            <p className={s.title} onClick={() => nav(`/item/${itemKey.recordId}/${itemKey.officeId}`)}>
+              <span className={s.id}>{item.officeId}-{item.itemId}</span> - {item.itemDescription} </p>
           </div>
-          <div className={s.costInfo}>
-            <p className={s.costItem}>
-              {item.unitPrice ? <>
-                <span className={s.label}>UP:</span>
-                <span className={s.moneyValue}><Money>{item.unitPrice}</Money></span>
-              </> : null}
-            </p>
-            <p className={s.costItem}>
-              {item.unitPrice ? <>
-                <span className={s.label}>MU:</span>
-                <span className={s.moneyValue}>{item.markUpPercentage}%</span>
-              </> : null}
-            </p>
-            <p className={s.costItem}>
-              {item.dispensingFee ? <>
-                <span className={s.label}>DF:</span>
-                <span className={s.moneyValue}><Money>{item.dispensingFee}</Money></span>
-              </> : null}
-            </p>
+          <div className={s.secondaryInfo}>
+            <ClassificationDisplay />
+            {item.officeId === 'CIVA'
+              ? <MasterCostingInfo item={item} />
+              : <OfficeCostingInfo item={item} />
+            }
           </div>
-          <button className={s.hideShowButton}
-            onClick={() => setActive(!active)}>
-            {active ? <FaCaretDown /> : <FaCaretRight />}
-          </button>
         </div>
+        <button className={s.hideShowButton} onClick={() => setActive(!active)}>
+          {active ? <FaCaretDown /> : <FaCaretRight />}
+        </button>
       </div>
 
       {active &&
@@ -95,10 +89,82 @@ export default function ItemSummary({ itemKey, selector }: { itemKey: ItemKey, s
             <span className={s.label}>Original Item ID:</span> {item.originalItemId}
           </p>
           <p className={s.attribute}>
+            <span className={s.label}>Last Update:</span> {dayjs(item.lastUpdateTimestamp).format('ddd, MMM D, YYYY h:mm A')}
+          </p>
+          <p className={s.attribute}>
             <span className={s.label}>Database Record ID:</span> {item.recordId}
           </p>
         </div>
       }
+    </div>
+  )
+
+}
+
+function MasterCostingInfo({ item }: { item: ItemRecord }) {
+  const catalogs = useStore(state => state.catalog)!
+  const costs = useMemo(() => calculateLinkItemTotals(item.linkedItems || [], catalogs), [item])
+
+  return (
+    <div className={s.costInfo}>
+      <p className={s.costItem}>
+        {costs.avgDispensingFee ? <>
+          <span className={s.label}>DF:</span>
+          <div className={s.fieldSet}>
+            <span className={s.label}>&mu;</span>
+            <span className={s.moneyValue}><Money>{costs.avgDispensingFee}</Money></span>
+          </div>
+          <div className={s.fieldSet}>
+            <span className={s.label}>&sigma;^2</span>
+            <span className={s.moneyValue}>{costs.dispensingFeeVariance.toFixed(1)}%</span>
+          </div>
+        </> : null}
+      </p>
+      <p className={s.costItem}>
+        {costs.avgUnitPrice ? <>
+          <span className={s.label}>UP:</span>
+          <div className={s.fieldSet}>
+            <span className={s.label}>&mu;</span>
+            <span className={s.moneyValue}><Money>{costs.avgUnitPrice}</Money></span>
+          </div>
+          <div className={s.fieldSet}>
+            <span className={s.label}>&sigma;^2</span>
+            <span className={s.moneyValue}>{costs.unitPriceVariance.toFixed(1)}%</span>
+          </div>
+        </> : null}
+      </p>
+      <p className={s.costItem}>
+        {costs.avgMarkupPercentage ? <>
+          <div className={s.fieldSet}>
+            <span className={s.label}>MU:</span>
+            <span className={s.moneyValue}>{costs.avgMarkupPercentage}%</span>
+          </div>
+        </> : null}
+      </p>
+    </div>
+  )
+}
+
+function OfficeCostingInfo({ item }: { item: ItemRecord }) {
+  return (
+    <div className={s.costInfo}>
+      <p className={s.costItem}>
+        {item.dispensingFee ? <>
+          <span className={s.label}>DF:</span>
+          <span className={s.moneyValue}><Money>{item.dispensingFee}</Money></span>
+        </> : null}
+      </p>   <p className={s.costItem}>
+        {item.unitPrice ? <>
+          <span className={s.label}>UP:</span>
+          <span className={s.moneyValue}><Money>{item.unitPrice}</Money></span>
+        </> : null}
+      </p>
+      <p className={s.costItem}>
+        {item.unitPrice ? <>
+          <span className={s.label}>MU:</span>
+          <span className={s.moneyValue}>{item.markUpPercentage}%</span>
+        </> : null}
+      </p>
     </div>
   )
 }

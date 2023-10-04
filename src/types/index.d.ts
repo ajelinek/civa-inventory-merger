@@ -13,6 +13,12 @@ interface Creds {
   password: string
 }
 
+type SortDirection = 'asc' | 'desc'
+interface SortField {
+  field: string
+  direction: SortDirection | ''
+}
+
 interface ImportRecord {
   allowPriceChange: string
   classificationId: string
@@ -86,6 +92,7 @@ interface CatalogQuery {
   dispensingFeeHigh?: number
   markUpPercentageLow?: number
   markUpPercentageHigh?: number
+  sort?: SortField[]
 }
 
 interface SearcherSearchMessage {

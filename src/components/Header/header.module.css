@@ -11,12 +11,12 @@
 
 .logout {
   position: absolute;
-  top: 1rem;
+  top: 4rem;
   right: 1.9rem;
   background: none;
   border: none;
   outline: none;
-  color: var(--secondary-inverse);
+  color: var(--secondary);
   width: 10rem;
   padding: 0;
   text-align: right;
@@ -30,4 +30,21 @@
   font-size: 1.25rem;
   font-weight: bold;
   padding: 0.5rem 1.5rem;
+}
+
+.themeToggle {
+  position: absolute;
+  top: 1rem;
+  right: 1.9rem;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--secondary-inverse);
+  width: 2rem;
+  padding: 0;
+  text-align: right;
+}
+
+.themeToggle:focus {
+  box-shadow: none;
 }

@@ -1,3 +1,4 @@
+import { sort } from 'fast-sort'
 import Fuse from 'fuse.js'
 import { removeStopwords } from 'stopword'
 
@@ -113,7 +114,9 @@ function basicSearch(query: CatalogQuery, searcher: Fuse<SearchItem>, limit: num
   const results = searcher.search(buildLogicalQuery(query))
   const filtered = filterResultsByQueryOptions(results, query)
   const matchedRecords = filtered.length
-  const itemKeys = filtered
+  const sortArray = query.sort?.map(sort => ({ [sort.direction]: (r: Fuse.FuseResult<SearchItem>) => getField(r.item, sort.field) })) ?? []
+  //@ts-ignore
+  const itemKeys = sort(filtered).by(sortArray)
     .slice(0, limit)
     .map(result => ({
       recordId: result.item.recordId,
@@ -181,3 +184,13 @@ function buildLogicalQuery(query: CatalogQuery): Fuse.Expression {
 
   return logicalQuery
 }
+function getField(item: SearchItem, field: string): any {
+  if (field === 'unitPrice') return catalogs?.[item.officeId]?.[item.recordId]?.unitPrice
+  if (field === 'dispensingFee') return catalogs?.[item.officeId]?.[item.recordId]?.dispensingFee
+  if (field === 'classificationName') return catalogs?.[item.officeId]?.[item.recordId]?.classificationName
+  if (field === 'subClassificationName') return catalogs?.[item.officeId]?.[item.recordId]?.subClassificationName
+  if (field === 'markUpPercentage') return catalogs?.[item.officeId]?.[item.recordId]?.markUpPercentage
+  if (field === 'lastUpdateTimestamp') return catalogs?.[item.officeId]?.[item.recordId]?.lastUpdateTimestamp
+  if (field === 'priceVariance') return catalogs?.[item.officeId]?.[item.recordId]?.unitPrice//TODO: Implement
+}
+
