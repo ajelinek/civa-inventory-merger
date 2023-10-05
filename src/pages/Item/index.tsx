@@ -8,6 +8,7 @@ import useListSelector from "../../hooks/useListSelector"
 import { useCatalogItem, useLinkItems, useUnLinkItems } from "../../store"
 import { useMatchedOfficeIds, useOfficeIds } from "../../store/selectors/offices"
 import s from './item.module.css'
+import ItemSummaryCharts from "../../components/ItemSummaryCharts"
 
 export default function ItemPage() {
   const recordId = useParams<{ recordId: string }>()?.recordId
@@ -33,6 +34,11 @@ export default function ItemPage() {
         <h2>{itemKey ? 'Item Info' : 'New Item Info'}
           <span className={s.recordId}>{item?.recordId}</span></h2>
         <ItemForm itemKey={itemKey} />
+
+        <div className={s.spacer} />
+
+        {(item?.linkedItems?.length && item.linkedItems.length > 0) &&
+          <ItemSummaryCharts itemKeys={item.linkedItems} />}
       </section>
       {itemKey &&
         <section className={s.linkedItems}>

@@ -54,7 +54,7 @@ export default function Mapper() {
   const mappedResult = useSearchCatalog(mappedQuery)
 
   async function handleUpdateClassifications() {
-    const itemKeys = []
+    const itemKeys: ItemKey[] = []
     mapFromSelector.getSelected().forEach(itemKey => {
       itemKeys.push(itemKey)
       getItem(itemKey, catalogs)?.linkedItems?.forEach(linkedItem => {
@@ -67,7 +67,7 @@ export default function Mapper() {
       subClassificationId,
       classificationName: classifications?.[classificationId]?.name || '',
       subClassificationName: classifications?.[classificationId]?.subClassifications?.[subClassificationId]?.name,
-      items: mapFromSelector.getSelected()
+      items: itemKeys
     })
     mapFromSelector.unSelectAll()
     setFormError('')

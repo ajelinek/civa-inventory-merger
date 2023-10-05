@@ -57,6 +57,7 @@ function mergeCatalogs(inCatalogs: Catalogs) {
       ...Object.values(catalog).map((item: ItemRecord) => ({
         searchString: `${item.classificationName} ${item.subClassificationName} ${item.itemDescription} ${item.definition} ${item.originalItemId}`,
         classificationId: item.classificationId,
+        itemDescription: item.itemDescription,
         subClassificationId: item.subClassificationId,
         officeId: item.officeId,
         itemId: item.itemId,
@@ -77,8 +78,22 @@ function search(query: CatalogQuery) {
     postMessage({ type: 'searched', payload: [] })
     return
   }
-  const payload = query.searchType === 'comparison' ? comparisonSearch(query, searcher) : generalSearch(query, searcher)
+  const payload = query.searchType === 'comparison'
+    ? comparisonSearch(query, searcher)
+    : query.searchType === 'export'
+      ? exportSearch(query, searcher)
+      : generalSearch(query, searcher)
   postMessage({ type: 'searched', payload })
+}
+
+function exportSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
+  const { itemKeys } = basicSearch(query, searcher, Infinity)
+  const itemRecords: ItemRecordWithLinkedItemTotals[] = itemKeys.map(itemKey => {
+    const item = catalogs?.[itemKey.officeId]?.[itemKey.recordId]
+    const costs = calculateLinkItemTotals(item?.linkedItems ?? [], catalogs!)
+    return { ...item, ...costs } as ItemRecordWithLinkedItemTotals
+  })
+  postMessage({ type: 'exported', payload: itemRecords })
 }
 
 function comparisonSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
@@ -112,7 +127,6 @@ function generalSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
 }
 
 function basicSearch(query: CatalogQuery, searcher: Fuse<SearchItem>, limit: number = 100) {
-  console.log("🚀 ~ file: searcher.worker.ts:114 ~ basicSearch ~ query:", query)
   const results = searcher.search(buildLogicalQuery(query))
   const filtered = filterResultsByQueryOptions(results, query)
   const matchedRecords = filtered.length
@@ -137,6 +151,7 @@ function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], que
     const costs = calculateLinkItemTotals(item?.linkedItems ?? [], catalogs!)
 
     if (!item) return false
+    if (item.itemId === '591') debugger
     if (query.excludeMapped === true && item.classificationMappedTimestamp) return false
     if (query.excludeLinked === true && item.itemLinkedTimestamp) return false
     if (query.excludeInactive === true && item.status === 'inactive') return false
@@ -175,6 +190,7 @@ function identifyKeyWords(results: Fuse.FuseResult<SearchItem>[], query: Catalog
 
 function buildLogicalQuery(query: CatalogQuery): Fuse.Expression {
   const logicalQuery = { $and: [] as Fuse.Expression[] }
+  const searchString = cleanStringForSearch(query.searchText)
 
   if (query.keyWords?.length || 0 > 0) {
     const autoTokens = query.keyWords?.map(token => ({ searchString: `'${token}` }))
@@ -184,9 +200,10 @@ function buildLogicalQuery(query: CatalogQuery): Fuse.Expression {
   if (query.searchText) {
     logicalQuery.$and.push({
       $or: [
-        { searchString: query.searchText },
-        { itemId: `'${query.searchText}` },
-        { originalItemId: `'${query.searchText}` }
+        { searchString },
+        { itemId: `${searchString}` },
+        { originalItemId: `${searchString}` },
+        { itemDescription: searchString }
       ]
     })
   }
@@ -210,6 +227,7 @@ function buildLogicalQuery(query: CatalogQuery): Fuse.Expression {
 function getField(item: SearchItem, field: string): any {
   const cost = calculateLinkItemTotals(catalogs?.[item.officeId]?.[item.recordId]?.linkedItems ?? [], catalogs!)
   const itemRecord = catalogs?.[item.officeId]?.[item.recordId]
+  if (field === 'itemId') return item.itemId
   if (field === 'unitPrice') return itemRecord?.unitPrice
   if (field === 'dispensingFee') return itemRecord?.dispensingFee
   if (field === 'classificationName') return itemRecord?.classificationName
@@ -220,3 +238,7 @@ function getField(item: SearchItem, field: string): any {
   if (field === 'dispensingFeeVariance') return cost.dispensingFeeVariance
 }
 
+function cleanStringForSearch(token?: string, minSize: number = 1) {
+  if (!token) return ''
+  return token.split(' ').map(t => t.trim()).filter(t => t.length > minSize).join(' ').replace(/[^a-zA-Z0-9'"!^$=]/g, ' ').toLocaleLowerCase()
+}

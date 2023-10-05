@@ -6,6 +6,7 @@ import s from './sortOrder.module.css'
 const sortFieldOptions = [
   { field: 'lastUpdateTimestamp', name: 'Last Update Time' },
   { field: 'unitPrice', name: 'Unit Price' },
+  { field: 'itemId', name: 'Item Id' },
   { field: 'unitPriceVariance', name: 'Unit Price Variance' },
   { field: 'dispensingFee', name: 'Dispensing Fee' },
   { field: 'dispensingFeeVariance', name: 'Dispensing Fee Variance' },

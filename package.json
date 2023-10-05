@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@picocss/pico": "^1.5.10",
+    "chart.js": "^4.4.0",
     "comlink": "^4.4.1",
     "concurrently": "^8.2.1",
     "dayjs": "^1.11.9",
@@ -25,6 +26,8 @@
     "papaparse": "^5.4.1",
     "react": "^18.2.0",
     "react-async-hook": "^4.0.0",
+    "react-chartjs-2": "^5.2.0",
+    "react-csv": "^2.2.2",
     "react-dom": "^18.2.0",
     "react-icons": "^4.11.0",
     "react-router-dom": "^6.15.0",

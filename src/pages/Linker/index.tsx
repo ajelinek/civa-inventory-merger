@@ -10,6 +10,7 @@ import useListSelector from '../../hooks/useListSelector'
 import { useCatalogItem, useCatalogSearchCallback, useCreateLinkedItem, useInactivateItems, useLinkItems, useStore } from '../../store'
 import { officesForSelectInput, useMatchedOfficeIds, useOfficeIds } from '../../store/selectors/offices'
 import s from './linker.module.css'
+
 export default function LinkerPage() {
   const offices = useStore(state => state.org?.offices)!
   const officeArray = officesForSelectInput(offices)
@@ -26,6 +27,7 @@ export default function LinkerPage() {
       classificationIds: classification.value ? [classification.value] : undefined,
       subClassificationIds: subClassification.value ? [subClassification.value] : undefined,
       excludeLinked: true,
+      excludeInactive: true,
       comparisonCount: Number(comparisonCount.value) || 10,
       officeIds: officeArray.map(office => office.value).filter(o => o !== 'CIVA'),
     })
@@ -86,7 +88,7 @@ function ItemGroup({ itemKey, matchedItemKeys = [] }: ItemGroupProps) {
   const [inactive, setInactive] = useState(false)
   const itemToDisplay: ItemKey = recordId ? { recordId, officeId: 'CIVA' } : itemKey
   const item = useCatalogItem(itemToDisplay)
-  const itemTitle = `${item?.officeId} - ${item?.itemDescription}`
+  const itemTitle = `${item?.officeId}-${item?.itemId} ${item?.itemDescription}`
 
   async function handelInactivateItem() {
     const itemKeys = selector?.getSelected() || []

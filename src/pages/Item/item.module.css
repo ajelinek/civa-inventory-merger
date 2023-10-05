@@ -3,6 +3,7 @@
   display: flex;
   justify-content: space-between;
   height: calc(100vh - 10rem);
+  column-gap: 5rem;
   /* overflow: hidden; */
 }
 
@@ -38,4 +39,8 @@
   position: fixed;
   bottom: 2rem;
   right: 2.5rem;
+}
+
+.spacer {
+  height: 4rem;
 }

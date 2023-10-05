@@ -75,7 +75,7 @@ interface CatalogQueryResult {
 type MatchedItemKeys = Record<RecordId, ItemKey[]>//Item key per office
 
 interface CatalogQuery {
-  searchType?: 'general' | 'comparison'
+  searchType?: 'general' | 'comparison' | 'export'
   comparisonCount?: number
   officeIds?: string[]
   classificationIds?: string[]

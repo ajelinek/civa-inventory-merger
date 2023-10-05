@@ -76,6 +76,7 @@ interface ItemRecord {
   status?: 'active' | 'inactive'
 
 }
+type ItemRecordWithLinkedItemTotals = ItemRecord & LinkItemTotals | undefined
 
 interface UpdateClassificationInput {
   classificationId: string
@@ -117,4 +118,8 @@ interface LinkItemTotals {
   maxMarkupPercentage: number
   minMarkupPercentage: number
   avgMarkupPercentage: number
+  unitPrices: number[]
+  dispensingFees: number[]
+  markupPercentages: number[]
+  officeIds: OfficeId[]
 }

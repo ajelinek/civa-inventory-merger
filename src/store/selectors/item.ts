@@ -10,6 +10,7 @@ export function calculateLinkItemTotals(linkedItems: ItemKey[], catalogs: Catalo
   const unitPrices: number[] = []
   const dispensingFees: number[] = []
   const markupPercentages: number[] = []
+  const officeIds: OfficeId[] = []
 
   linkedItems.forEach((linkedItem) => {
     const catalogItem = catalogs[linkedItem.officeId][linkedItem.recordId]
@@ -17,6 +18,7 @@ export function calculateLinkItemTotals(linkedItems: ItemKey[], catalogs: Catalo
       unitPrices.push(catalogItem.unitPrice || 0)
       dispensingFees.push(catalogItem.dispensingFee || 0)
       markupPercentages.push(catalogItem.markUpPercentage || 0)
+      officeIds.push(linkedItem.officeId)
     }
   })
 
@@ -46,5 +48,9 @@ export function calculateLinkItemTotals(linkedItems: ItemKey[], catalogs: Catalo
     maxMarkupPercentage,
     minMarkupPercentage,
     avgMarkupPercentage,
+    officeIds,
+    unitPrices,
+    dispensingFees,
+    markupPercentages
   }
 }

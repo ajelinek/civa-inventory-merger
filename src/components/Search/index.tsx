@@ -60,7 +60,7 @@ export default function Search({ keyWords }: SearchProps) {
                 </button>
               ))}
               {(keyWords?.length || 0 > 5) &&
-                <button className={s.more} onClick={() => setShowAutoTerms(!showAllAutoTerms)}>
+                <button className={s.more} type='button' onClick={() => setShowAutoTerms(!showAllAutoTerms)}>
                   {showAllAutoTerms ? '-' : '+'} {keyWords?.length! - 5}
                 </button>
               }

@@ -115,6 +115,13 @@ function OfficeFacet() {
 
   return (
     <>
+      <input
+        id='SelectAllOffices'
+        type="checkbox"
+        checked={officeParams.values.length === officeKeys.length}
+        onChange={() => officeParams.addAll(officeKeys)}
+      />
+      <label htmlFor='SelectAllOffices'>Select All</label>
       {sortedOfficeKeys.map(key =>
         <div key={key}>
           <input

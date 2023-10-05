@@ -1,4 +1,3 @@
-import { set } from 'firebase/database'
 import { useSearchParams } from 'react-router-dom'
 
 type Modal = 'import' | 'add' | null
