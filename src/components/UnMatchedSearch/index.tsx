@@ -11,7 +11,6 @@ type UnmatchedSearchProps = {
   selector: Selector<ItemKey>
 }
 export default function UnmatchedSearch({ officeIds, initialSearchString, selector }: UnmatchedSearchProps) {
-  const officeIdsParam = useSearchParamsListToggle('o')
   const query = useCatalogSearchParamQuery({
     officeIds: officeIds,
     searchText: initialSearchString,
@@ -19,6 +18,7 @@ export default function UnmatchedSearch({ officeIds, initialSearchString, select
     excludeInactive: true,
   })
   const search = useSearchCatalog(query)
+  const officeIdsParam = useSearchParamsListToggle('o')
 
   useEffect(() => {
     selector?.unSelectAll()

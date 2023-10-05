@@ -76,8 +76,12 @@ export function useSearchParamsListToggle(param: SelectParams) {
     }, { replace: true })
   }
 
+  function isSelectedAll(values: string[]) {
+    return values.every(value => isSelected(value))
+  }
+
   return {
-    values, toggle, isSelected, removeAll, addAll, add, removeMany
+    values, toggle, isSelected, removeAll, addAll, add, removeMany, isSelectedAll
   }
 }
 

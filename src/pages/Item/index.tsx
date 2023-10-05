@@ -28,6 +28,8 @@ export default function ItemPage() {
     return removeStopwords([...tokens]).join(' ')
   }, [item?.itemDescription])
 
+  if (!itemKey && !item) return null
+
   return (
     <div className={s.container}>
       <section className={s.contentForm}>
@@ -53,24 +55,27 @@ export default function ItemPage() {
           </button>}
 
           {(item?.linkedItems?.length || 0 > 0) &&
-            <LinkedItemsList selector={unLinkedSelector} itemKeys={item?.linkedItems!} />}
+            <>
+              <LinkedItemsList selector={unLinkedSelector} itemKeys={item?.linkedItems!} />
 
-          <div className={s.unMatchedSearch}>
-            <h3>Unlinked Items</h3>
-            <UnmatchedSearch
-              initialSearchString={initialSearchString}
-              officeIds={unMatchedOfficeIds}
-              selector={linkedSelector} />
-            {itemKey && <button className={s.linkSubmit}
-              onClick={() => {
-                linkItems.execute(itemKey, linkedSelector.getSelected())
-                linkedSelector.unSelectAll()
-              }}
-              aria-busy={linkItems.loading}>
-              Link Items
-              {linkedSelector.getSelected().length > 0 && `(${linkedSelector.getSelected().length})`}
-            </button>}
-          </div>
+              <div className={s.unMatchedSearch}>
+                <h3>Unlinked Items</h3>
+                <UnmatchedSearch
+                  initialSearchString={initialSearchString}
+                  officeIds={unMatchedOfficeIds}
+                  selector={linkedSelector} />
+                {itemKey && <button className={s.linkSubmit}
+                  onClick={() => {
+                    linkItems.execute(itemKey, linkedSelector.getSelected())
+                    linkedSelector.unSelectAll()
+                  }}
+                  aria-busy={linkItems.loading}>
+                  Link Items
+                  {linkedSelector.getSelected().length > 0 && `(${linkedSelector.getSelected().length})`}
+                </button>}
+              </div>
+
+            </>}
         </section>
       }
     </div>
