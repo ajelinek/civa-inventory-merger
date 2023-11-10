@@ -41,7 +41,7 @@ export default function ItemSummary({ itemKey, selector }: { itemKey: ItemKey, s
             <p className={s.costItem}>
               {item.unitPrice ? <>
                 <span className={s.label}>MU:</span>
-                <span className={s.moneyValue}>{item.markUpPercentage}%</span>
+                <span className={s.moneyValue}>{item.markUpPercentage?.toFixed(1)}%</span>
               </> : null}
             </p>
             <p className={s.costItem}>

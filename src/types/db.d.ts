@@ -44,10 +44,24 @@ type OfficeId =
 
 interface OfficeCatalogMetadata {
   lastImportDate: Date
-  numberOfItemsImported: number
-  numberOfItemsUpdated: number
-  numberOfItemsIgnored: number
-  updatedBy: string
+  inventoryItemsImported: number
+  pricingItemsImported: number
+  matchedPricingItems: number
+  unmatchedPricingItems: string[]
+  erroredPricingItems: string[]
+  multiplePricingInfoItems: string[]
+  numberOfItemsLinkedToMaster: number
+}
+
+interface PriceRecordRaw {
+  itemId: ItemId
+  eval_key: string //JSON
+}
+
+type PriceRecord = {
+  itemId: ItemId
+  unitPrice: number
+  markUpPercentage: number
 }
 
 interface ItemRecord {

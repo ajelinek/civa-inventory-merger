@@ -52,10 +52,12 @@ export default function ItemForm({ itemKey }: props) {
     form.updateState(initItem(item))
   }, [item])
 
+  const disabled = item && item.officeId !== 'CIVA'
+
   return (
     <div className={s.container}>
       <AlertMessage message={createItem.error?.message} />
-      <form className={s.form} onSubmit={form.onSubmit}>
+      <form className={s.form} onSubmit={form.onSubmit} >
         <div className={s.formGroup}>
           <ClassificationSelector className={s.fieldset} value={form.data.classificationId} onChange={form.onChange} />
           <SubClassificationSelector className={s.fieldset} value={form.data.subClassificationId} onChange={form.onChange} classification={form.data.classificationId} />
@@ -86,7 +88,7 @@ export default function ItemForm({ itemKey }: props) {
             <input type="number" id="markUpPercentage" name="markUpPercentage" value={'' + form.data.markUpPercentage} onChange={form.onChange} />
           </fieldset>
         </div>
-        <button type="submit" aria-busy={createItem.loading}>{createEditText}</button>
+        {!disabled && <button type="submit" aria-busy={createItem.loading}>{createEditText}</button>}
       </form>
     </div>
   )

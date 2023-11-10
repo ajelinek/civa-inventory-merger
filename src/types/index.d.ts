@@ -8,6 +8,12 @@ interface Store {
   catalogLastUpdateTimestamp: Date | undefined
 }
 
+interface importFileOptions {
+  masterCatalog: boolean
+  inventoryFile: File
+  pricingFile: File
+}
+
 interface Creds {
   email: string
   password: string

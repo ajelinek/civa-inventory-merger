@@ -9,7 +9,7 @@ import Searcher from "../workers/searcher.worker?worker"
 
 export function useFileImport() {
   const email = useStore.getState().user?.email ?? 'unknown'
-  return useAsyncCallback(async (file: File) => {
+  return useAsyncCallback(async (file: importFileOptions) => {
     return processImportFile(file, email)
   })
 }
