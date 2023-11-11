@@ -108,7 +108,9 @@ function ItemGroup({ itemKey, matchedItemKeys = [] }: ItemGroupProps) {
   return (
     <div key={itemKey.recordId} className={s.group}>
       <div className={s.matchedToItem}>
-        <Link to={`/item/${itemKey.recordId}/CIVA`}><p className={s.matchedToItemTitle}>{itemTitle}</p></Link>
+        <Link to={`/item/${itemKey.recordId}/CIVA`}>
+          <p className={`${s.matchedToItemTitle} ${inactive ? s.inactiveTitle : ''}`}>{itemTitle}</p>
+        </Link>
         <AlertMessage message={linkItems.error?.message} />
       </div>
       <LinkedItemsList itemKeys={matchedItemKeys} selector={selector} />
@@ -118,7 +120,7 @@ function ItemGroup({ itemKey, matchedItemKeys = [] }: ItemGroupProps) {
           Link {selector.getSelected().length ? `(${selector.getSelected().length})` : ''} to CIVA
         </button>
         <button className={s.inactivateButton} aria-busy={inactivate.loading} onClick={() => handelInactivateItem()}>
-          Inactivate {selector.getSelected().length ? `(${selector.getSelected().length})` : ''}
+          Inactivate CIVA & {selector.getSelected().length ? `(${selector.getSelected().length})` : ''} selected
         </button>
       </div>
     </div>

@@ -55,13 +55,7 @@ export default function Mapper() {
   const mappedResult = useSearchCatalog(mappedQuery)
 
   async function handleUpdateClassifications() {
-    const itemKeys: ItemKey[] = []
-    mapFromSelector.getSelected().forEach(itemKey => {
-      itemKeys.push(itemKey)
-      getItem(itemKey, catalogs)?.linkedItems?.forEach(linkedItem => {
-        itemKeys.push(linkedItem)
-      })
-    })
+    const itemKeys: ItemKey[] = mapFromSelector.getSelected()
 
     await classificationUpdates.execute({
       classificationId,
