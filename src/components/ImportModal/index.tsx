@@ -63,9 +63,10 @@ export default function ImportModel() {
       <div className={s.confirmContent}>
         <PiWarningDiamondBold className={s.warningIcon} />
         <p>This will overright existing data and can not be undone</p>
-        <button onClick={() => {
+        <button className={s.confirmButton} onClick={() => {
           processCsv()
-        }}>I am sure</button>
+        }}>I AM SURE</button>
+        <button onClick={() => setConfirmed('INITIAL')}>Cancel</button>
       </div>
     )
   } else {

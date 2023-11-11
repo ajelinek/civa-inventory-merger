@@ -104,12 +104,8 @@ function ItemAttributes({ item }: { item: ItemRecord }) {
         }
       </p>
       <p className={s.attribute}>
-        <span className={s.label}>Linked:
-        </span> {item.itemLinkedTimestamp && dayjs(item.itemLinkedTimestamp).format('ddd, MMM D, YYYY h:mm A')
-        }
-      </p>
-      <p className={s.attribute}>
-        <span className={s.label}>Original Item ID:</span> {item.originalItemId}
+        <span className={s.label}>Linked To:
+        </span> <Link to={`/item/${item.recordId}/${item.officeId}`}>{item.itemLinkedTo?.recordId}</Link>
       </p>
       <p className={s.attribute}>
         <span className={s.label}>Last Update:</span> {dayjs(item.lastUpdateTimestamp).format('ddd, MMM D, YYYY h:mm A')}

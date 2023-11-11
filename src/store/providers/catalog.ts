@@ -1,4 +1,4 @@
-import { onValue, ref, set, update } from "firebase/database"
+import { get, onValue, ref, set, update } from "firebase/database"
 import { rdb } from "../firebase"
 
 export function createCatalog(officeId: string, catalog: Catalog) {
@@ -14,6 +14,12 @@ export async function loadCatalog(cb: (catalog: Catalogs) => void) {
     const catalog = data as Catalogs
     cb(catalog)
   })
+}
+
+export async function fetchCatalog(officeId: OfficeId) {
+  const catalogRef = ref(rdb, `catalogs/${officeId}`)
+  const snapshot = await get(catalogRef)
+  return snapshot.val() as Catalog
 }
 
 export async function updateClassifications(updateInput: UpdateClassificationInput) {

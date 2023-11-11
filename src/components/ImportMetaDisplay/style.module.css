@@ -4,3 +4,6 @@
   margin: .5rem 0;
   border-bottom: 1px solid var(--muted-color);
 }
+.label {
+  min-width: 20rem;
+}

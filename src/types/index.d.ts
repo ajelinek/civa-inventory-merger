@@ -137,3 +137,8 @@ interface UseSearchCatalogReturn {
 }
 
 
+type LinkedItemUpdates = LinkedItemUpdate[]
+type LinkedItemUpdate = {
+  linkTo: ItemKey
+  linkedItems: ItemKey[]
+}
