@@ -7,3 +7,28 @@
   padding: 1rem;
   border-radius: 0.5rem;
 }
+
+.content {
+  min-width: 50rem;
+}
+
+.closeButton {
+  margin-top: 2rem;
+}
+
+.form button {
+  margin-top: 2rem;
+}
+
+.warningIcon {
+  font-size: 6rem;
+  color: var(--del-color);
+  margin: auto;
+}
+.confirmContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  row-gap: 2rem;
+}

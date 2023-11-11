@@ -163,5 +163,5 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSea
 
 export function useCatalogItem(itemKey?: ItemKey) {
   if (!itemKey) return
-  return useStore(state => state.catalog?.[itemKey.officeId][itemKey.recordId])
+  return useStore(state => state.catalog?.[itemKey.officeId]?.[itemKey.recordId])
 }

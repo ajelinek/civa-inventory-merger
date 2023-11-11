@@ -1,0 +1,6 @@
+.attribute {
+  display: flex;
+  justify-content: space-between;
+  margin: .5rem 0;
+  border-bottom: 1px solid var(--muted-color);
+}

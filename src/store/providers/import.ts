@@ -2,6 +2,7 @@ import Papa from "papaparse"
 import { offices } from "../const"
 import { createCatalog } from "./catalog"
 import { itemRecordId } from "../selectors/item"
+import { nanoid } from "nanoid"
 
 export async function processImportFile(options: importFileOptions, email: string) {
   if (!options.inventoryFile) throw new Error('No inventory file provided')
@@ -48,8 +49,26 @@ export async function processImportFile(options: importFileOptions, email: strin
     }
   })
 
+  /** If Master Caltalog than we need to recreate it, by creationg new keys and linking the old ones */
+  const finalCatalog = !options.masterCatalog ? catalog : Object.keys(catalog).reduce((acc, key) => {
+    const itemRecord = catalog[key]
+    const newItemRecord = {
+      ...itemRecord,
+      recordId: nanoid(8),
+      officeId: 'CIVA',
+      linkedItems: [{
+        recordId: itemRecord.recordId,
+        officeId: itemRecord.officeId
+      }]
 
-  await createCatalog(officeId, catalog)
+    } as ItemRecord
+    acc[newItemRecord.recordId] = newItemRecord
+    return acc
+  }, {} as Record<string, ItemRecord>)
+
+
+
+  await createCatalog(options.masterCatalog ? 'CIVA' : officeId, finalCatalog)
   //Search index is created by the catalog listener
   console.log('🚀 ~ processImportFile ~ meta:', meta)
   return {
