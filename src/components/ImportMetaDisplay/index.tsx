@@ -14,6 +14,12 @@ export default function ImportMetaDisplay({ meta }: { meta: OfficeCatalogMetadat
         <span className={s.label}>Number of Joined Pricing Items:</span> {meta.matchedPricingItems || 0}
       </p>
       <p className={s.attribute}>
+        <span className={s.label}>Number of Items Linked To Primary Catalog:</span>
+        {meta.numberOfItemsLinkedToMaster || 0}
+        &nbsp; | &nbsp;
+        {((meta.numberOfItemsLinkedToMaster / meta.inventoryItemsImported) * 100).toFixed(1) || 0}%
+      </p>
+      <p className={s.attribute}>
         <span className={s.label}>Unmatched Pricing Item Ids:</span> {meta.unmatchedPricingItems.join(', ')}
       </p>
       <p className={s.attribute}>

@@ -44,10 +44,10 @@ type SearchItem = Pick<ItemRecord,
   'subClassificationId' |
   'officeId' |
   'itemId' |
-  'recordId' |
-  'originalItemId'
+  'recordId'
 > & {
   searchString: string
+  linkedToItemId?: string
 }
 
 function mergeCatalogs(inCatalogs: Catalogs) {
@@ -55,16 +55,15 @@ function mergeCatalogs(inCatalogs: Catalogs) {
     acc = [
       ...acc,
       ...Object.values(catalog).map((item: ItemRecord) => ({
-        searchString: `${item.classificationName} ${item.subClassificationName} ${item.itemDescription} ${item.definition} ${item.originalItemId}`,
+        searchString: `${item.classificationName} ${item.subClassificationName} ${item.itemDescription} ${item.definition} ${item.itemLinkedTo?.recordId}`,
         classificationId: item.classificationId,
         itemDescription: item.itemDescription,
         subClassificationId: item.subClassificationId,
         officeId: item.officeId,
         itemId: item.itemId,
-        originalItemId: item.originalItemId,
         recordId: item.recordId,
         classificationMappedTimestamp: item.classificationMappedTimestamp,
-        itemLinkedTimestamp: item.itemLinkedTimestamp
+        linkedToItemId: item.itemLinkedTo?.recordId,
       }))]
     return acc
   }, [] as SearchItem[])
@@ -147,14 +146,13 @@ function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], que
 
   return results.filter(result => {
     const item = catalogs?.[result.item.officeId]?.[result.item.recordId]
-    const officeCount = Object.keys(offices!).length - 1 //exclude CIVA
+    const officeCount = Object.keys(catalogs!).length - 1 //exclude CIVA
     const costs = calculateLinkItemTotals(item?.linkedItems ?? [], catalogs!)
 
     if (!item) return false
     if (query.excludeMapped === true && item.classificationMappedTimestamp) return false
-    if (query.excludeLinked === true && item.itemLinkedTimestamp) return false
+    if (query.excludeLinked === true && (item.itemLinkedTo?.recordId || item.linkedItems?.length === officeCount)) return false
     if (query.excludeInactive === true && item.status === 'inactive') return false
-    if (query.missingOfficeIds === true && item.linkedItems?.length === officeCount) return false
 
     if (query.unitPriceLow && (item.unitPrice ?? 0) < query.unitPriceLow) return false
     if (query.unitPriceHigh && (item.unitPrice ?? 0) > query.unitPriceHigh) return false

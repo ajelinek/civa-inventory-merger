@@ -23,8 +23,6 @@ export default function UnmatchedSearch({ officeIds, initialSearchString, select
   const officeIdsParam = useSearchParamsListToggle('o')
 
   useEffect(() => { selector?.unSelectAll() }, [query])
-  useEffect(() => { officeIdsParam.addAll(officeIds) }, [officeIds])
-
 
   return (
     <div>

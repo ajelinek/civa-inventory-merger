@@ -20,6 +20,13 @@
   margin-top: 2rem;
 }
 
+.confirmButton {
+  background-color: var(--del-color);
+  outline-color: var(--del-color);
+  border-color: var(--del-color);
+  
+}
+
 .warningIcon {
   font-size: 6rem;
   color: var(--del-color);

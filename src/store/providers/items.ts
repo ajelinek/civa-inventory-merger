@@ -21,12 +21,19 @@ export async function upsertItem(item: CreateItemRecordInput) {
   await set(itemRef, item)
 }
 
+export function multipleItemLink(linkUpdates: LinkedItemUpdates) {
+  const updates = linkUpdates.reduce((acc, linkUpdate) => {
+    acc[`catalogs/${linkUpdate.linkTo.officeId}/${linkUpdate.linkTo.recordId}/linkedItems`] = linkUpdate.linkedItems
+    return acc
+  }, {} as Record<string, any>)
+  return update(ref(rdb), updates)
+}
+
 export function linkItems(linkToItemId: ItemKey, linkedItemKeys: ItemKey[]) {
   const currentItems = useStore.getState().catalog?.[linkToItemId.officeId][linkToItemId.recordId].linkedItems || []
   const newItems = addItemKeyToLinkedItems(currentItems, linkedItemKeys)
 
   const updates = linkedItemKeys.reduce((acc, itemKey) => {
-    acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/itemLinkedTimestamp`] = new Date()
     acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/itemLinkedTo`] = linkToItemId
     return acc
   }, {} as Record<string, any>)
@@ -40,7 +47,6 @@ export function unlinkItems(linkToItemId: ItemKey, removeItemKeys: ItemKey[]) {
   const newItems = removeItemKeyFromLinkedItems(currentItems, removeItemKeys.map(k => k.officeId))
 
   const updates = removeItemKeys.reduce((acc, itemKey) => {
-    acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/itemLinkedTimestamp`] = null
     acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/itemLinkedTo`] = null
     return acc
   }, {} as Record<string, any>)

@@ -81,11 +81,9 @@ interface ItemRecord {
   dispensingFee: number | null
   minimumPrice: number | null
   markUpPercentage: number | null
-  originalItemId: string //Set on import
   lastUpdateTimestamp?: Date
   classificationMappedTimestamp?: Date | undefined
   linkedItems?: ItemKey[]
-  itemLinkedTimestamp?: Date | undefined
   itemLinkedTo?: ItemKey
   status?: 'active' | 'inactive'
 

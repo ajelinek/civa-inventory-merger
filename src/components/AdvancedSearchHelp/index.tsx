@@ -79,6 +79,17 @@ export default function AdvancedSearchTable({ className }: { className?: string 
                 ))}
               </tbody>
             </table>
+            <dl className={s.defintions}>
+              <dt>Exclude Inactive:</dt>
+              <dd>Show only Active Items</dd>
+
+              <dt>Exclude Mapped:</dt>
+              <dd>Only applies to CIVA, and will show any item that has not been mapped to a classification or sub classifcation</dd>
+
+              <dt>Exclude Linked:</dt>
+              <dd>Show any item that has not been liked to the primary catalog. If viewing the primary catalog CIVA, then show items that do not have every "loaded" office linked.</dd>
+            </dl>
+
           </article>
         </dialog>
       )}

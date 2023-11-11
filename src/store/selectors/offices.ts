@@ -26,7 +26,7 @@ export function useOfficeIds(excludeOfficeIds?: OfficeId[]) {
 export function useMatchedOfficeIds(keyItems: ItemKey[], officeIds: OfficeId[]) {
   return useMemo(() => {
     return officeIds.filter(officeId => {
-      const matched = keyItems.find(keyItem => keyItem.officeId === officeId)
+      const matched = keyItems?.find(keyItem => keyItem.officeId === officeId)
       return !matched
     })
   }, [officeIds, keyItems])

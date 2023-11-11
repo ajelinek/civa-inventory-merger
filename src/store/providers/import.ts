@@ -1,8 +1,9 @@
 import Papa from "papaparse"
 import { offices } from "../const"
-import { createCatalog } from "./catalog"
+import { createCatalog, fetchCatalog } from "./catalog"
 import { itemRecordId } from "../selectors/item"
 import { nanoid } from "nanoid"
+import { addItemKeyToLinkedItems, multipleItemLink } from "./items"
 
 export async function processImportFile(options: importFileOptions, email: string) {
   if (!options.inventoryFile) throw new Error('No inventory file provided')
@@ -18,14 +19,25 @@ export async function processImportFile(options: importFileOptions, email: strin
     numberOfItemsLinkedToMaster: 0
   }
 
+  /****************************************************/
+  /* 1. Convert the inventory file to a JSON object    */
+  /****************************************************/
   const inventoryAsJSON = await convertFileToJSON(options.inventoryFile) as ImportRecord[]
   meta.inventoryItemsImported = inventoryAsJSON.length
   const { catalog, officeId } = convertImportFileToCatalog(inventoryAsJSON)
   if (!officeId) throw new Error('No office found')
   if (!catalog) throw new Error('No catalog created')
 
+
+  /****************************************************/
+  /* 2. Convert the pricing file to a JSON object      */
+  /****************************************************/
   const priceAsJSON = await convertFileToJSON(options.pricingFile) as PriceRecordRaw[]
 
+
+  /****************************************************/
+  /* 3. Merge the pricing data with the inventory data */
+  /****************************************************/
   priceAsJSON.forEach((record) => {
     if (!record.itemId) return
     meta.pricingItemsImported++
@@ -49,8 +61,63 @@ export async function processImportFile(options: importFileOptions, email: strin
     }
   })
 
-  /** If Master Caltalog than we need to recreate it, by creationg new keys and linking the old ones */
-  const finalCatalog = !options.masterCatalog ? catalog : Object.keys(catalog).reduce((acc, key) => {
+
+  /****************************************************/
+  /* 4. If creating master catalog, convert and return*/
+  /****************************************************/
+  if (options.masterCatalog) {
+    await createCatalog('CIVA', convertToMasterCatalog(catalog))
+    return { meta }
+  }
+
+
+  /****************************************************/
+  /* 5. Link items to master catalog                  */
+  /****************************************************/
+  const autoLinkItems: LinkedItemUpdate[] = []
+  const masterCatalog = await fetchCatalog('CIVA')
+  Object.keys(catalog).forEach((key) => {
+    const itemRecord = catalog[key]
+    const masterItemRecord = searchMasterCatalog(masterCatalog, itemRecord)
+
+    if (masterItemRecord) {
+      autoLinkItems.push({
+        linkedItems: addItemKeyToLinkedItems(masterItemRecord.linkedItems || [], [{ officeId, recordId: itemRecord.recordId }]),
+        linkTo: { officeId: masterItemRecord.officeId, recordId: masterItemRecord.recordId }
+      })
+
+      itemRecord.itemLinkedTo = { officeId: 'CIVA', recordId: masterItemRecord.recordId }
+    }
+  })
+
+  /***************************************************************/
+  /* 6. Create catalog in DB & Update Master Catalog LinkedItems */
+  /***************************************************************/
+  await createCatalog(officeId, catalog)
+  meta.numberOfItemsLinkedToMaster = autoLinkItems.length
+  await multipleItemLink(autoLinkItems)
+
+  return { meta }
+}
+
+function searchMasterCatalog(catalog: Catalog, itemRecord: ItemRecord) {
+  const matchedMasterItemKey = Object.keys(catalog).find((key) => {
+    const masterItemRecord = catalog[key]
+    return (
+      masterItemRecord.itemDescription === itemRecord.itemDescription ||
+      masterItemRecord.itemId === itemRecord.itemId ||
+      masterItemRecord.linkedItems?.find((itemKey) => (
+        itemKey.recordId === itemRecord.recordId &&
+        itemKey.officeId === itemRecord.officeId)
+      )
+    )
+  })
+  return matchedMasterItemKey ? catalog[matchedMasterItemKey] : null
+}
+
+
+function convertToMasterCatalog(catalog: Record<string, ItemRecord>) {
+  return Object.keys(catalog).reduce((acc, key) => {
     const itemRecord = catalog[key]
     const newItemRecord = {
       ...itemRecord,
@@ -60,22 +127,12 @@ export async function processImportFile(options: importFileOptions, email: strin
         recordId: itemRecord.recordId,
         officeId: itemRecord.officeId
       }]
-
     } as ItemRecord
     acc[newItemRecord.recordId] = newItemRecord
     return acc
-  }, {} as Record<string, ItemRecord>)
-
-
-
-  await createCatalog(options.masterCatalog ? 'CIVA' : officeId, finalCatalog)
-  //Search index is created by the catalog listener
-  console.log('🚀 ~ processImportFile ~ meta:', meta)
-  return {
-    meta
-    //eventually we may return updated, skipped, record keys
-  }
+  }, {} as Catalog)
 }
+
 
 
 function convertFileToJSON(file: File): Promise<ImportRecord[]> | Promise<PriceRecordRaw[]> {
@@ -114,7 +171,6 @@ function convertImportFileToCatalog(records: ImportRecord[]) {
 function convertImportRecordToItemRecord(importRecord: ImportRecord): ItemRecord {
   const itemRecord = {
     itemId: importRecord.itemId,
-    originalItemId: importRecord.itemId,
     classificationId: importRecord.classificationId,
     classificationName: importRecord.description,
     subClassificationId: importRecord.subClassificationId,
@@ -175,3 +231,4 @@ const nameMap = new Map<string, string>([
   ['nbr_disp', 'numberOfDisp'],
   ['status', 'status']
 ])
+
