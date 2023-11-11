@@ -4,6 +4,8 @@ import { useStore } from ".."
 
 
 export async function upsertItem(item: CreateItemRecordInput) {
+  if (item.status === 'inactive') return inactiveItems([{ officeId: item.officeId, recordId: item.recordId }, ...item.linkedItems || []])
+
   if (!item.classificationId) throw new Error('ClassificationId is required')
   if (!item.officeId) throw new Error('Office is required')
   if (!item.itemId) throw new Error('ItemId is required')
@@ -47,12 +49,14 @@ export async function createInitialLinkedItem(item: Partial<CreateItemRecordInpu
   return linkItems({ officeId: item.officeId, recordId: item.recordId }, linkedItems)
 }
 
+
 export function linkItems(linkToItemId: ItemKey, linkedItemKeys: ItemKey[]) {
   const currentItems = useStore.getState().catalog?.[linkToItemId.officeId][linkToItemId.recordId].linkedItems || []
   const newItems = [...currentItems, ...linkedItemKeys]
 
   const updates = linkedItemKeys.reduce((acc, itemKey) => {
     acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/itemLinkedTimestamp`] = new Date()
+    acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/itemLinkedTo`] = linkToItemId
     return acc
   }, {} as Record<string, any>)
   updates[`catalogs/${linkToItemId.officeId}/${linkToItemId.recordId}/linkedItems`] = newItems
@@ -60,14 +64,25 @@ export function linkItems(linkToItemId: ItemKey, linkedItemKeys: ItemKey[]) {
   return update(ref(rdb), updates)
 }
 
+
 export function unlinkItems(linkToItemId: ItemKey, removeItemKeys: ItemKey[]) {
   const currentItems = useStore.getState().catalog?.[linkToItemId.officeId][linkToItemId.recordId].linkedItems || []
   const newItems = currentItems.filter(itemKey => !removeItemKeys.find(removeItemKey => removeItemKey.recordId === itemKey.recordId))
   const updates = removeItemKeys.reduce((acc, itemKey) => {
     acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/itemLinkedTimestamp`] = null
+    acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/itemLinkedTo`] = null
     return acc
   }, {} as Record<string, any>)
   updates[`catalogs/${linkToItemId.officeId}/${linkToItemId.recordId}/linkedItems`] = newItems
+
+  return update(ref(rdb), updates)
+}
+
+export function inactiveItems(itemKeys: ItemKey[]) {
+  const updates = itemKeys.reduce((acc, itemKey) => {
+    acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/status`] = 'inactive'
+    return acc
+  }, {} as Record<string, any>)
 
   return update(ref(rdb), updates)
 }

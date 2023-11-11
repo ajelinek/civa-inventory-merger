@@ -9,7 +9,7 @@ import Searcher from "../workers/searcher.worker?worker"
 
 export function useFileImport() {
   const email = useStore.getState().user?.email ?? 'unknown'
-  return useAsyncCallback(async (file: File) => {
+  return useAsyncCallback(async (file: importFileOptions) => {
     return processImportFile(file, email)
   })
 }
@@ -36,12 +36,15 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       searchText: searchParams.get('st') || '',
       excludeMapped: searchParams.get('exm') === 'true',
       excludeLinked: searchParams.get('exl') === 'true',
+      excludeInactive: searchParams.get('exi') === 'true',
+      missingOfficeIds: searchParams.get('mo') === 'true',
       unitPriceLow: searchParams.get('upl') ? Number(searchParams.get('upl')) : undefined,
       unitPriceHigh: searchParams.get('uph') ? Number(searchParams.get('uph')) : undefined,
       dispensingFeeLow: searchParams.get('dfl') ? Number(searchParams.get('dfl')) : undefined,
       dispensingFeeHigh: searchParams.get('dfh') ? Number(searchParams.get('dfh')) : undefined,
       markUpPercentageLow: searchParams.get('mpl') ? Number(searchParams.get('mpl')) : undefined,
       markUpPercentageHigh: searchParams.get('mph') ? Number(searchParams.get('mph')) : undefined,
+      sort: searchParams.get('srt') ? JSON.parse(atob(searchParams.get('srt') ?? '')) : undefined,
     } as CatalogQuery
     setQuery(newQuery)
   }, 500)
@@ -56,6 +59,8 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       prev.delete('st')
       prev.delete('exm')
       prev.delete('exl')
+      prev.delete('exi')
+      prev.delete('mo')
       prev.delete('mc')
       prev.delete('msc')
       prev.delete('cc')
@@ -65,6 +70,7 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       prev.delete('dfh')
       prev.delete('mpl')
       prev.delete('mph')
+      prev.delete('srt')
 
       if (initialQuery?.officeIds?.length ?? 0 > 0) {
         initialQuery?.officeIds?.forEach(id => prev.append('o', id))
@@ -81,14 +87,17 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       if (initialQuery?.searchText) prev.append('st', initialQuery.searchText)
       if (initialQuery?.excludeMapped !== undefined) prev.append('exm', initialQuery.excludeMapped?.toString() ?? 'false')
       if (initialQuery?.excludeLinked !== undefined) prev.append('exl', initialQuery.excludeLinked?.toString() ?? 'false')
+      if (initialQuery?.excludeInactive !== undefined) prev.append('exi', initialQuery.excludeInactive?.toString() ?? 'true')
+      if (initialQuery?.missingOfficeIds !== undefined) prev.append('mo', initialQuery.missingOfficeIds?.toString() ?? 'false')
       if (initialQuery?.unitPriceLow !== undefined) prev.append('upl', initialQuery.unitPriceLow?.toString() ?? '')
       if (initialQuery?.unitPriceHigh !== undefined) prev.append('uph', initialQuery.unitPriceHigh?.toString() ?? '')
       if (initialQuery?.dispensingFeeLow !== undefined) prev.append('dfl', initialQuery.dispensingFeeLow?.toString() ?? '')
       if (initialQuery?.dispensingFeeHigh !== undefined) prev.append('dfh', initialQuery.dispensingFeeHigh?.toString() ?? '')
       if (initialQuery?.markUpPercentageLow !== undefined) prev.append('mpl', initialQuery.markUpPercentageLow?.toString() ?? '')
       if (initialQuery?.markUpPercentageHigh !== undefined) prev.append('mph', initialQuery.markUpPercentageHigh?.toString() ?? '')
+      if (initialQuery?.sort?.length ?? 0 > 0) prev.append('srt', btoa(JSON.stringify(initialQuery?.sort)))
       return prev
-    })
+    }, { replace: true })
   }, [])
   useEffect(() => queryBuilder(), [classificationsMap, searchParams])
 
@@ -154,6 +163,7 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSea
 
   useEffect(() => {
     if (!(searcher.current && query && catalogs)) return
+    console.log("🚀 ~ file: catalog.ts:157 ~ useEffect ~ query:", query)
     setStatus('searching')
     searcher.current.postMessage({ type: 'search', payload: query })
   }, [query, catalogs])
@@ -161,7 +171,37 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSea
   return { status, result, page, matchedItemKeys, error, comparingText }
 }
 
+export function useCatalogSearchCallback() {
+  const [comparingText, setComparingText] = useState<string>()
+
+  function executeSearchPromise(query: CatalogQuery): Promise<CatalogQueryResult> {
+    return new Promise((resolve, reject) => {
+      const worker = new Searcher()
+      worker.postMessage({ type: 'load', payload: { catalogs: useStore.getState().catalog, offices: useStore.getState().org?.offices } })
+      worker.onmessage = (e) => {
+        switch (e.data.type) {
+          case 'loaded':
+            worker.postMessage({ type: 'search', payload: query })
+            break
+          case 'searched':
+            resolve(e.data.payload)
+            break
+          case 'compare-status':
+            setComparingText(e.data.payload.text)
+            break
+        }
+      }
+      worker.onerror = (err) => {
+        reject(err)
+      }
+    })
+  }
+
+  const search = useAsyncCallback(executeSearchPromise)
+  return { search, comparingText }
+}
+
 export function useCatalogItem(itemKey?: ItemKey) {
   if (!itemKey) return
-  return useStore(state => state.catalog?.[itemKey.officeId][itemKey.recordId])
+  return useStore(state => state.catalog?.[itemKey.officeId]?.[itemKey.recordId])
 }

@@ -44,10 +44,24 @@ type OfficeId =
 
 interface OfficeCatalogMetadata {
   lastImportDate: Date
-  numberOfItemsImported: number
-  numberOfItemsUpdated: number
-  numberOfItemsIgnored: number
-  updatedBy: string
+  inventoryItemsImported: number
+  pricingItemsImported: number
+  matchedPricingItems: number
+  unmatchedPricingItems: string[]
+  erroredPricingItems: string[]
+  multiplePricingInfoItems: string[]
+  numberOfItemsLinkedToMaster: number
+}
+
+interface PriceRecordRaw {
+  itemId: ItemId
+  eval_key: string //JSON
+}
+
+type PriceRecord = {
+  itemId: ItemId
+  unitPrice: number
+  markUpPercentage: number
 }
 
 interface ItemRecord {
@@ -72,9 +86,11 @@ interface ItemRecord {
   classificationMappedTimestamp?: Date | undefined
   linkedItems?: ItemKey[]
   itemLinkedTimestamp?: Date | undefined
+  itemLinkedTo?: ItemKey
   status?: 'active' | 'inactive'
 
 }
+type ItemRecordWithLinkedItemTotals = ItemRecord & LinkItemTotals | undefined
 
 interface UpdateClassificationInput {
   classificationId: string
@@ -100,5 +116,24 @@ type CreateItemRecordInput = Pick<ItemRecord,
   'markUpPercentage' |
   'status' |
   'unitPrice' |
+  'dispensingFee' |
   'linkedItems'
 >
+
+interface LinkItemTotals {
+  maxUnitPrice: number
+  minUnitPrice: number
+  avgUnitPrice: number
+  unitPriceVariance: number
+  maxDispensingFee: number
+  minDispensingFee: number
+  avgDispensingFee: number
+  dispensingFeeVariance: number
+  maxMarkupPercentage: number
+  minMarkupPercentage: number
+  avgMarkupPercentage: number
+  unitPrices: number[]
+  dispensingFees: number[]
+  markupPercentages: number[]
+  officeIds: OfficeId[]
+}

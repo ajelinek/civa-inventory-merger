@@ -1,25 +1,76 @@
-import { nanoid } from "nanoid"
 import Papa from "papaparse"
 import { offices } from "../const"
 import { createCatalog } from "./catalog"
+import { itemRecordId } from "../selectors/item"
+import { nanoid } from "nanoid"
 
-export async function processImportFile(file: File, email: string) {
-  if (!file) throw new Error('No file provided')
+export async function processImportFile(options: importFileOptions, email: string) {
+  if (!options.inventoryFile) throw new Error('No inventory file provided')
+  if (!options.pricingFile) throw new Error('No pricing file provided')
   const meta: OfficeCatalogMetadata = {
     lastImportDate: new Date(),
-    numberOfItemsIgnored: 0,
-    numberOfItemsImported: 0,
-    numberOfItemsUpdated: 0,
-    updatedBy: email
+    inventoryItemsImported: 0,
+    pricingItemsImported: 0,
+    matchedPricingItems: 0,
+    unmatchedPricingItems: [],
+    erroredPricingItems: [],
+    multiplePricingInfoItems: [],
+    numberOfItemsLinkedToMaster: 0
   }
 
-  const fileAsJSON = await convertFileToJSON(file)
-  meta.numberOfItemsImported = fileAsJSON.length
-  const { catalog, office } = convertImportFileToCatalog(fileAsJSON)
-  if (!office) throw new Error('No office found')
+  const inventoryAsJSON = await convertFileToJSON(options.inventoryFile) as ImportRecord[]
+  meta.inventoryItemsImported = inventoryAsJSON.length
+  const { catalog, officeId } = convertImportFileToCatalog(inventoryAsJSON)
+  if (!officeId) throw new Error('No office found')
   if (!catalog) throw new Error('No catalog created')
-  await createCatalog(office, catalog)
+
+  const priceAsJSON = await convertFileToJSON(options.pricingFile) as PriceRecordRaw[]
+
+  priceAsJSON.forEach((record) => {
+    if (!record.itemId) return
+    meta.pricingItemsImported++
+
+    try {
+      const priceDataList = convertImportPriceRecordToPriceRecord(record)
+      if (priceDataList.length > 1) meta.multiplePricingInfoItems.push(record.itemId)
+      const pricing = priceDataList[0]
+      const priceItemId = itemRecordId({ itemId: record.itemId, officeId })
+
+      if (!catalog[priceItemId]) {
+        meta.unmatchedPricingItems.push(record.itemId)
+        return
+      }
+
+      catalog[priceItemId] = { ...catalog[priceItemId], ...pricing }
+      meta.matchedPricingItems++
+    } catch (error) {
+      console.error(record)
+      meta.erroredPricingItems.push(record.itemId)
+    }
+  })
+
+  /** If Master Caltalog than we need to recreate it, by creationg new keys and linking the old ones */
+  const finalCatalog = !options.masterCatalog ? catalog : Object.keys(catalog).reduce((acc, key) => {
+    const itemRecord = catalog[key]
+    const newItemRecord = {
+      ...itemRecord,
+      recordId: nanoid(8),
+      officeId: 'CIVA',
+      linkedItems: [{
+        recordId: itemRecord.recordId,
+        officeId: itemRecord.officeId
+      }]
+
+    } as ItemRecord
+    acc[newItemRecord.recordId] = newItemRecord
+    return acc
+  }, {} as Record<string, ItemRecord>)
+
+
+
+  await createCatalog(options.masterCatalog ? 'CIVA' : officeId, finalCatalog)
   //Search index is created by the catalog listener
+  console.log('🚀 ~ processImportFile ~ meta:', meta)
   return {
     meta
     //eventually we may return updated, skipped, record keys
@@ -27,9 +78,9 @@ export async function processImportFile(file: File, email: string) {
 }
 
 
-function convertFileToJSON(file: File): Promise<ImportRecord[]> {
+function convertFileToJSON(file: File): Promise<ImportRecord[]> | Promise<PriceRecordRaw[]> {
+  //@ts-ignore
   return new Promise((resolve, reject) => {
-    //@ts-ignore
     Papa.parse(file, {
       header: true,
       // preview: 10,
@@ -38,7 +89,7 @@ function convertFileToJSON(file: File): Promise<ImportRecord[]> {
         return nameMap.get(header) || header
       },
       complete: (results) => {
-        resolve(results.data as ImportRecord[])
+        resolve(results.data as ImportRecord[] | PriceRecordRaw[])
       },
       error: (error) => {
         console.log(error)
@@ -49,7 +100,7 @@ function convertFileToJSON(file: File): Promise<ImportRecord[]> {
 }
 
 function convertImportFileToCatalog(records: ImportRecord[]) {
-  const office = convertImportRecordToItemRecord(records[0]).officeId
+  const officeId = convertImportRecordToItemRecord(records[0]).officeId
   const catalog = records.reduce((acc, record) => {
     if (!record.itemId) return acc
     const itemRecord = convertImportRecordToItemRecord(record)
@@ -57,7 +108,7 @@ function convertImportFileToCatalog(records: ImportRecord[]) {
     return acc
   }, {} as Record<string, ItemRecord>)
 
-  return { catalog, office }
+  return { catalog, officeId }
 }
 
 function convertImportRecordToItemRecord(importRecord: ImportRecord): ItemRecord {
@@ -72,9 +123,9 @@ function convertImportRecordToItemRecord(importRecord: ImportRecord): ItemRecord
     definition: importRecord.invoiceDescription,
     itemType: importRecord.itemType,
     itemTypeDescription: importRecord.description_3 === '[None]' ? '' : importRecord.description_3,
-    unitPrice: parseInt(importRecord.quantityUnitPrice),
-    dispensingFee: parseInt(importRecord.dispensingFee),
-    minimumPrice: parseInt(importRecord.minimumPrice),
+    unitPrice: parseFloat(importRecord.quantityUnitPrice),
+    dispensingFee: parseFloat(importRecord.dispensingFee),
+    minimumPrice: parseFloat(importRecord.minimumPrice),
     markUpPercentage: 0,
   } as ItemRecord
 
@@ -84,10 +135,23 @@ function convertImportRecordToItemRecord(importRecord: ImportRecord): ItemRecord
   ) //Hacky, but we know it will be there, .. or hope
   if (!officeId) throw new Error('No office found')
   itemRecord.officeId = officeId
-  itemRecord.recordId = nanoid(8)
+  itemRecord.recordId = itemRecordId(itemRecord)
 
   return itemRecord
 }
+
+function convertImportPriceRecordToPriceRecord(record: PriceRecordRaw): PriceRecord[] {
+  const priceString = record?.eval_key?.replace(/(\w+)(=)([^,}\s]+)/g, '"$1":"$3"')
+  const priceDataList = JSON.parse(priceString)
+  return priceDataList.map((priceData: any) => {
+    return {
+      itemId: record.itemId,
+      unitPrice: priceData.quanitytunitprice === 'null' ? 0 : parseFloat(priceData.quanitytunitprice),
+      markUpPercentage: priceData.markup === 'null' ? 0 : parseFloat(priceData.markup),
+    }
+  })
+}
+
 const nameMap = new Map<string, string>([
   ['classid', 'classificationId'],
   // ['description', 'classificationDescription'],
@@ -102,6 +166,9 @@ const nameMap = new Map<string, string>([
   ['quanitytunitprice', 'quantityUnitPrice'],
   ['dispensingfee', 'dispensingFee'],
   ['minimumprice', 'minimumPrice'],
+  ['markup', 'markUpPercentage'],
+  ['qualityunityprice', 'unitPrice'],
+  ['qualityfrom', 'quantityFrom'],
   ['name1', 'locationName'],
   ['revenue_id', 'revenueId'],
   ['allow_price_chg', 'allowPriceChange'],

@@ -17,7 +17,7 @@ export function OfficeSelector({ value, onChange, className, ...attr }: props) {
     <fieldset className={className}>
       <label htmlFor="office">Office</label>
       <select id="office" name="officeId" value={value || ''} onChange={onChange} {...attr}>
-        <option value="" disabled={true}>Select an office</option>
+        <option value="" >Select an office</option>
         {officesOptions.map(office => (
           <option key={office.value} value={office.value}>{office.label}</option>
         ))}
@@ -34,7 +34,7 @@ export function ClassificationSelector({ value, onChange, className }: props) {
     <fieldset className={className}>
       <label htmlFor="classification">Classification</label>
       <select id="classification" name="classificationId" value={value || ''} onChange={onChange}>
-        <option value="" disabled={true}>Select a classification</option>
+        <option value="" >Select a classification</option>
         {classificationsOptions.map(classification => (
           <option key={classification.value} value={classification.value}>{classification.label}</option>
         ))}
@@ -52,7 +52,7 @@ export function SubClassificationSelector({ value, onChange, classification, cla
     <fieldset className={className}>
       <label htmlFor="subClassification">Sub Classification</label>
       <select id="subClassification" name="subClassificationId" value={value || ''} onChange={onChange}>
-        <option value="" disabled={true}>Select a sub classification</option>
+        <option value="" >Select a sub classification</option>
         {subClassificationsOptions.map(subClassification => (
           <option key={subClassification.value} value={subClassification.value}>{subClassification.label}</option>
         ))}
@@ -78,3 +78,30 @@ export function ItemTypeSelector({ value, onChange, className }: props) {
   )
 }
 
+export function ItemSortSelector({ value, onChange, className }: props) {
+  return (
+    <fieldset className={className}>
+      <label htmlFor="itemSort">Sort By</label>
+      <select id="itemSort" name="itemSort" value={value || 'relevance'} onChange={onChange}>
+        <option value="relevance">Relevance</option>
+        <option value="name">Name</option>
+        <option value="date">Last Update Time</option>
+        <option value="markup">Markup</option>
+        <option value="unitPrice">Unit Price</option>
+        <option value="dispensingFee">Dispensing Fee</option>
+      </select>
+    </fieldset>
+  )
+}
+
+export function StatusSelector({ value, onChange, className }: props) {
+  return (
+    <fieldset className={className}>
+      <label htmlFor="status">Status</label>
+      <select id="status" name="status" value={value || 'active'} onChange={onChange}>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </fieldset>
+  )
+}

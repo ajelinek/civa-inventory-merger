@@ -8,9 +8,21 @@ interface Store {
   catalogLastUpdateTimestamp: Date | undefined
 }
 
+interface importFileOptions {
+  masterCatalog: boolean
+  inventoryFile: File
+  pricingFile: File
+}
+
 interface Creds {
   email: string
   password: string
+}
+
+type SortDirection = 'asc' | 'desc'
+interface SortField {
+  field: string
+  direction: SortDirection | ''
 }
 
 interface ImportRecord {
@@ -69,7 +81,7 @@ interface CatalogQueryResult {
 type MatchedItemKeys = Record<RecordId, ItemKey[]>//Item key per office
 
 interface CatalogQuery {
-  searchType?: 'general' | 'comparison'
+  searchType?: 'general' | 'comparison' | 'export'
   comparisonCount?: number
   officeIds?: string[]
   classificationIds?: string[]
@@ -78,6 +90,8 @@ interface CatalogQuery {
   searchText?: string
   excludeMapped?: boolean
   excludeLinked?: boolean
+  excludeInactive?: boolean
+  missingOfficeIds?: boolean
   classificationNames?: string[]
   subClassificationNames?: string[]
   unitPriceLow?: number
@@ -86,6 +100,11 @@ interface CatalogQuery {
   dispensingFeeHigh?: number
   markUpPercentageLow?: number
   markUpPercentageHigh?: number
+  unitPriceVarianceLow?: number
+  unitPriceVarianceHigh?: number
+  dispensingFeeVarianceLow?: number
+  dispensingFeeVarianceHigh?: number
+  sort?: SortField[]
 }
 
 interface SearcherSearchMessage {

@@ -76,8 +76,12 @@ export function useSearchParamsListToggle(param: SelectParams) {
     }, { replace: true })
   }
 
+  function isSelectedAll(values: string[]) {
+    return values.every(value => isSelected(value))
+  }
+
   return {
-    values, toggle, isSelected, removeAll, addAll, add, removeMany
+    values, toggle, isSelected, removeAll, addAll, add, removeMany, isSelectedAll
   }
 }
 
@@ -88,6 +92,8 @@ type SearchParams =
   | 'st' // searchText
   | 'exm' // excludeMapped
   | 'exl' // excludeLinked
+  | 'exi' // excludeInactive
+  | 'mo' // missingOfficeIds
   | 'mc' // matchedCatalogs page specific
   | 'msc' // matchedRecords page specific
   | 'cc' // comparisonCount page specific
@@ -97,6 +103,11 @@ type SearchParams =
   | 'dfh' // dispensing fee from high
   | 'mpl' // markup low
   | 'mph' // markup high
+  | 'upvl' // unit price variance low
+  | 'upvh' // unit price variance high
+  | 'dfvl' // dispensing fee variance low
+  | 'dfvh' // dispensing fee variance high
+  | 'srt' // sort
 
 export function useSearchParam(param: SearchParams) {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -116,6 +127,18 @@ export function useSearchParam(param: SearchParams) {
     }, { replace: true })
   }
 
-  return { value, setValue, remove }
+  function toggle() {
+    setSearchParams(prev => {
+      if (prev.get(param)) {
+        prev.delete(param)
+      } else {
+        prev.set(param, 'true')
+      }
+      return prev
+    }, { replace: true })
+  }
+
+
+  return { value, setValue, remove, toggle }
 }
 

@@ -15,7 +15,7 @@ export default function App() {
   if (user === undefined) return (<div aria-busy={true}>Loading...</div>)
 
   return (
-    <main >
+    <main  >
       <Header />
       <Outlet />
     </main>
