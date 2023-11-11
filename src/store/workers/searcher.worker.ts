@@ -98,7 +98,7 @@ function exportSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
 
 function comparisonSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
   if (!offices) throw new Error('Offices not loaded')
-  const { itemKeys } = basicSearch(query, searcher, query.comparisonCount)
+  const { itemKeys } = basicSearch({ ...query, officeIds: ['CIVA'] }, searcher, query.comparisonCount)
 
   const officeIds = Object.keys(offices).filter(officeId => officeId !== 'CIVA') as OfficeId[]
   const matchedItemKeys = itemKeys.reduce((acc, itemKey, index) => {
@@ -239,5 +239,5 @@ function getField(item: SearchItem, field: string): any {
 
 function cleanStringForSearch(token?: string, minSize: number = 1) {
   if (!token) return ''
-  return token.split(' ').map(t => t.trim()).filter(t => t.length > minSize).join(' ').replace(/[^a-zA-Z0-9'"!^$=]/g, ' ').toLocaleLowerCase()
+  return token.split(' ').map(t => t.trim()).filter(t => t.length > minSize).join(' ').replace(/[^a-zA-Z0-9\.'"!^$=]/g, ' ').toLocaleLowerCase()
 }

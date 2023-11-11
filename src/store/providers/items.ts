@@ -38,16 +38,16 @@ export async function upsertItem(item: CreateItemRecordInput) {
   }
 }
 
-export async function createInitialLinkedItem(item: Partial<CreateItemRecordInput>) {
-  if (!item.recordId) throw new Error('RecordId is required')
-  if (!item.officeId) throw new Error('OfficeId is required')
+// export async function createInitialLinkedItem(item: Partial<CreateItemRecordInput>) {
+//   if (!item.recordId) throw new Error('RecordId is required')
+//   if (!item.officeId) throw new Error('OfficeId is required')
 
-  const itemRef = ref(rdb, `catalogs/${item.officeId}/${item.recordId}`)
-  const linkedItems = item.linkedItems || []
-  delete item.linkedItems
-  await set(itemRef, item)
-  return linkItems({ officeId: item.officeId, recordId: item.recordId }, linkedItems)
-}
+//   const itemRef = ref(rdb, `catalogs/${item.officeId}/${item.recordId}`)
+//   const linkedItems = item.linkedItems || []
+//   delete item.linkedItems
+//   await set(itemRef, item)
+//   return linkItems({ officeId: item.officeId, recordId: item.recordId }, linkedItems)
+// }
 
 
 export function linkItems(linkToItemId: ItemKey, linkedItemKeys: ItemKey[]) {
