@@ -10,7 +10,7 @@
 
 .submitButton {
   margin-top: 0.75rem;
-  width: 12rem;
+  width: 14rem;
 }
 
 .group {
@@ -44,7 +44,7 @@
 
 .linkButton,
 .inactivateButton {
-  width: 15rem;
+  width: 18rem;
 }
 .inactivateButton {
   background: var(--del-color);

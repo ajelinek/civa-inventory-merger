@@ -16,7 +16,7 @@ export default function LinkedItemsList({ selector, itemKeys }: props) {
         onChange={() => selector.onSelectAll(itemKeys)} />
       <label className={s.selectAll} htmlFor='selectAll'>Select All</label>
 
-      {itemKeys.map((itemKey) => <div key={itemKey.recordId}>
+      {itemKeys?.map((itemKey) => <div key={itemKey.recordId}>
         {itemKey.recordId && <ItemSummary itemKey={itemKey} selector={selector} />}
       </div>
       )}

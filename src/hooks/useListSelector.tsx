@@ -103,7 +103,7 @@ export default function useListSelector<T>(
   }
 
   function isAllSelected(items) {
-    return (count === items.length)
+    return (count === items?.length)
   }
 
 

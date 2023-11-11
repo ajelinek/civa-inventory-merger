@@ -9,6 +9,7 @@ import { useCatalogItem, useLinkItems, useUnLinkItems } from "../../store"
 import { useMatchedOfficeIds, useOfficeIds } from "../../store/selectors/offices"
 import s from './item.module.css'
 import ItemSummaryCharts from "../../components/ItemSummaryCharts"
+import ItemSummary from "../../components/ItemSummary"
 
 export default function ItemPage() {
   const recordId = useParams<{ recordId: string }>()?.recordId
@@ -54,8 +55,8 @@ export default function ItemPage() {
             UnLink Items {unLinkedSelector.getSelected().length > 0 && `(${unLinkedSelector.getSelected().length})`}
           </button>}
 
-          {(item?.linkedItems?.length || 0 > 0) &&
-            <>
+          {itemKey.officeId === 'CIVA'
+            ? <>
               <LinkedItemsList selector={unLinkedSelector} itemKeys={item?.linkedItems!} />
 
               <div className={s.unMatchedSearch}>
@@ -74,7 +75,10 @@ export default function ItemPage() {
                   {linkedSelector.getSelected().length > 0 && `(${linkedSelector.getSelected().length})`}
                 </button>}
               </div>
+            </>
 
+            : <>
+              {item?.itemLinkedTo ? <ItemSummary selector={unLinkedSelector} itemKey={item.itemLinkedTo} /> : <h4>No Linked Items</h4>}
             </>}
         </section>
       }

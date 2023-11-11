@@ -7,7 +7,7 @@ import LinkedItemsList from '../../components/LinkedItemsList'
 import { OfficeIdsDisplay } from '../../components/OfficeIdDisplay'
 import { useSearchParam } from '../../hooks/searchParams'
 import useListSelector from '../../hooks/useListSelector'
-import { useCatalogItem, useCatalogSearchCallback, useCreateLinkedItem, useInactivateItems, useLinkItems, useStore } from '../../store'
+import { useCatalogItem, useCatalogSearchCallback, useInactivateItems, useLinkItems, useStore } from '../../store'
 import { officesForSelectInput, useMatchedOfficeIds, useOfficeIds } from '../../store/selectors/offices'
 import s from './linker.module.css'
 
@@ -82,11 +82,10 @@ export default function LinkerPage() {
 type ItemGroupProps = { itemKey: ItemKey, matchedItemKeys: ItemKey[] | undefined }
 function ItemGroup({ itemKey, matchedItemKeys = [] }: ItemGroupProps) {
   const selector = useListSelector<ItemKey>(matchedItemKeys, 'recordId')
-  const createItem = useCreateLinkedItem()
+  const linkItems = useLinkItems()
   const inactivate = useInactivateItems()
-  const [recordId, setRecordId] = useState<RecordId>('')
   const [inactive, setInactive] = useState(false)
-  const itemToDisplay: ItemKey = recordId ? { recordId, officeId: 'CIVA' } : itemKey
+  const itemToDisplay: ItemKey = itemKey
   const item = useCatalogItem(itemToDisplay)
   const itemTitle = `${item?.officeId}-${item?.itemId} ${item?.itemDescription}`
 
@@ -99,26 +98,7 @@ function ItemGroup({ itemKey, matchedItemKeys = [] }: ItemGroupProps) {
   }
 
   async function handelCreateItem() {
-    const recordId = nanoid(8)
-    setRecordId(recordId)
-    await createItem.execute({
-      recordId,
-      officeId: 'CIVA',
-      classificationId: item?.classificationId || '',
-      subClassificationId: item?.subClassificationId || '',
-      classificationName: item?.classificationName || '',
-      subClassificationName: item?.subClassificationName || '',
-      itemDescription: item?.itemDescription || '',
-      status: 'active',
-      itemId: item?.itemId || '',
-      itemType: item?.itemType || 'I',
-      markUpPercentage: item?.markUpPercentage || null,
-      minimumPrice: item?.minimumPrice || null,
-      unitOfMeasure: item?.unitOfMeasure || '',
-      unitPrice: item?.unitPrice || null,
-      linkedItems: selector?.getSelected() || []
-    })
-
+    linkItems.execute(itemKey, selector.getSelected())
     selector.unSelectAll()
   }
 
@@ -128,27 +108,22 @@ function ItemGroup({ itemKey, matchedItemKeys = [] }: ItemGroupProps) {
   return (
     <div key={itemKey.recordId} className={s.group}>
       <div className={s.matchedToItem}>
-        {recordId
-          ? <Link to={`/item/${recordId}/CIVA`}><p className={s.matchedToItemTitle}>{itemTitle}</p></Link>
-          : <p className={`${s.matchedToItemTitle} ${inactive ? s.inactiveTitle : ''}`}>{itemTitle}</p>
-        }
-        <AlertMessage message={createItem.error?.message} />
+        <Link to={`/item/${itemKey.recordId}/CIVA`}>
+          <p className={`${s.matchedToItemTitle} ${inactive ? s.inactiveTitle : ''}`}>{itemTitle}</p>
+        </Link>
+        <AlertMessage message={linkItems.error?.message} />
       </div>
       <LinkedItemsList itemKeys={matchedItemKeys} selector={selector} />
       <OfficeIdsDisplay label="Unmatched Offices:" officeIds={unMatchedOfficeIds} />
-      {(!recordId && !inactive) &&
-        <div className={s.actionButtons}>
-
-          <button className={s.linkButton} aria-busy={createItem.loading} disabled={!!recordId} onClick={() => handelCreateItem()}>
-            Create CIVA Item & Link {selector.getSelected().length ? `(${selector.getSelected().length})` : ''}
-          </button>
-          <button className={s.inactivateButton} aria-busy={inactivate.loading} disabled={!!recordId} onClick={() => handelInactivateItem()}>
-            Inactivate {selector.getSelected().length ? `(${selector.getSelected().length})` : ''}
-          </button>
-        </div>
-      }
+      <div className={s.actionButtons}>
+        <button className={s.linkButton} aria-busy={linkItems.loading} onClick={() => handelCreateItem()}>
+          Link {selector.getSelected().length ? `(${selector.getSelected().length})` : ''} to CIVA
+        </button>
+        <button className={s.inactivateButton} aria-busy={inactivate.loading} onClick={() => handelInactivateItem()}>
+          Inactivate CIVA & {selector.getSelected().length ? `(${selector.getSelected().length})` : ''} selected
+        </button>
+      </div>
     </div>
   )
-
 }
 
