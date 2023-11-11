@@ -1,5 +1,7 @@
+import { sort } from 'fast-sort'
 import Fuse from 'fuse.js'
 import { removeStopwords } from 'stopword'
+import { calculateLinkItemTotals } from '../selectors/item'
 
 let searcher: Fuse<SearchItem> | null = null
 let catalogs: Catalogs | null = null
@@ -55,6 +57,7 @@ function mergeCatalogs(inCatalogs: Catalogs) {
       ...Object.values(catalog).map((item: ItemRecord) => ({
         searchString: `${item.classificationName} ${item.subClassificationName} ${item.itemDescription} ${item.definition} ${item.originalItemId}`,
         classificationId: item.classificationId,
+        itemDescription: item.itemDescription,
         subClassificationId: item.subClassificationId,
         officeId: item.officeId,
         itemId: item.itemId,
@@ -75,8 +78,22 @@ function search(query: CatalogQuery) {
     postMessage({ type: 'searched', payload: [] })
     return
   }
-  const payload = query.searchType === 'comparison' ? comparisonSearch(query, searcher) : generalSearch(query, searcher)
+  const payload = query.searchType === 'comparison'
+    ? comparisonSearch(query, searcher)
+    : query.searchType === 'export'
+      ? exportSearch(query, searcher)
+      : generalSearch(query, searcher)
   postMessage({ type: 'searched', payload })
+}
+
+function exportSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
+  const { itemKeys } = basicSearch(query, searcher, Infinity)
+  const itemRecords: ItemRecordWithLinkedItemTotals[] = itemKeys.map(itemKey => {
+    const item = catalogs?.[itemKey.officeId]?.[itemKey.recordId]
+    const costs = calculateLinkItemTotals(item?.linkedItems ?? [], catalogs!)
+    return { ...item, ...costs } as ItemRecordWithLinkedItemTotals
+  })
+  postMessage({ type: 'exported', payload: itemRecords })
 }
 
 function comparisonSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
@@ -113,7 +130,9 @@ function basicSearch(query: CatalogQuery, searcher: Fuse<SearchItem>, limit: num
   const results = searcher.search(buildLogicalQuery(query))
   const filtered = filterResultsByQueryOptions(results, query)
   const matchedRecords = filtered.length
-  const itemKeys = filtered
+  const sortArray = query.sort?.map(sort => ({ [sort.direction]: (r: Fuse.FuseResult<SearchItem>) => getField(r.item, sort.field) })) ?? []
+  //@ts-ignore
+  const itemKeys = sort(filtered).by(sortArray)
     .slice(0, limit)
     .map(result => ({
       recordId: result.item.recordId,
@@ -123,11 +142,19 @@ function basicSearch(query: CatalogQuery, searcher: Fuse<SearchItem>, limit: num
 }
 
 function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], query: CatalogQuery) {
+  if (!catalogs) throw new Error('Catalogs not loaded')
+  if (!offices) throw new Error('Offices not loaded')
+
   return results.filter(result => {
     const item = catalogs?.[result.item.officeId]?.[result.item.recordId]
+    const officeCount = Object.keys(offices!).length - 1 //exclude CIVA
+    const costs = calculateLinkItemTotals(item?.linkedItems ?? [], catalogs!)
+
     if (!item) return false
     if (query.excludeMapped === true && item.classificationMappedTimestamp) return false
     if (query.excludeLinked === true && item.itemLinkedTimestamp) return false
+    if (query.excludeInactive === true && item.status === 'inactive') return false
+    if (query.missingOfficeIds === true && item.linkedItems?.length === officeCount) return false
 
     if (query.unitPriceLow && (item.unitPrice ?? 0) < query.unitPriceLow) return false
     if (query.unitPriceHigh && (item.unitPrice ?? 0) > query.unitPriceHigh) return false
@@ -135,6 +162,10 @@ function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], que
     if (query.dispensingFeeHigh && (item.dispensingFee ?? 0) > query.dispensingFeeHigh) return false
     if (query.markUpPercentageLow && (item.markUpPercentage ?? 0) < query.markUpPercentageLow) return false
     if (query.markUpPercentageHigh && (item.markUpPercentage ?? 0) > query.markUpPercentageHigh) return false
+    if (query.unitPriceVarianceLow && (costs.unitPriceVariance ?? 0) < query.unitPriceVarianceLow) return false
+    if (query.unitPriceVarianceHigh && (costs.unitPriceVariance ?? 0) > query.unitPriceVarianceHigh) return false
+    if (query.dispensingFeeVarianceLow && (costs.dispensingFeeVariance ?? 0) < query.dispensingFeeVarianceLow) return false
+    if (query.dispensingFeeVarianceHigh && (costs.dispensingFeeVariance ?? 0) > query.dispensingFeeVarianceHigh) return false
     return true
   })
 }
@@ -158,13 +189,23 @@ function identifyKeyWords(results: Fuse.FuseResult<SearchItem>[], query: Catalog
 
 function buildLogicalQuery(query: CatalogQuery): Fuse.Expression {
   const logicalQuery = { $and: [] as Fuse.Expression[] }
+  const searchString = cleanStringForSearch(query.searchText)
 
   if (query.keyWords?.length || 0 > 0) {
     const autoTokens = query.keyWords?.map(token => ({ searchString: `'${token}` }))
     logicalQuery.$and.push({ $or: autoTokens })
   }
 
-  if (query.searchText) logicalQuery.$and.push({ searchString: query.searchText })
+  if (query.searchText) {
+    logicalQuery.$and.push({
+      $or: [
+        { searchString },
+        { itemId: `${searchString}` },
+        { originalItemId: `${searchString}` },
+        { itemDescription: searchString }
+      ]
+    })
+  }
   if (query.classificationIds?.length ?? 0 > 0) {
     const classificationIds = query.classificationIds?.map(cId => ({ classificationId: `="${cId}"` }))
     logicalQuery.$and.push({ $or: classificationIds })
@@ -180,4 +221,23 @@ function buildLogicalQuery(query: CatalogQuery): Fuse.Expression {
   }
 
   return logicalQuery
+}
+
+function getField(item: SearchItem, field: string): any {
+  const cost = calculateLinkItemTotals(catalogs?.[item.officeId]?.[item.recordId]?.linkedItems ?? [], catalogs!)
+  const itemRecord = catalogs?.[item.officeId]?.[item.recordId]
+  if (field === 'itemId') return item.itemId
+  if (field === 'unitPrice') return itemRecord?.unitPrice
+  if (field === 'dispensingFee') return itemRecord?.dispensingFee
+  if (field === 'classificationName') return itemRecord?.classificationName
+  if (field === 'subClassificationName') return itemRecord?.subClassificationName
+  if (field === 'markUpPercentage') return itemRecord?.markUpPercentage
+  if (field === 'lastUpdateTimestamp') return itemRecord?.lastUpdateTimestamp
+  if (field === 'unitPriceVariance') return cost.unitPriceVariance
+  if (field === 'dispensingFeeVariance') return cost.dispensingFeeVariance
+}
+
+function cleanStringForSearch(token?: string, minSize: number = 1) {
+  if (!token) return ''
+  return token.split(' ').map(t => t.trim()).filter(t => t.length > minSize).join(' ').replace(/[^a-zA-Z0-9'"!^$=]/g, ' ').toLocaleLowerCase()
 }

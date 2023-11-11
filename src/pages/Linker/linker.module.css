@@ -10,7 +10,7 @@
 
 .submitButton {
   margin-top: 0.75rem;
-  width: 10rem;
+  width: 12rem;
 }
 
 .group {
@@ -31,8 +31,24 @@
   justify-content: space-between;
 }
 
-.linkButton {
-  width: 10rem;
+.inactiveTitle {
+  text-decoration: line-through;
+}
+
+.actionButtons {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 1.5rem;
+}
+
+.linkButton,
+.inactivateButton {
+  width: 15rem;
+}
+.inactivateButton {
+  background: var(--del-color);
+  border: 1px solid var(--del-color);
 }
 
 .matchedToItemTitle {

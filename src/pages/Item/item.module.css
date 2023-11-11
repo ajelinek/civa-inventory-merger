@@ -3,7 +3,8 @@
   display: flex;
   justify-content: space-between;
   height: calc(100vh - 10rem);
-  overflow: hidden;
+  column-gap: 5rem;
+  /* overflow: hidden; */
 }
 
 .contentForm {
@@ -29,8 +30,6 @@
 
 .unMatchedSearch {
   position: relative;
-  height: calc(100vh - 23rem);
-  overflow: auto;
   margin-top: 1rem;
   padding: 0 1rem 0 0;
 }
@@ -40,4 +39,8 @@
   position: fixed;
   bottom: 2rem;
   right: 2.5rem;
+}
+
+.spacer {
+  height: 4rem;
 }
