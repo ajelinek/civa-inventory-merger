@@ -5,6 +5,7 @@ import s from './importModel.module.css'
 import { useFileImport } from "../../store"
 import ImportMetaDisplay from "../ImportMetaDisplay"
 import { PiWarningDiamondBold } from "react-icons/pi"
+import { set } from "firebase/database"
 
 
 
@@ -25,9 +26,8 @@ export default function ImportModel() {
   }
 
   function processCsv(e?: React.FormEvent<HTMLFormElement>) {
-    console.log('🚀 ~ processCsv ~ options:', options, confirmed)
-    setConfirmed('CONFRMED')
     e?.preventDefault()
+    setConfirmed('CONFRMED')
     if (!options) return
     if (!options.inventoryFile) return
     if (!options.pricingFile) return
@@ -39,6 +39,15 @@ export default function ImportModel() {
     })
 
     setConfirmed('INITIAL')
+  }
+
+  function handleProcessCsv(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    if (masterCatalog) {
+      setConfirmed('ASK')
+    } else {
+      processCsv(e)
+    }
   }
 
 
@@ -73,11 +82,7 @@ export default function ImportModel() {
     content = (
       <>
         <AlertMessage message={fileImport.error?.message} />
-        <form className={s.form} onSubmit={(e) => {
-          e.preventDefault()
-          setConfirmed('ASK')
-        }
-        }>
+        <form className={s.form} onSubmit={handleProcessCsv}>
           <fieldset>
             <label htmlFor="inventoryFile">Inventory File</label>
             <input type="file" id="inventoryFile" accept=".csv" onChange={handleFileSelection} />

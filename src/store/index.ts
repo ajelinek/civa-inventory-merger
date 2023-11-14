@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 
-console.log('In Store')
 const initialState: Store = {
   user: undefined, //undefined means it has not been checked yet
   org: {

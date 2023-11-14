@@ -75,7 +75,7 @@ function ItemAttributes({ item }: { item: ItemRecord }) {
   return (
     <div>
       <p className={s.attribute}>
-        <span className={s.label}>Definition:</span> {item.definition}
+        <span className={s.label}>Description:</span> {item.itemDescription}
       </p>
       <p className={s.attribute}>
         <span className={s.label}>Item Type:</span> {item.itemType}

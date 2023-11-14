@@ -12,7 +12,6 @@ import ItemSummaryCharts from "../../components/ItemSummaryCharts"
 import ItemSummary from "../../components/ItemSummary"
 
 export default function ItemPage() {
-  console.log('🚀 ~ ItemPage ~ ItemPage:')
   const recordId = useParams<{ recordId: string }>()?.recordId
   const officeId = useParams<{ officeId: string }>()?.officeId as OfficeId
   const linkedSelector = useListSelector<ItemKey>([], 'recordId')

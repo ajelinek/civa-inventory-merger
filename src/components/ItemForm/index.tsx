@@ -60,7 +60,7 @@ export default function ItemForm({ itemKey }: props) {
       <AlertMessage message={createItem.error?.message} />
       <form className={s.form} onSubmit={form.onSubmit} >
         <div className={s.formGroup}>
-          <OfficeSelector className={s.fieldset} value={form.data.officeId} onChange={form.onChange} disabled={!!item} />
+          <OfficeSelector className={s.fieldset} value={form.data.officeId || 'CIVA'} onChange={form.onChange} disabled={true} />
           <StatusSelector className={s.fieldset} value={form.data.status} onChange={form.onChange} />
         </div>
         <div className={s.formGroup}>

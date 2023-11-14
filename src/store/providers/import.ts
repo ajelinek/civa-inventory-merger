@@ -32,32 +32,35 @@ export async function processImportFile(options: importFileOptions, email: strin
   /****************************************************/
   /* 2. Convert the pricing file to a JSON object      */
   /****************************************************/
-  const priceAsJSON = await convertFileToJSON(options.pricingFile) as PriceRecordRaw[]
+  //Read in content of file and split by line
+  const pricingRecordFileText = await options.pricingFile.text()
+  const pricingRecordFileLines = pricingRecordFileText.split('\n')
 
 
   /****************************************************/
   /* 3. Merge the pricing data with the inventory data */
   /****************************************************/
-  priceAsJSON.forEach((record) => {
-    if (!record.itemId) return
+  pricingRecordFileLines.forEach((record) => {
     meta.pricingItemsImported++
 
     try {
       const priceDataList = convertImportPriceRecordToPriceRecord(record)
-      if (priceDataList.length > 1) meta.multiplePricingInfoItems.push(record.itemId)
+      if (!priceDataList) return
       const pricing = priceDataList[0]
-      const priceItemId = itemRecordId({ itemId: record.itemId, officeId })
+      if (priceDataList.length > 1) meta.multiplePricingInfoItems.push(pricing.itemId)
+      const priceItemId = itemRecordId({ itemId: pricing.itemId, officeId })
 
       if (!catalog[priceItemId]) {
-        meta.unmatchedPricingItems.push(record.itemId)
+        meta.unmatchedPricingItems.push(pricing.itemId)
         return
       }
 
       catalog[priceItemId] = { ...catalog[priceItemId], ...pricing }
       meta.matchedPricingItems++
     } catch (error) {
-      console.error(record)
-      meta.erroredPricingItems.push(record.itemId)
+      console.error(error, record)
+      const regex = /inv_item=([\w+]+)/
+      meta.erroredPricingItems.push(record?.match(regex)?.[1] || 'unknown')
     }
   })
 
@@ -67,6 +70,7 @@ export async function processImportFile(options: importFileOptions, email: strin
   /****************************************************/
   if (options.masterCatalog) {
     await createCatalog('CIVA', convertToMasterCatalog(catalog))
+    await createCatalog(officeId, catalog)
     return { meta }
   }
 
@@ -104,7 +108,7 @@ function searchMasterCatalog(catalog: Catalog, itemRecord: ItemRecord) {
   const matchedMasterItemKey = Object.keys(catalog).find((key) => {
     const masterItemRecord = catalog[key]
     return (
-      masterItemRecord.itemDescription === itemRecord.itemDescription ||
+      masterItemRecord.itemDescription.toLocaleLowerCase() === itemRecord.itemDescription.toLocaleLowerCase() ||
       masterItemRecord.itemId === itemRecord.itemId ||
       masterItemRecord.linkedItems?.find((itemKey) => (
         itemKey.recordId === itemRecord.recordId &&
@@ -196,12 +200,16 @@ function convertImportRecordToItemRecord(importRecord: ImportRecord): ItemRecord
   return itemRecord
 }
 
-function convertImportPriceRecordToPriceRecord(record: PriceRecordRaw): PriceRecord[] {
-  const priceString = record?.eval_key?.replace(/(\w+)(=)([^,}\s]+)/g, '"$1":"$3"')
+function convertImportPriceRecordToPriceRecord(record: String): PriceRecord[] | null {
+  const jsArrayOfObjReg = /\[({.*?})\]/g
+  const match = record.match(jsArrayOfObjReg)?.[0]
+  if (!match) return null
+  const priceString = match.replace(/(\w+)(=)([^,}\s]+)/g, '"$1":"$3"')
   const priceDataList = JSON.parse(priceString)
   return priceDataList.map((priceData: any) => {
+    if (!priceData.inv_item) throw new Error('No item id found')
     return {
-      itemId: record.itemId,
+      itemId: priceData.inv_item,
       unitPrice: priceData.quanitytunitprice === 'null' ? 0 : parseFloat(priceData.quanitytunitprice),
       markUpPercentage: priceData.markup === 'null' ? 0 : parseFloat(priceData.markup),
     }
