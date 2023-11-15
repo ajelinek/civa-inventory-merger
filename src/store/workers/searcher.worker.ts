@@ -2,6 +2,7 @@ import { sort } from 'fast-sort'
 import Fuse from 'fuse.js'
 import { removeStopwords } from 'stopword'
 import { calculateLinkItemTotals } from '../selectors/item'
+import { off } from 'firebase/database'
 
 let searcher: Fuse<SearchItem> | null = null
 let catalogs: Catalogs | null = null
@@ -101,17 +102,21 @@ function comparisonSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
 
   const officeIds = Object.keys(offices).filter(officeId => officeId !== 'CIVA') as OfficeId[]
   const matchedItemKeys = itemKeys.reduce((acc, itemKey, index) => {
-    const searchText = catalogs?.[itemKey.officeId]?.[itemKey.recordId]?.itemDescription
+    const primaryCatalogItem = catalogs?.[itemKey.officeId]?.[itemKey.recordId]
+    const searchText = primaryCatalogItem?.itemDescription
     postMessage({ type: 'compare-status', payload: { text: `(${index + 1} of ${query.comparisonCount}) - Searching For ${searchText}  ` } })
-    const officeMatches = officeIds.map(officeId => {
-      const query = { officeIds: [officeId], searchText, excludeLinked: true }
-      const officeResult = basicSearch(query, searcher, 1)
 
-      return {
-        recordId: officeResult?.itemKeys?.[0]?.recordId,
-        officeId: officeId
-      }
-    }).filter(item => item.recordId) as ItemKey[]
+    const officeMatches = officeIds
+      .filter(officeId => !primaryCatalogItem?.linkedItems?.find(item => item.officeId === officeId))
+      .map(officeId => {
+        const query = { officeIds: [officeId], searchText, excludeLinked: true }
+        const officeResult = basicSearch(query, searcher, 1)
+
+        return {
+          recordId: officeResult?.itemKeys?.[0]?.recordId,
+          officeId: officeId
+        }
+      }).filter(item => item.recordId) as ItemKey[]
     return { ...acc, [itemKey.recordId]: officeMatches }
   }, {} as MatchedItemKeys)
 

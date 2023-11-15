@@ -36,12 +36,12 @@ export default function FacetedSearch() {
 }
 
 function MappingHelperFacets() {
-  const missingOfficeIds = useSearchParam('mo')
+  // const missingOfficeIds = useSearchParam('mo')
   return (
     <div>
       <fieldset>
-        <input type="checkbox" id="missingOfficeIds" checked={!!missingOfficeIds.value} onChange={() => missingOfficeIds.toggle()} />
-        <label htmlFor="missingOfficeIds">Missing Office Ids</label>
+        {/* <input type="checkbox" id="missingOfficeIds" checked={!!missingOfficeIds.value} onChange={() => missingOfficeIds.toggle()} /> */}
+        {/* <label htmlFor="missingOfficeIds">Missing Office Ids</label> */}
       </fieldset>
     </div>
   )

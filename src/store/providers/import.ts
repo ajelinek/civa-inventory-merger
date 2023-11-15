@@ -5,7 +5,7 @@ import { itemRecordId } from "../selectors/item"
 import { nanoid } from "nanoid"
 import { addItemKeyToLinkedItems, multipleItemLink } from "./items"
 
-export async function processImportFile(options: importFileOptions, email: string) {
+export async function processImportFile(options: importFileOptions) {
   if (!options.inventoryFile) throw new Error('No inventory file provided')
   if (!options.pricingFile) throw new Error('No pricing file provided')
   const meta: OfficeCatalogMetadata = {
@@ -70,7 +70,6 @@ export async function processImportFile(options: importFileOptions, email: strin
   /****************************************************/
   if (options.masterCatalog) {
     await createCatalog('CIVA', convertToMasterCatalog(catalog))
-    await createCatalog(officeId, catalog)
     return { meta }
   }
 
@@ -109,7 +108,7 @@ function searchMasterCatalog(catalog: Catalog, itemRecord: ItemRecord) {
     const masterItemRecord = catalog[key]
     return (
       masterItemRecord.itemDescription.toLocaleLowerCase() === itemRecord.itemDescription.toLocaleLowerCase() ||
-      masterItemRecord.itemId === itemRecord.itemId ||
+      (masterItemRecord.itemId === itemRecord.itemId && masterItemRecord.classificationName.toLocaleLowerCase() === itemRecord.classificationName.toLocaleLowerCase()) ||
       masterItemRecord.linkedItems?.find((itemKey) => (
         itemKey.recordId === itemRecord.recordId &&
         itemKey.officeId === itemRecord.officeId)
