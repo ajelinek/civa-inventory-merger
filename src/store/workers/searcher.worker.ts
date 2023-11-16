@@ -2,7 +2,6 @@ import { sort } from 'fast-sort'
 import Fuse from 'fuse.js'
 import { removeStopwords } from 'stopword'
 import { calculateLinkItemTotals } from '../selectors/item'
-import { off } from 'firebase/database'
 
 let searcher: Fuse<SearchItem> | null = null
 let catalogs: Catalogs | null = null
@@ -150,7 +149,7 @@ function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], que
   if (!offices) throw new Error('Offices not loaded')
 
   return results.filter(result => {
-    const item = catalogs?.[result.item.officeId]?.[result.item.recordId]
+    const item = getItem(result.item)
     const officeCount = Object.keys(catalogs!).length - 1 //exclude CIVA
     const costs = calculateLinkItemTotals(item?.linkedItems ?? [], catalogs!)
 
@@ -158,6 +157,7 @@ function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], que
     if (query.excludeMapped === true && item.classificationMappedTimestamp) return false
     if (query.excludeLinked === true && (item.itemLinkedTo?.recordId || item.linkedItems?.length === officeCount)) return false
     if (query.excludeInactive === true && item.status === 'inactive') return false
+
 
     if (query.unitPriceLow && (item.unitPrice ?? 0) < query.unitPriceLow) return false
     if (query.unitPriceHigh && (item.unitPrice ?? 0) > query.unitPriceHigh) return false
@@ -169,6 +169,29 @@ function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], que
     if (query.unitPriceVarianceHigh && (costs.unitPriceVariance ?? 0) > query.unitPriceVarianceHigh) return false
     if (query.dispensingFeeVarianceLow && (costs.dispensingFeeVariance ?? 0) < query.dispensingFeeVarianceLow) return false
     if (query.dispensingFeeVarianceHigh && (costs.dispensingFeeVariance ?? 0) > query.dispensingFeeVarianceHigh) return false
+
+    //Filters for Mapping Helpers
+    if (query.missingOfficeIds === true && item.officeId === 'CIVA' && item.linkedItems?.length === officeCount) return false
+
+    if (query.differentItemId === true) {
+      if (item.officeId === 'CIVA' && !(item.linkedItems?.find(itemKeys => getItem(itemKeys)?.itemId !== item.itemId))) return false
+      if (item.officeId !== 'CIVA' && !(item.itemLinkedTo?.recordId && getItem(item.itemLinkedTo)?.itemId !== item.itemId)) return false
+    }
+
+    if (query.differentClassification === true) {
+      if (item.officeId === 'CIVA' && !(item.linkedItems?.find(itemKeys => getItem(itemKeys)?.classificationId !== item.classificationId))) return false
+      if (item.officeId === 'CIVA' && !(item.linkedItems?.find(itemKeys => getItem(itemKeys)?.subClassificationId !== item.subClassificationId))) return false
+
+      if (item.officeId !== 'CIVA' && !(item.itemLinkedTo?.recordId && getItem(item.itemLinkedTo)?.classificationId !== item.classificationId)) return false
+      if (item.officeId !== 'CIVA' && !(item.itemLinkedTo?.recordId && getItem(item.itemLinkedTo)?.subClassificationId !== item.subClassificationId)) return false
+    }
+
+    console.log('🚀 ~ filterResultsByQueryOptions ~ differentItemDescription:', query.differentItemDescription)
+    if (query.differentItemDescription === true) {
+      if (item.officeId === 'CIVA' && !(item.linkedItems?.find(itemKeys => getItem(itemKeys)?.itemDescription !== item.itemDescription))) return false
+      if (item.officeId !== 'CIVA' && !(item.itemLinkedTo?.recordId && getItem(item.itemLinkedTo)?.itemDescription !== item.itemDescription)) return false
+    }
+
     return true
   })
 }
@@ -243,4 +266,9 @@ function getField(item: SearchItem, field: string): any {
 function cleanStringForSearch(token?: string, minSize: number = 1) {
   if (!token) return ''
   return token.split(' ').map(t => t.trim()).filter(t => t.length > minSize).join(' ').replace(/[^a-zA-Z0-9\.'"!^$=]/g, ' ').toLocaleLowerCase()
+}
+
+function getItem(itemKey?: ItemKey) {
+  if (!itemKey) return undefined
+  return catalogs?.[itemKey.officeId]?.[itemKey.recordId]
 }

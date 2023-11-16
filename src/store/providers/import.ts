@@ -83,17 +83,17 @@ async function createWenonaCatalog(options: importFileOptions, meta: OfficeCatal
   const records = [] as ItemRecord[]
   parsed.data.forEach((r) => {
     const record = r as string[]
-    const id = record[0].trim()
+    const itemId = record[0].trim()
 
-    if (!id) return
+    if (!itemId) return
     meta.inventoryItemsImported++
 
-    const itemId = itemRecordId({ itemId: id, officeId: 'WV' })
+    const recordId = itemRecordId({ itemId: itemId, officeId: 'WV' })
 
     records.push({
       ...ItemRecordTemplate,
       itemId,
-      recordId: itemId,
+      recordId,
       officeId: 'WV',
       itemDescription: record[1],
       markUpPercentage: parseFloat(record[7]),
@@ -102,13 +102,14 @@ async function createWenonaCatalog(options: importFileOptions, meta: OfficeCatal
     })
 
     if (record[12]) {
-      const itemId = itemRecordId({ itemId: record[12].trim(), officeId: 'WV' })
+      const itemId = record[12].trim()
+      const recordId = itemRecordId({ itemId, officeId: 'WV' })
       meta.inventoryItemsImported++
 
       records.push({
         ...ItemRecordTemplate,
         itemId,
-        recordId: itemId,
+        recordId,
         officeId: 'WV',
         itemDescription: record[13],
         markUpPercentage: parseFloat(record[16]),
@@ -122,7 +123,6 @@ async function createWenonaCatalog(options: importFileOptions, meta: OfficeCatal
     acc[record.recordId] = record
     return acc
   }, {} as Catalog)
-  console.log('🚀 ~ catalog ~ catalog:', catalog)
 
 
   return { catalog, officeId: 'WV' as OfficeId }

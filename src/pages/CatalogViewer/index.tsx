@@ -9,10 +9,7 @@ import { useCatalogSearchParamQuery, useSearchCatalog } from '../../store'
 import s from './catalogViewer.module.css'
 
 export default function CatalogViewer() {
-  const query = useCatalogSearchParamQuery({
-    excludeInactive: true,
-    officeIds: ['CIVA'],
-  })
+  const query = useCatalogSearchParamQuery()
   const search = useSearchCatalog(query)
   const selector = useListSelector<ItemKey>([], 'recordId')
 

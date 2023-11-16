@@ -37,7 +37,7 @@ export default function Header() {
       {user &&
         <nav className={s.nav}>
           <ul>
-            <li><NavLink className={s.link} to={`/catalogs?o=CIVA`}>Home</NavLink></li>
+            <li><NavLink className={s.link} to={`/catalogs?o=CIVA&exi=true`}>Home</NavLink></li>
             <li><NavLink className={s.link} to='/mapper'>Mapper Tool</NavLink></li>
             <li><NavLink className={s.link} to='/linker'>Linker Tool</NavLink></li>
           </ul>
