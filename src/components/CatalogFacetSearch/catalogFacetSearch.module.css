@@ -25,3 +25,6 @@
   font-weight: 600;
   margin-bottom: 0.25rem;
 }
+.mappingFilters fieldset {
+  margin: 0.5rem 0;
+}

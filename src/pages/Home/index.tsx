@@ -14,7 +14,7 @@ export default function Home() {
     login.execute(creds.email, creds.password)
   })
 
-  useEffect(() => { if (user) nav('/catalogs?o=CIVA') }, [user])
+  useEffect(() => { if (user) nav('/catalogs?o=CIVA&exi=true') }, [user])
 
   return (
     <div className={`${s.container}`}>

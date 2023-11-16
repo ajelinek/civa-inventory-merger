@@ -51,7 +51,13 @@
   border: 1px solid var(--del-color);
 }
 
-.matchedToItemTitle {
+.summaryTitle {
   font-weight: bold;
   font-size: 1.25rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.inactiveTitle {
+  text-decoration: line-through;
 }

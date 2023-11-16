@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react"
-import { useModal } from "../../hooks/searchParams"
-import { AlertMessage } from "../AlertMessage"
-import s from './importModel.module.css'
-import { useFileImport } from "../../store"
-import ImportMetaDisplay from "../ImportMetaDisplay"
+import { useState } from "react"
 import { PiWarningDiamondBold } from "react-icons/pi"
-import { set } from "firebase/database"
+import { useModal } from "../../hooks/searchParams"
+import { useFileImport } from "../../store"
+import { AlertMessage } from "../AlertMessage"
+import ImportMetaDisplay from "../ImportMetaDisplay"
+import s from './importModel.module.css'
 
 
 
@@ -25,14 +24,14 @@ export default function ImportModel() {
     }
   }
 
-  function processCsv(e?: React.FormEvent<HTMLFormElement>) {
+  async function processCsv(e?: React.FormEvent<HTMLFormElement>) {
     e?.preventDefault()
     setConfirmed('CONFRMED')
     if (!options) return
     if (!options.inventoryFile) return
-    if (!options.pricingFile) return
+    // if (!options.pricingFile) return
 
-    fileImport.execute({
+    await fileImport.execute({
       inventoryFile: options.inventoryFile,
       pricingFile: options.pricingFile,
       masterCatalog: masterCatalog

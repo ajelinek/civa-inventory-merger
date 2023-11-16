@@ -37,11 +37,27 @@ export default function FacetedSearch() {
 
 function MappingHelperFacets() {
   const missingOfficeIds = useSearchParam('mo')
+  const differentItemId = useSearchParam('di')
+  const differentClassifcation = useSearchParam('dc')
+  const differentItemDescription = useSearchParam('did')
+
   return (
-    <div>
+    <div className={s.mappingFilters}>
       <fieldset>
         <input type="checkbox" id="missingOfficeIds" checked={!!missingOfficeIds.value} onChange={() => missingOfficeIds.toggle()} />
         <label htmlFor="missingOfficeIds">Missing Office Ids</label>
+      </fieldset>
+      <fieldset>
+        <input type="checkbox" id="differentItemId" checked={!!differentItemId.value} onChange={() => differentItemId.toggle()} />
+        <label htmlFor="differentItemId">Different Item Id</label>
+      </fieldset>
+      <fieldset>
+        <input type="checkbox" id="differentClassifcation" checked={!!differentClassifcation.value} onChange={() => differentClassifcation.toggle()} />
+        <label htmlFor="differentClassifcation">Different Classification</label>
+      </fieldset>
+      <fieldset>
+        <input type="checkbox" id="differentItemDescription" checked={!!differentItemDescription.value} onChange={() => differentItemDescription.toggle()} />
+        <label htmlFor="differentItemDescription">Different Item Description</label>
       </fieldset>
     </div>
   )

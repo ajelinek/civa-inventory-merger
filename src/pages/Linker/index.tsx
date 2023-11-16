@@ -1,8 +1,6 @@
-import { nanoid } from 'nanoid'
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { AlertMessage } from '../../components/AlertMessage'
 import { ClassificationSelector, SubClassificationSelector } from '../../components/CommonInputFields/selectors'
+import ItemTitle from '../../components/ItemTitle'
 import LinkedItemsList from '../../components/LinkedItemsList'
 import { OfficeIdsDisplay } from '../../components/OfficeIdDisplay'
 import { useSearchParam } from '../../hooks/searchParams'
@@ -84,16 +82,12 @@ function ItemGroup({ itemKey, matchedItemKeys = [] }: ItemGroupProps) {
   const selector = useListSelector<ItemKey>(matchedItemKeys, 'recordId')
   const linkItems = useLinkItems()
   const inactivate = useInactivateItems()
-  const [inactive, setInactive] = useState(false)
-  const itemToDisplay: ItemKey = itemKey
-  const item = useCatalogItem(itemToDisplay)
-  const itemTitle = `${item?.officeId}-${item?.itemId} ${item?.itemDescription}`
+  const item = useCatalogItem(itemKey)
 
   async function handelInactivateItem() {
     const itemKeys = selector?.getSelected() || []
     itemKeys.push(itemKey)
     await inactivate.execute(itemKeys)
-    setInactive(true)
     selector.unSelectAll()
   }
 
@@ -102,15 +96,13 @@ function ItemGroup({ itemKey, matchedItemKeys = [] }: ItemGroupProps) {
     selector.unSelectAll()
   }
 
-  const officeIds = useOfficeIds(['CIVA'])
+  const officeIds = useOfficeIds(['CIVA', ...item?.linkedItems?.map(linkedItem => linkedItem.officeId) || []])
   const unMatchedOfficeIds = useMatchedOfficeIds(matchedItemKeys, officeIds)
 
   return (
     <div key={itemKey.recordId} className={s.group}>
       <div className={s.matchedToItem}>
-        <Link to={`/item/${itemKey.recordId}/CIVA`}>
-          <p className={`${s.matchedToItemTitle} ${inactive ? s.inactiveTitle : ''}`}>{itemTitle}</p>
-        </Link>
+        <ItemTitle itemKey={itemKey} s={s} />
         <AlertMessage message={linkItems.error?.message} />
       </div>
       <LinkedItemsList itemKeys={matchedItemKeys} selector={selector} />

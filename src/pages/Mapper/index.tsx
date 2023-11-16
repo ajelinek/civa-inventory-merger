@@ -8,11 +8,9 @@ import useListSelector from '../../hooks/useListSelector'
 import { useCatalogSearchParamQuery, useClassificationUpdate, useSearchCatalog, useStore } from '../../store'
 import s from './mapper.module.css'
 import { useSearchParams } from 'react-router-dom'
-import { getItem } from '../../store/selectors/item'
 
 export default function Mapper() {
   const [_, setParams] = useSearchParams()
-  const catalogs = useStore(state => state.catalog)!
   const classification = useSearchParam('mc')
   const subClassification = useSearchParam('msc')
   const officeId = useSearchParam('o')
