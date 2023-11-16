@@ -7,7 +7,6 @@ import { addItemKeyToLinkedItems, multipleItemLink } from "./items"
 
 export async function processImportFile(options: importFileOptions) {
   if (!options.inventoryFile) throw new Error('No inventory file provided')
-  if (!options.pricingFile) throw new Error('No pricing file provided')
   const meta: OfficeCatalogMetadata = {
     lastImportDate: new Date(),
     inventoryItemsImported: 0,
@@ -18,6 +17,119 @@ export async function processImportFile(options: importFileOptions) {
     multiplePricingInfoItems: [],
     numberOfItemsLinkedToMaster: 0
   }
+
+  /****************************************************/
+  /* 0. Check if file is a wenona import              */
+  /****************************************************/
+  const inventoryFileText = await options.inventoryFile.text()
+
+  function isWenonaImport() {
+    return inventoryFileText.includes('Printed') && inventoryFileText.includes('Inventory reports')
+  }
+
+  const { catalog, officeId } = isWenonaImport() ? await createWenonaCatalog(options, meta) : await createCornerstoneCatalog(options, meta)
+
+  /****************************************************/
+  /* 4. If creating master catalog, convert and return*/
+  /****************************************************/
+  if (options.masterCatalog) {
+    await createCatalog('CIVA', convertToMasterCatalog(catalog))
+    return { meta }
+  }
+
+  /****************************************************/
+  /* 5. Link items to master catalog                  */
+  /****************************************************/
+  const autoLinkItems: LinkedItemUpdate[] = []
+  const masterCatalog = await fetchCatalog('CIVA')
+  if (!masterCatalog) throw new Error('No primary catalog found')
+  Object.keys(catalog).forEach((key) => {
+    const itemRecord = catalog[key]
+    const masterItemRecord = searchMasterCatalog(masterCatalog, itemRecord)
+
+    if (masterItemRecord) {
+      autoLinkItems.push({
+        linkedItems: addItemKeyToLinkedItems(masterItemRecord.linkedItems || [], [{ officeId, recordId: itemRecord.recordId }]),
+        linkTo: { officeId: masterItemRecord.officeId, recordId: masterItemRecord.recordId }
+      })
+
+      itemRecord.itemLinkedTo = { officeId: 'CIVA', recordId: masterItemRecord.recordId }
+    }
+  })
+
+  /***************************************************************/
+  /* 6. Create catalog in DB & Update Master Catalog LinkedItems */
+  /***************************************************************/
+  await createCatalog(officeId, catalog)
+  meta.numberOfItemsLinkedToMaster = autoLinkItems.length
+  await multipleItemLink(autoLinkItems)
+
+  return { meta }
+}
+
+async function createWenonaCatalog(options: importFileOptions, meta: OfficeCatalogMetadata) {
+  const inventoryText = await options.inventoryFile.text()
+  const inventoryFileLines = inventoryText.split('\n')
+  const recordStrings: string[] = []
+  inventoryFileLines.forEach((line) => {
+    if (line.includes('Printed,')) return
+    if (line.startsWith('Inventory Total Valuation,')) return
+    if (line.startsWith('All items,')) return
+    if (line.startsWith('Item code,')) return
+    recordStrings.push(line)
+  })
+
+  const parsed = Papa.parse(recordStrings.join('\n'), { delimiter: ',', })
+  const records = [] as ItemRecord[]
+  parsed.data.forEach((r) => {
+    const record = r as string[]
+    const id = record[0].trim()
+
+    if (!id) return
+    meta.inventoryItemsImported++
+
+    const itemId = itemRecordId({ itemId: id, officeId: 'WV' })
+
+    records.push({
+      ...ItemRecordTemplate,
+      itemId,
+      recordId: itemId,
+      officeId: 'WV',
+      itemDescription: record[1],
+      markUpPercentage: parseFloat(record[7]),
+      unitPrice: parseFloat(record[8]),
+      dispensingFee: parseFloat(record[9])
+    })
+
+    if (record[12]) {
+      const itemId = itemRecordId({ itemId: record[12].trim(), officeId: 'WV' })
+      meta.inventoryItemsImported++
+
+      records.push({
+        ...ItemRecordTemplate,
+        itemId,
+        recordId: itemId,
+        officeId: 'WV',
+        itemDescription: record[13],
+        markUpPercentage: parseFloat(record[16]),
+        unitPrice: parseFloat(record[17]),
+        dispensingFee: parseFloat(record[18])
+      })
+    }
+  })
+
+  const catalog = records.reduce((acc, record) => {
+    acc[record.recordId] = record
+    return acc
+  }, {} as Catalog)
+  console.log('🚀 ~ catalog ~ catalog:', catalog)
+
+
+  return { catalog, officeId: 'WV' as OfficeId }
+}
+
+async function createCornerstoneCatalog(options: importFileOptions, meta: OfficeCatalogMetadata) {
+  if (!options.pricingFile) throw new Error('No pricing file provided')
 
   /****************************************************/
   /* 1. Convert the inventory file to a JSON object    */
@@ -64,51 +176,15 @@ export async function processImportFile(options: importFileOptions) {
     }
   })
 
-
-  /****************************************************/
-  /* 4. If creating master catalog, convert and return*/
-  /****************************************************/
-  if (options.masterCatalog) {
-    await createCatalog('CIVA', convertToMasterCatalog(catalog))
-    return { meta }
-  }
-
-
-  /****************************************************/
-  /* 5. Link items to master catalog                  */
-  /****************************************************/
-  const autoLinkItems: LinkedItemUpdate[] = []
-  const masterCatalog = await fetchCatalog('CIVA')
-  Object.keys(catalog).forEach((key) => {
-    const itemRecord = catalog[key]
-    const masterItemRecord = searchMasterCatalog(masterCatalog, itemRecord)
-
-    if (masterItemRecord) {
-      autoLinkItems.push({
-        linkedItems: addItemKeyToLinkedItems(masterItemRecord.linkedItems || [], [{ officeId, recordId: itemRecord.recordId }]),
-        linkTo: { officeId: masterItemRecord.officeId, recordId: masterItemRecord.recordId }
-      })
-
-      itemRecord.itemLinkedTo = { officeId: 'CIVA', recordId: masterItemRecord.recordId }
-    }
-  })
-
-  /***************************************************************/
-  /* 6. Create catalog in DB & Update Master Catalog LinkedItems */
-  /***************************************************************/
-  await createCatalog(officeId, catalog)
-  meta.numberOfItemsLinkedToMaster = autoLinkItems.length
-  await multipleItemLink(autoLinkItems)
-
-  return { meta }
+  return { catalog, officeId }
 }
 
 function searchMasterCatalog(catalog: Catalog, itemRecord: ItemRecord) {
   const matchedMasterItemKey = Object.keys(catalog).find((key) => {
     const masterItemRecord = catalog[key]
     return (
-      masterItemRecord.itemDescription.toLocaleLowerCase() === itemRecord.itemDescription.toLocaleLowerCase() ||
-      (masterItemRecord.itemId === itemRecord.itemId && masterItemRecord.classificationName.toLocaleLowerCase() === itemRecord.classificationName.toLocaleLowerCase()) ||
+      masterItemRecord.itemDescription?.toLocaleLowerCase() === itemRecord?.itemDescription?.toLocaleLowerCase() ||
+      (masterItemRecord.itemId === itemRecord.itemId && masterItemRecord?.classificationName?.toLocaleLowerCase() === itemRecord?.classificationName?.toLocaleLowerCase()) ||
       masterItemRecord.linkedItems?.find((itemKey) => (
         itemKey.recordId === itemRecord.recordId &&
         itemKey.officeId === itemRecord.officeId)
@@ -239,3 +315,23 @@ const nameMap = new Map<string, string>([
   ['status', 'status']
 ])
 
+
+const ItemRecordTemplate: ItemRecord = {
+  recordId: '',
+  itemId: '',
+  officeId: 'CIVA',
+  classificationId: '',
+  classificationName: '',
+  subClassificationId: '',
+  subClassificationName: '',
+  itemDescription: '',
+  definition: '',
+  itemType: 'U',
+  itemTypeDescription: '',
+  unitOfMeasure: '',
+  unitPrice: 0,
+  dispensingFee: 0,
+  minimumPrice: 0,
+  markUpPercentage: 0,
+  status: 'active'
+}

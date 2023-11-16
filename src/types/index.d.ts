@@ -11,7 +11,7 @@ interface Store {
 interface importFileOptions {
   masterCatalog: boolean
   inventoryFile: File
-  pricingFile: File
+  pricingFile?: File
 }
 
 interface Creds {

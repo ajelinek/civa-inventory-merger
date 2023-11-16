@@ -24,14 +24,14 @@ export default function ImportModel() {
     }
   }
 
-  function processCsv(e?: React.FormEvent<HTMLFormElement>) {
+  async function processCsv(e?: React.FormEvent<HTMLFormElement>) {
     e?.preventDefault()
     setConfirmed('CONFRMED')
     if (!options) return
     if (!options.inventoryFile) return
-    if (!options.pricingFile) return
+    // if (!options.pricingFile) return
 
-    fileImport.execute({
+    await fileImport.execute({
       inventoryFile: options.inventoryFile,
       pricingFile: options.pricingFile,
       masterCatalog: masterCatalog
