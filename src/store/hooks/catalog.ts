@@ -6,6 +6,7 @@ import { useStore } from ".."
 import { loadCatalog, updateClassifications } from "../providers/catalog"
 import { processImportFile } from "../providers/import"
 import Searcher from "../workers/searcher.worker?worker"
+import { set } from "firebase/database"
 
 export function useFileImport() {
   return useAsyncCallback(async (file: importFileOptions) => {
@@ -109,11 +110,14 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
 type SearchStatus = 'initial' | 'loading' | 'loaded' | 'searching' | 'searched'
 export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSearchCatalogReturn {
   const searcher = useRef<Worker>()
+  const pageSize = 50
   const catalogs = useStore(state => state.catalog)
   const offices = useStore(state => state.org?.offices)
   const [status, setStatus] = useState<SearchStatus>('initial')
   const [result, setResult] = useState<CatalogQueryResult>()
   const [page, setPage] = useState<ItemKey[]>()
+  const [pageNumbers, setPageNumbers] = useState<number[]>([])
+  const [currentPage, setCurrentPage] = useState<number>(1)
   const [matchedItemKeys, setMatchedItemKeys] = useState<MatchedItemKeys>()
   const [error, setError] = useState<Error | undefined>()
   const [comparingText, setComparingText] = useState<string>()
@@ -148,12 +152,8 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSea
 
   useEffect(() => {
     if (!(result && catalogs)) return
-    const itemKeys = result?.itemKeys?.slice(0, 50)
-    // const itemKeys = result?.itemKeys
-    //@ts-ignore
-    // const newPage = itemKeys?.map(item => catalog[item.officeId][item.recordId])
-    setPage(itemKeys)
-    setMatchedItemKeys(result?.matchedItemKeys)
+    setPageNumbers(calculatePageNumbers(result?.matchedRecords ?? 0))
+    goToPage(1)
   }, [result])
 
   useEffect(() => {
@@ -169,7 +169,43 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSea
     searcher.current.postMessage({ type: 'search', payload: query })
   }, [query, catalogs])
 
-  return { status, result, page, matchedItemKeys, error, comparingText }
+
+  function calculatePageNumbers(numberOfItems: number) {
+    const pages = Math.ceil(numberOfItems / pageSize)
+    const pageNumbers = []
+    for (let i = 1; i <= pages; i++) {
+      pageNumbers.push(i)
+    }
+    return pageNumbers
+  }
+
+  function goToPage(page: number) {
+    setCurrentPage(page)
+    setMatchedItemKeys(result?.matchedItemKeys)
+    setPage(result?.itemKeys?.slice((page - 1) * pageSize, page * pageSize))
+  }
+
+  function nextPage() {
+    goToPage(currentPage + 1)
+  }
+
+  function previousPage() {
+    goToPage(currentPage - 1)
+  }
+
+  const pages = {
+    numbers: pageNumbers,
+    total: pageNumbers.length,
+    pageSize,
+    currentPage,
+    nextPage,
+    previousPage,
+    goToPage,
+    hasNext: currentPage < pageNumbers.length,
+    hasPrevious: currentPage > 1,
+  }
+
+  return { status, result, page, matchedItemKeys, error, comparingText, pages }
 }
 
 export function useCatalogSearchCallback() {

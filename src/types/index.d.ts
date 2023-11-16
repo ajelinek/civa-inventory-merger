@@ -137,6 +137,17 @@ interface UseSearchCatalogReturn {
   matchedItemKeys: MatchedItemKeys | undefined
   error: Error | undefined
   comparingText: string | undefined
+  pages: {
+    numbers: number[]
+    total: number
+    currentPage: number
+    pageSize: number
+    hasNext: boolean
+    hasPrevious: boolean
+    nextPage: () => void
+    previousPage: () => void
+    goToPage: (page: number) => void
+  }
 }
 
 

@@ -129,14 +129,14 @@ function generalSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
   return { itemKeys, matchedCatalogs, matchedRecords, keyWords }
 }
 
-function basicSearch(query: CatalogQuery, searcher: Fuse<SearchItem>, limit: number = 100) {
+function basicSearch(query: CatalogQuery, searcher: Fuse<SearchItem>, limit?: number) {
   const results = searcher.search(buildLogicalQuery(query))
   const filtered = filterResultsByQueryOptions(results, query)
   const matchedRecords = filtered.length
   const sortArray = query.sort?.map(sort => ({ [sort.direction]: (r: Fuse.FuseResult<SearchItem>) => getField(r.item, sort.field) })) ?? []
   //@ts-ignore
   const itemKeys = sort(filtered).by(sortArray)
-    .slice(0, limit)
+    .slice(0, limit || filtered.length)
     .map(result => ({
       recordId: result.item.recordId,
       officeId: result.item.officeId
@@ -171,25 +171,47 @@ function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], que
     if (query.dispensingFeeVarianceHigh && (costs.dispensingFeeVariance ?? 0) > query.dispensingFeeVarianceHigh) return false
 
     //Filters for Mapping Helpers
-    if (query.missingOfficeIds === true && item.officeId === 'CIVA' && item.linkedItems?.length === officeCount) return false
+    let filterConditions = []
+
+    if (query.missingOfficeIds === true && item.officeId === 'CIVA' && item.linkedItems?.length === officeCount) {
+      filterConditions.push(false)
+    }
 
     if (query.differentItemId === true) {
-      if (item.officeId === 'CIVA' && !(item.linkedItems?.find(itemKeys => getItem(itemKeys)?.itemId !== item.itemId))) return false
-      if (item.officeId !== 'CIVA' && !(item.itemLinkedTo?.recordId && getItem(item.itemLinkedTo)?.itemId !== item.itemId)) return false
+      if (item.officeId === 'CIVA' && !(item.linkedItems?.find(itemKeys => getItem(itemKeys)?.itemId !== item.itemId))) {
+        filterConditions.push(false)
+      }
+      if (item.officeId !== 'CIVA' && !(item.itemLinkedTo?.recordId && getItem(item.itemLinkedTo)?.itemId !== item.itemId)) {
+        filterConditions.push(false)
+      }
     }
 
     if (query.differentClassification === true) {
-      if (item.officeId === 'CIVA' && !(item.linkedItems?.find(itemKeys => getItem(itemKeys)?.classificationId !== item.classificationId))) return false
-      if (item.officeId === 'CIVA' && !(item.linkedItems?.find(itemKeys => getItem(itemKeys)?.subClassificationId !== item.subClassificationId))) return false
-
-      if (item.officeId !== 'CIVA' && !(item.itemLinkedTo?.recordId && getItem(item.itemLinkedTo)?.classificationId !== item.classificationId)) return false
-      if (item.officeId !== 'CIVA' && !(item.itemLinkedTo?.recordId && getItem(item.itemLinkedTo)?.subClassificationId !== item.subClassificationId)) return false
+      if (item.officeId === 'CIVA' && !(item.linkedItems?.find(itemKeys => getItem(itemKeys)?.classificationId !== item.classificationId))) {
+        filterConditions.push(false)
+      }
+      if (item.officeId === 'CIVA' && !(item.linkedItems?.find(itemKeys => getItem(itemKeys)?.subClassificationId !== item.subClassificationId))) {
+        filterConditions.push(false)
+      }
+      if (item.officeId !== 'CIVA' && !(item.itemLinkedTo?.recordId && getItem(item.itemLinkedTo)?.classificationId !== item.classificationId)) {
+        filterConditions.push(false)
+      }
+      if (item.officeId !== 'CIVA' && !(item.itemLinkedTo?.recordId && getItem(item.itemLinkedTo)?.subClassificationId !== item.subClassificationId)) {
+        filterConditions.push(false)
+      }
     }
 
-    console.log('🚀 ~ filterResultsByQueryOptions ~ differentItemDescription:', query.differentItemDescription)
     if (query.differentItemDescription === true) {
-      if (item.officeId === 'CIVA' && !(item.linkedItems?.find(itemKeys => getItem(itemKeys)?.itemDescription !== item.itemDescription))) return false
-      if (item.officeId !== 'CIVA' && !(item.itemLinkedTo?.recordId && getItem(item.itemLinkedTo)?.itemDescription !== item.itemDescription)) return false
+      if (item.officeId === 'CIVA' && !(item.linkedItems?.find(itemKeys => getItem(itemKeys)?.itemDescription !== item.itemDescription))) {
+        filterConditions.push(false)
+      }
+      if (item.officeId !== 'CIVA' && !(item.itemLinkedTo?.recordId && getItem(item.itemLinkedTo)?.itemDescription !== item.itemDescription)) {
+        filterConditions.push(false)
+      }
+    }
+
+    if (filterConditions.includes(false)) {
+      return false
     }
 
     return true

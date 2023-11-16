@@ -2,12 +2,54 @@
   position: relative;
 }
 
-.sortButton {
-  position: absolute;
-  top: 1rem;
-  right: 0;
-}
-
 .itemList {
   overflow: hidden;
+}
+
+.actionBar{
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.pageResults {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.pageNav {
+  display: flex;
+  column-gap: 0rem;
+  align-items: center;
+}
+
+.navButton,
+.navButtonFirst,
+.navButtonLast,
+.numberButton {
+  padding: 0.25rem .75rem;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  width: fit-content;
+  border-radius: 0;
+  background: none;
+  margin: 0;
+}
+.activePageButton {
+  background: var(--primary);
+}
+
+.navButtonFirst {
+  border-top-left-radius: 0.5rem;
+  border-bottom-left-radius: 0.5rem;
+}
+
+.navButtonLast {
+  border-top-right-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
 }
