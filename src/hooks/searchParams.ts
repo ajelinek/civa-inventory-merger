@@ -94,6 +94,9 @@ type SearchParams =
   | 'exl' // excludeLinked
   | 'exi' // excludeInactive
   | 'mo' // missingOfficeIds
+  | 'di' // different Item Id
+  | 'dc' // different classification
+  | 'did' // different item description
   | 'mc' // matchedCatalogs page specific
   | 'msc' // matchedRecords page specific
   | 'cc' // comparisonCount page specific

@@ -6,8 +6,8 @@ import { Link } from 'react-router-dom'
 import { useCatalogItem, useStore } from '../../store'
 import { calculateLinkItemTotals } from '../../store/selectors/item'
 import ItemSummaryCharts from '../ItemSummaryCharts'
+import ItemTitle from '../ItemTitle'
 import Money from '../Money'
-import { OfficeIdsDisplay } from '../OfficeIdDisplay'
 import s from './itemSummary.module.css'
 
 export default function ItemSummary({ itemKey, selector }: { itemKey: ItemKey, selector: Selector<ItemKey> }) {
@@ -36,13 +36,7 @@ export default function ItemSummary({ itemKey, selector }: { itemKey: ItemKey, s
         />
 
         <div className={s.summaryContent} >
-          <div className={s.summaryTitle} >
-            <Link className={`${s.title} ${item.status === 'inactive' ? s.inactiveTitle : ''}`}
-              to={`/item/${itemKey.recordId}/${itemKey.officeId}`}>
-              <span className={s.id}>{item.officeId}-{item.itemId}</span> - {item.itemDescription}
-            </Link>
-            {item.officeId === 'CIVA' && <><OfficeIdList item={item} /></>}
-          </div>
+          <ItemTitle itemKey={itemKey} s={s} />
           <div className={s.secondaryInfo}>
             <ClassificationDisplay />
             {item.officeId === 'CIVA'
@@ -74,6 +68,9 @@ export default function ItemSummary({ itemKey, selector }: { itemKey: ItemKey, s
 function ItemAttributes({ item }: { item: ItemRecord }) {
   return (
     <div>
+      <p className={s.attribute}>
+        <span className={s.label}>Item Id:</span> {item.itemId}
+      </p>
       <p className={s.attribute}>
         <span className={s.label}>Description:</span> {item.itemDescription}
       </p>
@@ -184,9 +181,4 @@ function OfficeCostingInfo({ item }: { item: ItemRecord }) {
       </p>
     </div>
   )
-}
-
-function OfficeIdList({ item }: { item: ItemRecord }) {
-  const officeIds = item.linkedItems?.map(linkedItem => linkedItem.officeId) || []
-  return <OfficeIdsDisplay officeIds={officeIds} />
 }

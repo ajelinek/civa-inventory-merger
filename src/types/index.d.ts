@@ -11,7 +11,7 @@ interface Store {
 interface importFileOptions {
   masterCatalog: boolean
   inventoryFile: File
-  pricingFile: File
+  pricingFile?: File
 }
 
 interface Creds {
@@ -92,6 +92,9 @@ interface CatalogQuery {
   excludeLinked?: boolean
   excludeInactive?: boolean
   missingOfficeIds?: boolean
+  differentItemId?: boolean
+  differentClassification?: boolean
+  differentItemDescription?: boolean
   classificationNames?: string[]
   subClassificationNames?: string[]
   unitPriceLow?: number
@@ -134,6 +137,17 @@ interface UseSearchCatalogReturn {
   matchedItemKeys: MatchedItemKeys | undefined
   error: Error | undefined
   comparingText: string | undefined
+  pages: {
+    numbers: number[]
+    total: number
+    currentPage: number
+    pageSize: number
+    hasNext: boolean
+    hasPrevious: boolean
+    nextPage: () => void
+    previousPage: () => void
+    goToPage: (page: number) => void
+  }
 }
 
 

@@ -2,6 +2,7 @@ import { sort } from 'fast-sort'
 import Fuse from 'fuse.js'
 import { removeStopwords } from 'stopword'
 import { calculateLinkItemTotals } from '../selectors/item'
+import { push } from 'firebase/database'
 
 let searcher: Fuse<SearchItem> | null = null
 let catalogs: Catalogs | null = null
@@ -155,18 +156,20 @@ function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], que
 
     if (!item) return false
 
-    /**********************************************
-     * Filters for General and Comparison Search
-     * Follows AND logic for group
-     ***********************************************/
-    if (query.excludeMapped === true && item.classificationMappedTimestamp) return false
-    if (query.excludeLinked === true && (item.itemLinkedTo?.recordId || item.linkedItems?.length === officeCount)) return false
-    if (query.excludeInactive === true && item.status === 'inactive') return false
+    //status filters
+    const statusChecks = []
+    const statusFiltersActive = (
+      query.excludeMapped === true ||
+      query.excludeLinked === true ||
+      query.excludeInactive === true
+    )
+    if (query.excludeMapped === true && !item.classificationMappedTimestamp) statusChecks.push(true)
+    if (query.excludeLinked === true && !(item.itemLinkedTo?.recordId || item.linkedItems?.length === officeCount)) statusChecks.push(true)
+    if (query.excludeInactive === true && item.status !== 'inactive') statusChecks.push(true)
 
-    /**************************** */
-    //Fitlers For Pricing Information
-    //Follows AND Logic for group
-    /**************************** */
+
+    //Pricing Filters
+    const pricingChecks = []
     const {
       unitPriceLow = -Infinity,
       unitPriceHigh = Infinity,
@@ -180,83 +183,52 @@ function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], que
       dispensingFeeVarianceHigh = Infinity
     } = query
 
-    if (query.unitPriceLow || query.unitPriceHigh) {
-      if (item.officeId === 'CIVA') {
-        if (!costs.avgUnitPrice) return false
-        if (!(costs.avgUnitPrice >= unitPriceLow && costs.avgUnitPrice <= unitPriceHigh)) return false
-      } else {
-        if (!item.unitPrice) return false
-        if (!(item.unitPrice >= unitPriceLow && item.unitPrice <= unitPriceHigh)) return false
-      }
+    if ((query.unitPriceLow || query.unitPriceHigh) && item.unitPrice && item.unitPrice >= unitPriceLow && item.unitPrice <= unitPriceHigh) pricingChecks.push(true)
+    if ((query.dispensingFeeLow || query.dispensingFeeHigh) && item.dispensingFee && item.dispensingFee >= dispensingFeeLow && item.dispensingFee <= dispensingFeeHigh) {
+      pricingChecks.push(true)
     }
-
-    if (query.dispensingFeeLow || query.dispensingFeeHigh) {
-      if (item.officeId === 'CIVA') {
-        if (!costs.avgDispensingFee) return false
-        if (!(costs.avgDispensingFee >= dispensingFeeLow && costs.avgDispensingFee <= dispensingFeeHigh)) return false
-      } else {
-        if (!item.dispensingFee) return false
-        if (!(item.dispensingFee >= dispensingFeeLow && item.dispensingFee <= dispensingFeeHigh)) return false
-      }
+    if ((query.markUpPercentageLow || query.markUpPercentageHigh) && item.markUpPercentage && item.markUpPercentage >= markUpPercentageLow && item.markUpPercentage <= markUpPercentageHigh) {
+      pricingChecks.push(true)
     }
-
-    if (query.markUpPercentageLow || query.markUpPercentageHigh) {
-      if (item.officeId === 'CIVA') {
-        if (!costs.avgMarkupPercentage) return false
-        if (!(costs.avgMarkupPercentage >= markUpPercentageLow && costs.avgMarkupPercentage <= markUpPercentageHigh)) return false
-      } else {
-        if (!item.markUpPercentage) return false
-        if (!(item.markUpPercentage >= markUpPercentageLow && item.markUpPercentage <= markUpPercentageHigh)) return false
-      }
+    if ((query.unitPriceVarianceLow || query.unitPriceVarianceHigh) && costs.unitPriceVariance && costs.unitPriceVariance >= unitPriceVarianceLow && costs.unitPriceVariance <= unitPriceVarianceHigh) {
+      pricingChecks.push(true)
     }
-
-    console.log('🚀 ~ filterResultsByQueryOptions ~ query.unitPriceVarianceLow || query.unitPriceVarianceHigh:', query.unitPriceVarianceLow, query.unitPriceVarianceHigh)
-    if (query.unitPriceVarianceLow || query.unitPriceVarianceHigh) {
-      if (!costs.unitPriceVariance) return false
-      if (!(costs.unitPriceVariance >= unitPriceVarianceLow && costs.unitPriceVariance <= unitPriceVarianceHigh)) return false
-    }
-
-    if (query.dispensingFeeVarianceLow || query.dispensingFeeVarianceHigh) {
-      if (!costs.dispensingFeeVariance) return false
-      if (!(costs.dispensingFeeVariance >= dispensingFeeVarianceLow && costs.dispensingFeeVariance <= dispensingFeeVarianceHigh)) return false
+    if ((query.dispensingFeeVarianceLow || query.dispensingFeeVarianceHigh) && costs.dispensingFeeVariance && costs.dispensingFeeVariance >= dispensingFeeVarianceLow && costs.dispensingFeeVariance <= dispensingFeeVarianceHigh) {
+      pricingChecks.push(true)
     }
 
 
-    /**************************** */
     //Filters for Mapping Helpers
-    //Follows OR logic for group
-    /**************************** */
     const mappingFilters = []
+    const mappingFiltersActive = (
+      query.missingOfficeIds === true ||
+      query.differentItemId === true ||
+      query.differentClassification === true ||
+      query.differentItemDescription === true
+    )
     if (query.missingOfficeIds === true && item.officeId === 'CIVA' && item.linkedItems?.length !== officeCount) mappingFilters.push(true)
 
     if (query.differentItemId === true) {
       if (item.officeId === 'CIVA' && (item.linkedItems?.find(itemKeys => getItem(itemKeys)?.itemId !== item.itemId))) mappingFilters.push(true)
-      else mappingFilters.push(false)
       if (item.officeId !== 'CIVA' && (item.itemLinkedTo?.recordId && getItem(item.itemLinkedTo)?.itemId !== item.itemId)) mappingFilters.push(true)
-      else mappingFilters.push(false)
     }
 
     if (query.differentClassification === true) {
       if (item.officeId === 'CIVA' && (item.linkedItems?.find(itemKeys => getItem(itemKeys)?.classificationId !== item.classificationId))) mappingFilters.push(true)
-      else mappingFilters.push(false)
       if (item.officeId === 'CIVA' && (item.linkedItems?.find(itemKeys => getItem(itemKeys)?.subClassificationId !== item.subClassificationId))) mappingFilters.push(true)
-      else mappingFilters.push(false)
 
       if (item.officeId !== 'CIVA' && (item.itemLinkedTo?.recordId && getItem(item.itemLinkedTo)?.classificationId !== item.classificationId)) mappingFilters.push(true)
-      else mappingFilters.push(false)
       if (item.officeId !== 'CIVA' && (item.itemLinkedTo?.recordId && getItem(item.itemLinkedTo)?.subClassificationId !== item.subClassificationId)) mappingFilters.push(true)
-      else mappingFilters.push(false)
     }
 
     if (query.differentItemDescription === true) {
       if (item.officeId === 'CIVA' && (item.linkedItems?.find(itemKeys => getItem(itemKeys)?.itemDescription !== item.itemDescription))) mappingFilters.push(true)
-      else mappingFilters.push(false)
       if (item.officeId !== 'CIVA' && (item.itemLinkedTo?.recordId && getItem(item.itemLinkedTo)?.itemDescription !== item.itemDescription)) mappingFilters.push(true)
-      else mappingFilters.push(false)
     }
 
-    if (mappingFilters.length > 0 && !mappingFilters.includes(true)) return false
-
+    if (statusFiltersActive && statusChecks.length === 0) return false
+    if (pricingFiltersActive && pricingChecks.length === 0) return false
+    if (mappingFiltersActive && mappingFilters.length === 0) return false
     return true
 
   })
