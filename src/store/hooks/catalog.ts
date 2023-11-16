@@ -6,7 +6,6 @@ import { useStore } from ".."
 import { loadCatalog, updateClassifications } from "../providers/catalog"
 import { processImportFile } from "../providers/import"
 import Searcher from "../workers/searcher.worker?worker"
-import { set } from "firebase/database"
 
 export function useFileImport() {
   return useAsyncCallback(async (file: importFileOptions) => {
@@ -41,8 +40,8 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       differentItemId: searchParams.get('di') === 'true',
       differentClassification: searchParams.get('dc') === 'true',
       differentItemDescription: searchParams.get('did') === 'true',
-      unitPriceLow: searchParams.get('upvl') ? Number(searchParams.get('upvl')) : undefined,
-      unitPriceHigh: searchParams.get('upvh') ? Number(searchParams.get('upvh')) : undefined,
+      unitPriceLow: searchParams.get('upl') ? Number(searchParams.get('upl')) : undefined,
+      unitPriceHigh: searchParams.get('uph') ? Number(searchParams.get('uph')) : undefined,
       markUpPercentageLow: searchParams.get('mpl') ? Number(searchParams.get('mpl')) : undefined,
       markUpPercentageHigh: searchParams.get('mph') ? Number(searchParams.get('mph')) : undefined,
       dispensingFeeLow: searchParams.get('dfl') ? Number(searchParams.get('dfl')) : undefined,

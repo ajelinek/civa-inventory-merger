@@ -180,6 +180,7 @@ function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], que
       dispensingFeeVarianceHigh = Infinity
     } = query
 
+    console.log('🚀 ~ filterResultsByQueryOptions ~ query.unitPriceLow || query.unitPriceHigh:', query.unitPriceLow, query.unitPriceHigh, costs, item)
     if (query.unitPriceLow || query.unitPriceHigh) {
       if (item.officeId === 'CIVA') {
         if (!costs.avgUnitPrice) return false
