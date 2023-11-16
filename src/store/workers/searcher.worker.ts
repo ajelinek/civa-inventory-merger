@@ -210,7 +210,6 @@ function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], que
       }
     }
 
-    console.log('🚀 ~ filterResultsByQueryOptions ~ query.unitPriceVarianceLow || query.unitPriceVarianceHigh:', query.unitPriceVarianceLow, query.unitPriceVarianceHigh)
     if (query.unitPriceVarianceLow || query.unitPriceVarianceHigh) {
       if (!costs.unitPriceVariance) return false
       if (!(costs.unitPriceVariance >= unitPriceVarianceLow && costs.unitPriceVariance <= unitPriceVarianceHigh)) return false
