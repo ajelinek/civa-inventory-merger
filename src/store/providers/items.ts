@@ -10,11 +10,11 @@ export async function upsertItem(item: CreateItemRecordInput) {
   if (item.officeId !== 'CIVA') throw new Error('Only CIVA items can be created/updated')
   if (!item.itemId) throw new Error('ItemId is required')
 
-  if (item.subClassificationId) {
-    if (!item.itemId.startsWith(item.subClassificationId)) throw new Error('ItemId must start with the sub classification id')
-  } else {
-    if (!item.itemId.startsWith(item.classificationId)) throw new Error('ItemId must start with the classification id')
-  }
+  // if (item.subClassificationId) {
+  //   if (!item.itemId.startsWith(item.subClassificationId)) throw new Error('ItemId must start with the sub classification id')
+  // } else {
+  //   if (!item.itemId.startsWith(item.classificationId)) throw new Error('ItemId must start with the classification id')
+  // }
 
   if (!item.itemDescription) throw new Error('Description is required')
   const itemRef = ref(rdb, `catalogs/${item.officeId}/${item.recordId}`)
