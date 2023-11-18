@@ -77,6 +77,14 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       prev.delete('mpl')
       prev.delete('mph')
       prev.delete('srt')
+      prev.delete('di')
+      prev.delete('dc')
+      prev.delete('did')
+      prev.delete('upvl')
+      prev.delete('upvh')
+      prev.delete('dfvl')
+      prev.delete('dfvh')
+
 
       if (initialQuery?.officeIds?.length ?? 0 > 0) {
         initialQuery?.officeIds?.forEach(id => prev.append('o', id))

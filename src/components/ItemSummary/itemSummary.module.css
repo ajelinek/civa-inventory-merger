@@ -57,6 +57,14 @@
 .attribute {
   margin: 0.2rem;
 }
+.valueGroup {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+.linkedValue {
+  color: var(--primary);
+} 
 .inactiveTitle {
   text-decoration: line-through;
 }

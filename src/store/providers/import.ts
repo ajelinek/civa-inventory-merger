@@ -180,18 +180,35 @@ async function createCornerstoneCatalog(options: importFileOptions, meta: Office
 }
 
 function searchMasterCatalog(catalog: Catalog, itemRecord: ItemRecord) {
-  const matchedMasterItemKey = Object.keys(catalog).find((key) => {
+  const matchedMasterItemKeys = Object.keys(catalog).map((key) => {
     const masterItemRecord = catalog[key]
-    return (
-      masterItemRecord.itemDescription?.toLocaleLowerCase() === itemRecord?.itemDescription?.toLocaleLowerCase() ||
-      (masterItemRecord.itemId === itemRecord.itemId && masterItemRecord?.classificationName?.toLocaleLowerCase() === itemRecord?.classificationName?.toLocaleLowerCase()) ||
-      masterItemRecord.linkedItems?.find((itemKey) => (
-        itemKey.recordId === itemRecord.recordId &&
-        itemKey.officeId === itemRecord.officeId)
-      )
-    )
+    let score = 0
+
+
+    if (masterItemRecord?.classificationName?.toLocaleLowerCase() === itemRecord?.classificationName?.toLocaleLowerCase()) {
+      if (masterItemRecord.itemId === itemRecord.itemId) {
+        score++
+      }
+
+      if (masterItemRecord.itemDescription?.toLocaleLowerCase() === itemRecord?.itemDescription?.toLocaleLowerCase()) {
+        score++
+      }
+    }
+
+
+    if (masterItemRecord.linkedItems?.find((itemKey) => (
+      itemKey.recordId === itemRecord.recordId &&
+      itemKey.officeId === itemRecord.officeId)
+    )) {
+      score++
+    }
+
+    return { key, score }
   })
-  return matchedMasterItemKey ? catalog[matchedMasterItemKey] : null
+
+  matchedMasterItemKeys.sort((a, b) => b.score - a.score)
+
+  return matchedMasterItemKeys.length > 0 ? catalog[matchedMasterItemKeys[0].key] : null
 }
 
 

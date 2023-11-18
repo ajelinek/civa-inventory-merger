@@ -180,7 +180,6 @@ function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], que
       dispensingFeeVarianceHigh = Infinity
     } = query
 
-    console.log('🚀 ~ filterResultsByQueryOptions ~ query.unitPriceLow || query.unitPriceHigh:', query.unitPriceLow, query.unitPriceHigh, costs, item)
     if (query.unitPriceLow || query.unitPriceHigh) {
       if (item.officeId === 'CIVA') {
         if (!costs.avgUnitPrice) return false
@@ -227,7 +226,13 @@ function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], que
     //Follows OR logic for group
     /**************************** */
     const mappingFilters = []
-    if (query.missingOfficeIds === true && item.officeId === 'CIVA' && item.linkedItems?.length !== officeCount) mappingFilters.push(true)
+
+    console.log('🚀 ~ filterResultsByQueryOptions ~ query.missingOfficeIds:', query.missingOfficeIds, officeCount)
+    console.log('🚀 ~ filterResultsByQueryOptions ~ item.linkedItems:', item.linkedItems?.length)
+    if (query.missingOfficeIds === true) {
+      if (item.officeId === 'CIVA' && item.linkedItems?.length !== officeCount) mappingFilters.push(true)
+      else mappingFilters.push(false)
+    }
 
     if (query.differentItemId === true) {
       if (item.officeId === 'CIVA' && (item.linkedItems?.find(itemKeys => getItem(itemKeys)?.itemId !== item.itemId))) mappingFilters.push(true)

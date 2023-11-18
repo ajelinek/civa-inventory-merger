@@ -21,6 +21,10 @@ export default function ItemForm({ itemKey }: props) {
     item.classificationName = classifications?.[item.classificationId]?.name || ""
     item.subClassificationName = classifications?.[item.classificationId]?.subClassifications?.[item.subClassificationId]?.name || ""
     item.itemTypeDescription = itemTypes?.[item.itemType].name || ""
+    item.markUpPercentage = Number(item.markUpPercentage) || 0
+    item.minimumPrice = Number(item.minimumPrice) || 0
+    item.dispensingFee = Number(item.dispensingFee) || 0
+    item.unitPrice = Number(item.unitPrice) || 0
     await createItem.execute(item)
     if (!itemKey) nav(`/item/${item.recordId}/${item.officeId}`)
   })
@@ -78,22 +82,22 @@ export default function ItemForm({ itemKey }: props) {
             <input type="text" id="itemId" name="itemId" value={form.data.itemId} onChange={form.onChange} />
           </fieldset>
           <fieldset className={s.fieldset}>
-            <label htmlFor="dispensingFee">Dispensing Fee</label>
-            <input type="text" id="dispensingFee" name="dispensingFee" value={'' + form.data.dispensingFee} onChange={form.onChange} />
+            <label htmlFor="unitPrice">Unit Price</label>
+            <input type="number" id="unitPrice" name="unitPrice" value={form.data.unitPrice ?? 0} onChange={form.onChange} />
           </fieldset>
           <fieldset className={s.fieldset}>
-            <label htmlFor="unitOfMeasure">Unit of Measure</label>
-            <input type="text" id="unitOfMeasure" name="unitOfMeasure" value={form.data.unitOfMeasure} onChange={form.onChange} />
+            <label htmlFor="minimumPrice">Minimum Price</label>
+            <input type="number" id="minimumPrice" name="minimumPrice" value={form.data.minimumPrice ?? 0} onChange={form.onChange} />
           </fieldset>
         </div>
         <div className={s.formGroup}>
           <fieldset className={s.fieldset}>
-            <label htmlFor="minimumPrice">Minimum Price</label>
-            <input type="number" id="minimumPrice" name="minimumPrice" value={'' + form.data.minimumPrice} onChange={form.onChange} />
+            <label htmlFor="dispensingFee">Dispensing Fee</label>
+            <input type="number" id="dispensingFee" name="dispensingFee" value={form.data.dispensingFee ?? 0} onChange={form.onChange} />
           </fieldset>
           <fieldset className={s.fieldset}>
             <label htmlFor="markUpPercentage">Mark Up Percentage</label>
-            <input type="number" id="markUpPercentage" name="markUpPercentage" value={'' + form.data.markUpPercentage} onChange={form.onChange} />
+            <input type="number" id="markUpPercentage" name="markUpPercentage" value={form.data.markUpPercentage ?? 0} onChange={form.onChange} />
           </fieldset>
         </div>
         {!disabled && <button type="submit" aria-busy={createItem.loading}>{createEditText}</button>}
