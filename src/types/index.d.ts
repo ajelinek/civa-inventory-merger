@@ -91,6 +91,7 @@ interface CatalogQuery {
   excludeMapped?: boolean
   excludeLinked?: boolean
   excludeInactive?: boolean
+  excludeProcessed?: boolean
   missingOfficeIds?: boolean
   differentItemId?: boolean
   differentClassification?: boolean

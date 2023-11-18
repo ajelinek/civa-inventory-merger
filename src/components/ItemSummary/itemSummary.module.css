@@ -119,6 +119,12 @@
   margin: 0 1rem 0 2.8rem; /*hack to align the attribute values*/
 }
 
+.processedButton {
+  margin-top: 1rem;
+  background-color: var(--del-color);
+  border: var(--del-color);
+}
+
 .chartArea {
   min-width: 50rem;
   max-width: 100%;

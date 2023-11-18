@@ -162,6 +162,7 @@ function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], que
     if (query.excludeMapped === true && item.classificationMappedTimestamp) return false
     if (query.excludeLinked === true && (item.itemLinkedTo?.recordId || item.linkedItems?.length === officeCount)) return false
     if (query.excludeInactive === true && item.status === 'inactive') return false
+    if (query.excludeProcessed === true && item.processed) return false
 
     /**************************** */
     //Fitlers For Pricing Information
@@ -227,8 +228,6 @@ function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], que
     /**************************** */
     const mappingFilters = []
 
-    console.log('🚀 ~ filterResultsByQueryOptions ~ query.missingOfficeIds:', query.missingOfficeIds, officeCount)
-    console.log('🚀 ~ filterResultsByQueryOptions ~ item.linkedItems:', item.linkedItems?.length)
     if (query.missingOfficeIds === true) {
       if (item.officeId === 'CIVA' && item.linkedItems?.length !== officeCount) mappingFilters.push(true)
       else mappingFilters.push(false)

@@ -3,6 +3,11 @@ import { rdb } from "../firebase"
 import { useStore } from ".."
 
 
+export async function markItemProcessed(itemKey: ItemKey) {
+  const itemRef = ref(rdb, `catalogs/${itemKey.officeId}/${itemKey.recordId}`)
+  await update(itemRef, { processed: Date.now() })
+}
+
 export async function upsertItem(item: CreateItemRecordInput) {
   if (item.status === 'inactive') return inactiveItems([{ officeId: item.officeId, recordId: item.recordId }, ...item.linkedItems || []])
 

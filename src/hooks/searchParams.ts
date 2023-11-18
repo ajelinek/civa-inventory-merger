@@ -93,6 +93,7 @@ type SearchParams =
   | 'exm' // excludeMapped
   | 'exl' // excludeLinked
   | 'exi' // excludeInactive
+  | 'exp' // excludeProcessed
   | 'mo' // missingOfficeIds
   | 'di' // different Item Id
   | 'dc' // different classification

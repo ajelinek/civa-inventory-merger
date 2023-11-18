@@ -82,6 +82,7 @@ interface ItemRecord {
   minimumPrice: number | null
   markUpPercentage: number | null
   lastUpdateTimestamp?: Date
+  processed?: Date
   classificationMappedTimestamp?: Date | undefined
   linkedItems?: ItemKey[]
   itemLinkedTo?: ItemKey

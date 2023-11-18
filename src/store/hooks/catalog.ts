@@ -36,6 +36,7 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       excludeMapped: searchParams.get('exm') === 'true',
       excludeLinked: searchParams.get('exl') === 'true',
       excludeInactive: searchParams.get('exi') === 'true',
+      excludeProcessed: searchParams.get('exp') === 'true',
       missingOfficeIds: searchParams.get('mo') === 'true',
       differentItemId: searchParams.get('di') === 'true',
       differentClassification: searchParams.get('dc') === 'true',
@@ -66,6 +67,7 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       prev.delete('exm')
       prev.delete('exl')
       prev.delete('exi')
+      prev.delete('exp')
       prev.delete('mo')
       prev.delete('mc')
       prev.delete('msc')

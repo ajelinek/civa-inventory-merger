@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import { FaCaretDown, FaCaretRight } from 'react-icons/fa6'
 import { RxDividerVertical } from 'react-icons/rx'
 import { Link } from 'react-router-dom'
-import { useCatalogItem, useStore } from '../../store'
+import { useCatalogItem, useMarkedProcessed, useStore } from '../../store'
 import { calculateLinkItemTotals } from '../../store/selectors/item'
 import ItemSummaryCharts from '../ItemSummaryCharts'
 import ItemTitle from '../ItemTitle'
@@ -54,7 +54,7 @@ export default function ItemSummary({ itemKey, selector }: { itemKey: ItemKey, s
         <div className={s.itemDetails}>
           <ItemAttributes item={item} />
           <div className={s.chartArea}>
-            {(item.linkedItems?.length && item.linkedItems.length > 0) &&
+            {(item.officeId === 'CIVA' && item.linkedItems?.length && item.linkedItems.length > 0) &&
               <ItemSummaryCharts itemKeys={item.linkedItems} />}
           </div>
         </div>
@@ -66,95 +66,105 @@ export default function ItemSummary({ itemKey, selector }: { itemKey: ItemKey, s
 
 function ItemAttributes({ item }: { item: ItemRecord }) {
   const linkedItem = useCatalogItem(item.itemLinkedTo)
+  const markProcessed = useMarkedProcessed()
 
   return (
     <div>
-      <p className={s.attribute}>
+      <div className={s.attribute}>
         <span className={s.label}>Item Id:</span>
         <p className={s.valueGroup}>
           <span className={s.value}>{item.itemId}</span>
           {linkedItem && item.itemId !== linkedItem.itemId && <span className={s.linkedValue}>{linkedItem?.itemId}</span>}
         </p>
-      </p>
-      <p className={s.attribute}>
+      </div>
+      <div className={s.attribute}>
         <span className={s.label}>Description:</span>
         <p className={s.valueGroup}>
           <span className={s.value}>{item.itemDescription}</span>
           {linkedItem && item.itemDescription !== linkedItem.itemDescription && <span className={s.linkedValue}>{linkedItem?.itemDescription}</span>}
         </p>
-      </p>
+      </div>
       {/* ... other attributes ... */}
-      <p className={s.attribute}>
+      <div className={s.attribute}>
         <span className={s.label}>Classification:</span>
         <p className={s.valueGroup}>
           <span className={s.value}>{item.classificationId} - {item.classificationName}</span>
           {linkedItem && (item.classificationId !== linkedItem.classificationId || item.classificationName !== linkedItem.classificationName) && <span className={s.linkedValue}>{linkedItem.classificationId} - {linkedItem.classificationName}</span>}
         </p>
-      </p>
-      <p className={s.attribute}>
+      </div>
+      <div className={s.attribute}>
         <span className={s.label}>Sub Classification:</span>
         <p className={s.valueGroup}>
           <span className={s.value}>{item.subClassificationId} - {item.subClassificationName}</span>
           {linkedItem && (item.subClassificationId !== linkedItem.subClassificationId || item.subClassificationName !== linkedItem.subClassificationName) && <span className={s.linkedValue}>{linkedItem.subClassificationId} - {linkedItem.subClassificationName}</span>}
         </p>
-      </p>
-      <p className={s.attribute}>
+      </div>
+      <div className={s.attribute}>
         <span className={s.label}>Item Type:</span>
         <p className={s.valueGroup}>
           <span className={s.value}>{item.itemType}</span>
           {linkedItem && item.itemType !== linkedItem.itemType && <span className={s.linkedValue}>{linkedItem.itemType}</span>}
         </p>
-      </p>
-      <p className={s.attribute}>
+      </div>
+      <div className={s.attribute}>
         <span className={s.label}>Item Type Description:</span>
         <p className={s.valueGroup}>
           <span className={s.value}>{item.itemTypeDescription}</span>
           {linkedItem && item.itemTypeDescription !== linkedItem.itemTypeDescription && <span className={s.linkedValue}>{linkedItem.itemTypeDescription}</span>}
         </p>
-      </p>
-      <p className={s.attribute}>
+      </div>
+      <div className={s.attribute}>
         <span className={s.label}>Unit Price:</span>
         <p className={s.valueGroup}>
           <span className={s.value}><Money>{item.unitPrice}</Money></span>
           {linkedItem && item.unitPrice !== linkedItem.unitPrice && <span className={s.linkedValue}><Money>{linkedItem?.unitPrice}</Money></span>}
         </p>
-      </p>
-      <p className={s.attribute}>
+      </div>
+      <div className={s.attribute}>
         <span className={s.label}>Dispensing Fee:</span>
         <p className={s.valueGroup}>
           <span className={s.value}><Money>{item.dispensingFee}</Money></span>
           {linkedItem && item.dispensingFee !== linkedItem.dispensingFee && <span className={s.linkedValue}><Money>{linkedItem?.dispensingFee}</Money></span>}
         </p>
-      </p>
-      <p className={s.attribute}>
+      </div>
+      <div className={s.attribute}>
         <span className={s.label}>Mark Up Percentage:</span>
         <p className={s.valueGroup}>
           <span className={s.value}>{item.markUpPercentage?.toFixed(1)}%</span>
           {linkedItem?.markUpPercentage && item.markUpPercentage !== linkedItem.markUpPercentage && <span className={s.linkedValue}>{linkedItem?.markUpPercentage?.toFixed(1)}%</span>}
         </p>
-      </p>
-      <p className={s.attribute}>
+      </div>
+      <div className={s.attribute}>
         <span className={s.label}>Status:</span>
         <p className={s.valueGroup}>
           <span className={s.value}>{item.status ? item.status : 'active'}</span>
-          {linkedItem && item.status !== linkedItem.status && <span className={s.linkedValue}>{linkedItem.status ? linkedItem.status : 'active'}</span>}
+          {linkedItem && item.status && item.status !== linkedItem.status && <span className={s.linkedValue}>{linkedItem.status ? linkedItem.status : 'active'}</span>}
         </p>
-      </p>
-      <p className={s.attribute}>
+      </div>
+      <div className={s.attribute}>
         <span className={s.label}>Mapped:
         </span> {item.classificationMappedTimestamp && dayjs(item.classificationMappedTimestamp).format('ddd, MMM D, YYYY h:mm A')
         }
-      </p>
-      <p className={s.attribute}>
+      </div>
+      <div className={s.attribute}>
         <span className={s.label}>Linked To:
         </span> <Link to={`/item/${item.itemLinkedTo?.recordId}/${item.itemLinkedTo?.officeId}`}>{item.itemLinkedTo?.recordId}</Link>
-      </p>
-      <p className={s.attribute}>
-        <span className={s.label}>Last Update:</span> {dayjs(item.lastUpdateTimestamp).format('ddd, MMM D, YYYY h:mm A')}
-      </p>
-      <p className={s.attribute}>
+      </div>
+      <div className={s.attribute}>
+        <span className={s.label}>Last Update:</span> {item.lastUpdateTimestamp && dayjs(item.lastUpdateTimestamp).format('ddd, MMM D, YYYY h:mm A')}
+      </div>
+      <div className={s.attribute}>
+        <span className={s.label}>Marked Processed:</span> {item.processed && dayjs(item.processed).format('ddd, MMM D, YYYY h:mm A')}
+      </div>
+      <div className={s.attribute}>
         <span className={s.label}>Database Record ID:</span> {item.recordId}
-      </p>
+      </div>
+      {(item.officeId !== 'CIVA' &&
+        <button className={s.processedButton}
+          onClick={() => markProcessed.execute({ recordId: item.recordId, officeId: item.officeId })}
+          aria-busy={markProcessed.loading}>
+          Mark Processed
+        </button>)}
     </div>
   )
 }
