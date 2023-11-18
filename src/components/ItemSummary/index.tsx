@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { FaCaretDown, FaCaretRight } from 'react-icons/fa6'
 import { RxDividerVertical } from 'react-icons/rx'
 import { Link } from 'react-router-dom'
@@ -10,9 +10,11 @@ import ItemTitle from '../ItemTitle'
 import Money from '../Money'
 import s from './itemSummary.module.css'
 
-export default function ItemSummary({ itemKey, selector }: { itemKey: ItemKey, selector: Selector<ItemKey> }) {
+export default function ItemSummary({ itemKey, selector, expandAll }: { itemKey: ItemKey, selector: Selector<ItemKey>, expandAll?: boolean }) {
   const item = useCatalogItem(itemKey)
-  const [active, setActive] = useState(false)
+  const [active, setActive] = useState(expandAll)
+  useEffect(() => { setActive(expandAll) }, [expandAll])
+
   if (!item) return null
 
   function ClassificationDisplay() {
