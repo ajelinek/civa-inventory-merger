@@ -208,7 +208,8 @@ function searchMasterCatalog(catalog: Catalog, itemRecord: ItemRecord) {
 
   matchedMasterItemKeys.sort((a, b) => b.score - a.score)
 
-  return matchedMasterItemKeys.length > 0 ? catalog[matchedMasterItemKeys[0].key] : null
+  const key = matchedMasterItemKeys[0]?.score > 0 ? matchedMasterItemKeys[0].key : null
+  return key ? catalog[key] : null
 }
 
 
