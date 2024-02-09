@@ -157,3 +157,21 @@ type LinkedItemUpdate = {
   linkTo: ItemKey
   linkedItems: ItemKey[]
 }
+
+
+type ExportRecord = {
+  officeId: OfficeId
+  status: 'CREATE' | 'UPDATE' | 'DELETE' | 'NO_CHANGE' | 'UNKNOWN'
+  oldClassificationId: ClassificationId
+  newClassificationId: ClassificationId
+  oldClassificationName: string
+  newClassificationName: string
+  oldSubClassificationId: ClassificationId
+  newSubClassificationId: ClassificationId
+  oldSubClassificationName: string
+  newSubClassificationName: string
+  oldItemId: ItemId
+  newItemId: ItemId
+  oldItemDescription: string
+  newItemDescription: string
+}

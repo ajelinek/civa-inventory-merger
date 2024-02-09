@@ -2,6 +2,7 @@ import { FaFileImport, FaPlus } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom'
 import { useModal } from '../../hooks/searchParams'
 import s from './catalogActionBar.module.css'
+import { ExportData } from '../Export'
 
 export default function CatalogActionBar() {
   const nav = useNavigate()
@@ -18,6 +19,7 @@ export default function CatalogActionBar() {
           <FaFileImport />
           Import
         </button>
+        <ExportData />
       </div>
     </div>
   )

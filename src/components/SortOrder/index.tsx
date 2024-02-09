@@ -3,17 +3,19 @@ import { FaSort, FaTrash } from 'react-icons/fa6'
 import { useSearchParam } from '../../hooks/searchParams'
 import s from './sortOrder.module.css'
 
-const sortFieldOptions = [
-  { field: 'lastUpdateTimestamp', name: 'Last Update Time' },
-  { field: 'unitPrice', name: 'Unit Price' },
-  { field: 'itemId', name: 'Item Id' },
-  { field: 'unitPriceVariance', name: 'Unit Price Variance' },
-  { field: 'dispensingFee', name: 'Dispensing Fee' },
-  { field: 'dispensingFeeVariance', name: 'Dispensing Fee Variance' },
-  { field: 'markUpPercentage', name: 'Markup' },
-  { field: 'classificationName', name: 'Classification' },
-  { field: 'subClassificationName', name: 'Sub Classification' },
-]
+const sortFieldOptions =
+  [
+    { field: 'classificationName', name: 'Classification' },
+    { field: 'dispensingFee', name: 'Dispensing Fee' },
+    { field: 'dispensingFeeVariance', name: 'Dispensing Fee Variance' },
+    { field: 'itemDescription', name: 'Description' },
+    { field: 'itemId', name: 'Item Id' },
+    { field: 'lastUpdateTimestamp', name: 'Last Update Time' },
+    { field: 'markUpPercentage', name: 'Markup' },
+    { field: 'subClassificationName', name: 'Sub Classification' },
+    { field: 'unitPrice', name: 'Unit Price' },
+    { field: 'unitPriceVariance', name: 'Unit Price Variance' },
+  ]
 
 export default function SortOrder({ className }: { className?: string }) {
   const sort = useSearchParam('srt')

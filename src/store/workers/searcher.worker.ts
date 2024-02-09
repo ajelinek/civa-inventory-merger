@@ -44,7 +44,8 @@ type SearchItem = Pick<ItemRecord,
   'subClassificationId' |
   'officeId' |
   'itemId' |
-  'recordId'
+  'recordId' |
+  'itemDescription'
 > & {
   searchString: string
   linkedToItemId?: string
@@ -323,6 +324,7 @@ function getField(item: SearchItem, field: string): any {
   const cost = calculateLinkItemTotals(catalogs?.[item.officeId]?.[item.recordId]?.linkedItems ?? [], catalogs!)
   const itemRecord = catalogs?.[item.officeId]?.[item.recordId]
   if (field === 'itemId') return item.itemId
+  if (field === 'itemDescription') return item?.itemDescription
   if (field === 'unitPrice') return itemRecord?.unitPrice
   if (field === 'dispensingFee') return itemRecord?.dispensingFee
   if (field === 'classificationName') return itemRecord?.classificationName
