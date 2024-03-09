@@ -38,7 +38,7 @@ export default function FacetedSearch() {
 function MappingHelperFacets() {
   const missingOfficeIds = useSearchParam('mo')
   const differentItemId = useSearchParam('di')
-  const differentClassifcation = useSearchParam('dc')
+  const differentClassification = useSearchParam('dc')
   const differentItemDescription = useSearchParam('did')
 
   return (
@@ -52,7 +52,7 @@ function MappingHelperFacets() {
         <label htmlFor="differentItemId">Different Item Id</label>
       </fieldset>
       <fieldset>
-        <input type="checkbox" id="differentClassifcation" checked={!!differentClassifcation.value} onChange={() => differentClassifcation.toggle()} />
+        <input type="checkbox" id="differentClassifcation" checked={!!differentClassification.value} onChange={() => differentClassification.toggle()} />
         <label htmlFor="differentClassifcation">Different Classification</label>
       </fieldset>
       <fieldset>

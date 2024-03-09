@@ -51,7 +51,7 @@ export function ExportData() {
     Object.values(officeCatalog!).forEach(officeItem => {
       const record = initRecord(office)
       record.status = 'DELETE'
-      if (!linkedItemIds.includes(officeItem.recordId)) {
+      if (!linkedItemIds.includes(officeItem.itemId)) {
         updateOldRecord(record, officeItem)
         exportData.push(record)
       }

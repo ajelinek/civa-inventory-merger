@@ -30,7 +30,7 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       officeIds: searchParams.getAll('o'),
       classificationIds: searchParams.getAll('c'),
       classificationNames: searchParams.getAll('c').map(id => classificationsMap?.[id]?.name ?? ''),
-      subClassificationIds: searchParams.getAll('cs'),
+      subClassificationIds: searchParams.getAll('sc'),
       keyWords: searchParams.getAll('kw'),
       searchText: searchParams.get('st') || '',
       excludeMapped: searchParams.get('exm') === 'true',

@@ -2,6 +2,7 @@ import { sort } from 'fast-sort'
 import Fuse from 'fuse.js'
 import { removeStopwords } from 'stopword'
 import { calculateLinkItemTotals } from '../selectors/item'
+import { classifications } from '../const'
 
 let searcher: Fuse<SearchItem> | null = null
 let catalogs: Catalogs | null = null
@@ -68,6 +69,7 @@ function mergeCatalogs(inCatalogs: Catalogs) {
       }))]
     return acc
   }, [] as SearchItem[])
+  console.log('🚀 ~ merged ~ merged:', merged)
   return merged
 }
 
@@ -303,10 +305,18 @@ function buildLogicalQuery(query: CatalogQuery): Fuse.Expression {
       ]
     })
   }
-  if (query.classificationIds?.length ?? 0 > 0) {
-    const classificationIds = query.classificationIds?.map(cId => ({ classificationId: `="${cId}"` }))
+
+  //exclude any classification ids where there is a sub classification id also in the query. 
+  const filteredClassificationIds = query.classificationIds?.filter(cId => {
+    const subIdFound = Object.keys(classifications[cId].subClassifications || {}).find(sCId => query.subClassificationIds?.includes(sCId))
+    if (subIdFound) return false
+    return true
+  })
+  if (filteredClassificationIds?.length ?? 0 > 0) {
+    const classificationIds = filteredClassificationIds?.map(cId => ({ classificationId: `="${cId}"` }))
     logicalQuery.$and.push({ $or: classificationIds })
   }
+
   if (query.subClassificationIds?.length ?? 0 > 0) {
     const subClassificationIds = query.subClassificationIds?.map(scId => ({ subClassificationId: `="${scId}"` }))
     logicalQuery.$and.push({ $or: subClassificationIds })
@@ -317,6 +327,7 @@ function buildLogicalQuery(query: CatalogQuery): Fuse.Expression {
     logicalQuery.$and.push({ $or: officeIds })
   }
 
+  console.log('🚀 ~ buildLogicalQuery ~ logicalQuery:', logicalQuery)
   return logicalQuery
 }
 
