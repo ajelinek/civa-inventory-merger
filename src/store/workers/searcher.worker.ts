@@ -344,6 +344,7 @@ function getField(item: SearchItem, field: string): any {
   const cost = calculateLinkItemTotals(catalogs?.[item.officeId]?.[item.recordId]?.linkedItems ?? [], catalogs!)
   const itemRecord = catalogs?.[item.officeId]?.[item.recordId]
   if (field === 'itemId') return item.itemId
+  if (field === 'officeId') return item.officeId === 'CIVA' ? 'AAAAAA' : item.officeId
   if (field === 'itemDescription') return item?.itemDescription
   if (field === 'unitPrice') return itemRecord?.unitPrice
   if (field === 'dispensingFee') return itemRecord?.dispensingFee

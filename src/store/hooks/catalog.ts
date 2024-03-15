@@ -165,6 +165,8 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSea
 
   useEffect(() => {
     if (!(result && catalogs)) return
+    const newPageNumbers = calculatePageNumbers(result?.matchedRecords ?? 0)
+    if (newPageNumbers.length === pageNumbers.length) return
     setPageNumbers(calculatePageNumbers(result?.matchedRecords ?? 0))
     goToPage(1)
   }, [result])

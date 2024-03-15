@@ -1,6 +1,5 @@
 import { useMemo } from "react"
 import { useParams } from "react-router-dom"
-import { removeStopwords } from "stopword"
 import ItemForm from "../../components/ItemForm"
 import LinkedItemsList from "../../components/LinkedItemsList"
 import UnmatchedSearch from "../../components/UnMatchedSearch"
@@ -24,12 +23,7 @@ export default function ItemPage() {
   const officeIds = useOfficeIds(['CIVA'])
   const unMatchedOfficeIds = useMatchedOfficeIds(item?.linkedItems!, officeIds)
 
-  const initialSearchString = useMemo(() => {
-    const tokens = new Set<string>()
-    item?.itemDescription.split(' ').filter(token => token.length > 2).forEach(token => tokens.add(token.toLocaleLowerCase()))
-    return removeStopwords([...tokens]).join(' ')
-  }, [item?.itemDescription])
-
+  const initialSearchString = useMemo(() => { return `=${item?.itemId}` }, [item?.itemDescription])
   if (!itemKey && !item) return null
 
   return (
