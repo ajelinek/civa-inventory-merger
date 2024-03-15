@@ -10,7 +10,8 @@ export default function ItemTitle({ s, itemKey }: { s: CSSModuleClasses, itemKey
     <div className={s.summaryTitle} >
       <Link className={`${s.title} ${item.status === 'inactive' ? s.inactiveTitle : ''}`}
         to={`/item/${itemKey.recordId}/${itemKey.officeId}`}>
-        <span className={s.id}>{item.officeId}-{item.itemId}</span> - {item.itemDescription}
+        <span className={s.id}>{item.itemId}: </span>  {item.itemDescription}
+        <span className={s.office}>  ({item.officeId}) </span>
       </Link>
       {item.officeId === 'CIVA' && <><OfficeIdList item={item} /></>}
     </div>

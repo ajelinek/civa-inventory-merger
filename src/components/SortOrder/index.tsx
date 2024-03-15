@@ -10,6 +10,7 @@ const sortFieldOptions =
     { field: 'dispensingFeeVariance', name: 'Dispensing Fee Variance' },
     { field: 'itemDescription', name: 'Description' },
     { field: 'itemId', name: 'Item Id' },
+    { field: 'officeId', name: 'Office' },
     { field: 'lastUpdateTimestamp', name: 'Last Update Time' },
     { field: 'markUpPercentage', name: 'Markup' },
     { field: 'subClassificationName', name: 'Sub Classification' },

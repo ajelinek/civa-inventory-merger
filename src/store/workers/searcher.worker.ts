@@ -7,6 +7,16 @@ import { classifications } from '../const'
 let searcher: Fuse<SearchItem> | null = null
 let catalogs: Catalogs | null = null
 let offices: Offices | null = null
+const defaultSortOrder = [
+  {
+    "field": "itemId",
+    "direction": "asc"
+  },
+  {
+    "field": "officeId",
+    "direction": "asc"
+  }
+]
 
 onmessage = (event: MessageEvent<SearcherMessage>) => {
   switch (event.data.type) {
@@ -69,7 +79,6 @@ function mergeCatalogs(inCatalogs: Catalogs) {
       }))]
     return acc
   }, [] as SearchItem[])
-  console.log('🚀 ~ merged ~ merged:', merged)
   return merged
 }
 
@@ -136,7 +145,8 @@ function basicSearch(query: CatalogQuery, searcher: Fuse<SearchItem>, limit?: nu
   const results = searcher.search(buildLogicalQuery(query))
   const filtered = filterResultsByQueryOptions(results, query)
   const matchedRecords = filtered.length
-  const sortArray = query.sort?.map(sort => ({ [sort.direction]: (r: Fuse.FuseResult<SearchItem>) => getField(r.item, sort.field) })) ?? []
+  const sortFields = query.sort?.length ? query.sort : [...defaultSortOrder]
+  const sortArray = sortFields.map(sort => ({ [sort.direction]: (r: Fuse.FuseResult<SearchItem>) => getField(r.item, sort.field) }))
   //@ts-ignore
   const itemKeys = sort(filtered).by(sortArray)
     .slice(0, limit || filtered.length)
@@ -327,7 +337,6 @@ function buildLogicalQuery(query: CatalogQuery): Fuse.Expression {
     logicalQuery.$and.push({ $or: officeIds })
   }
 
-  console.log('🚀 ~ buildLogicalQuery ~ logicalQuery:', logicalQuery)
   return logicalQuery
 }
 

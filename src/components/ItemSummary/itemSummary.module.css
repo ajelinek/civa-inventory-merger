@@ -90,9 +90,12 @@
   font-weight: bold;
 }
 .id,
-.divider {
-  font-size: 1rem;
+.divider,
+.office {
   color: var(--primary);
+}
+.office {
+  font-size: 1rem;
 }
 
 .hideShowButton {
