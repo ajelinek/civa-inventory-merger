@@ -36,7 +36,7 @@ export default function SortOrder({ className }: { className?: string }) {
   function handleFieldSelect(index: number, value: string) {
     const newSortFields = [...sortFields]
     if (index === sortFields.length) newSortFields.push({ field: '', direction: '' })
-    newSortFields[index].field = value
+    newSortFields[index].field = value as ""
     setSortFields(newSortFields)
   }
 

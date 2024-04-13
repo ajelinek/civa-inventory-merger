@@ -10,8 +10,16 @@ import ItemTitle from '../ItemTitle'
 import Money from '../Money'
 import s from './itemSummary.module.css'
 
-export default function ItemSummary({ itemKey, selector, expandAll }: { itemKey: ItemKey, selector: Selector<ItemKey>, expandAll?: boolean }) {
+type props = {
+  itemKey: ItemKey
+  selector: Selector<ItemKey>
+  expandAll?: boolean
+  groupBy?: SortField[] | null
+  prevItemKey?: ItemKey | undefined
+}
+export default function ItemSummary({ itemKey, selector, expandAll, groupBy, prevItemKey }: props) {
   const item = useCatalogItem(itemKey)
+  const prevItem = useCatalogItem(prevItemKey)
   const [active, setActive] = useState(expandAll)
   useEffect(() => { setActive(expandAll) }, [expandAll])
 
@@ -29,39 +37,51 @@ export default function ItemSummary({ itemKey, selector, expandAll }: { itemKey:
     )
   }
 
+  let GroupByLine
+  if (groupBy && groupBy.length > 0) {
+    const field = groupBy[0].field
+
+    if (field && prevItem && prevItem[field] !== item[field]) {
+      GroupByLine = () => <p className={s.groupByLine}>{item[field]?.toString()}</p>
+    }
+  }
+
   return (
-    <div className={s.container} >
-      <div className={s.summary}>
-        <input type='checkbox'
-          onChange={(e) => selector.onSelect(e, itemKey)}
-          checked={selector.isSelected(itemKey)}
-        />
+    <>
+      {GroupByLine && <GroupByLine />}
+      <div className={`${s.container}`} >
+        <div className={s.summary}>
+          <input type='checkbox'
+            onChange={(e) => selector.onSelect(e, itemKey)}
+            checked={selector.isSelected(itemKey)}
+          />
 
-        <div className={s.summaryContent} >
-          <ItemTitle itemKey={itemKey} s={s} />
-          <div className={s.secondaryInfo}>
-            <ClassificationDisplay />
-            {item.officeId === 'CIVA'
-              ? <MasterCostingInfo item={item} />
-              : <OfficeCostingInfo item={item} />
-            }
+          <div className={s.summaryContent} >
+            <ItemTitle itemKey={itemKey} s={s} />
+            <div className={s.secondaryInfo}>
+              <ClassificationDisplay />
+              {item.officeId === 'CIVA'
+                ? <MasterCostingInfo item={item} />
+                : <OfficeCostingInfo item={item} />
+              }
+            </div>
           </div>
+          <button className={s.hideShowButton} onClick={() => setActive(!active)}>
+            {active ? <FaCaretDown /> : <FaCaretRight />}
+          </button>
         </div>
-        <button className={s.hideShowButton} onClick={() => setActive(!active)}>
-          {active ? <FaCaretDown /> : <FaCaretRight />}
-        </button>
+
+        {active &&
+          <div className={s.itemDetails}>
+            <ItemAttributes item={item} />
+            <div className={s.chartArea}>
+              {(item.officeId === 'CIVA' && item.linkedItems?.length && item.linkedItems.length > 0) &&
+                <ItemSummaryCharts itemKeys={item.linkedItems} />}
+            </div>
+          </div>
+        }
       </div>
-
-      {active &&
-        <div className={s.itemDetails}>
-          <ItemAttributes item={item} />
-          <div className={s.chartArea}>
-            {(item.officeId === 'CIVA' && item.linkedItems?.length && item.linkedItems.length > 0) &&
-              <ItemSummaryCharts itemKeys={item.linkedItems} />}
-          </div>
-        </div>
-      }
-    </div>
+    </>
   )
 
 }

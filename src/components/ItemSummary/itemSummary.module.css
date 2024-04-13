@@ -132,3 +132,12 @@
   min-width: 50rem;
   max-width: 100%;
 }
+
+.groupByLine {
+  padding: 0;
+  padding-top: 2rem;
+}
+
+.groupByContainer {
+  border: 1px solid var(--muted-color);
+}

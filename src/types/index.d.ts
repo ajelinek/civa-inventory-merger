@@ -21,7 +21,7 @@ interface Creds {
 
 type SortDirection = 'asc' | 'desc'
 interface SortField {
-  field: string
+  field: keyof ItemRecord | ''
   direction: SortDirection | ''
 }
 

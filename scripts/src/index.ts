@@ -1,10 +1,17 @@
 import { stringSimilarity } from 'string-similarity-js'
+import { nanoid } from 'nanoid'
 import * as xlsx from 'xlsx'
+import * as fs from 'fs'
 
+// TODOs
+// [ ] - Loop thru all sheets and create a single output file
+// [ ] - create an mapping import file which contains the item to master and master to linked items
+// [ ] - create a master file which contains only the master items.
 
 /** Const Objects */
 const OfficeMap = new Map<string, OfficeId>([['C', 'CIVA'], ['E', 'EC'], ['B', 'BH'], ['L', 'LS'], ['M', 'MC'], ['W', 'WV'], ['V', 'VC']])
 const officeData = new Map<string, ItemRecord>()
+const noSubClass = ['109', '110']
 const allData: ItemRecord[] = []
 const header = [
   'officeId',
@@ -42,41 +49,75 @@ function main(fileName: string) {
   }
 
   const workbook = xlsx.readFile(fileName)
+  const sheets: xlsx.Sheet[] = []
 
-  const sheet = workbook.Sheets[workbook.SheetNames[0]]
-  const data = xlsx.utils.sheet_to_json(sheet, { blankrows: true }) as ItemRow[]
-  processWorksheetData(data, workbook.SheetNames[0])
+  workbook.SheetNames.forEach(sheetName => {
+    const sheet = workbook.Sheets[sheetName]
+    if (sheetName.includes('Client Instruction Codes')) return
+
+    const data = xlsx.utils.sheet_to_json(sheet, { blankrows: true }) as ItemRow[]
+    processWorksheetData(data, sheetName)
+  })
+
 
   const outSheet = xlsx.utils.json_to_sheet(allData.map(d => ({ ...d, linkedItems: JSON.stringify(d.linkedItems), itemLinkedTo: JSON.stringify(d.itemLinkedTo) })), { header })
   const outWorkbook = xlsx.utils.book_new(outSheet, 'All Data')
-  xlsx.writeFileXLSX(outWorkbook, 'Output.xlsx')
+  xlsx.writeFileXLSX(outWorkbook, 'output/processed-data-all.xlsx')
+
+  //write the master catalog out to a json file.
+  const masterData = allData.filter(d => d.officeId === 'CIVA').reduce((acc, d) => {
+    acc[d.recordId] = d
+    return acc
+  }, {} as Record<string, ItemRecord>)
+  fs.writeFileSync('output/masterData.json', JSON.stringify(masterData, null, 2))
+
+  //Write a json file of mappings of each item to the classification and subclassifcation.  This will be used to import into the database.
+  const classificationMapping = allData.map(d => ({ recordId: d.recordId, classificationId: d.classificationId, subClassificationId: d.subClassificationId }))
+  fs.writeFileSync('output/classificationMappings.json', JSON.stringify(classificationMapping, null, 2))
+
+
+  //write out a unique list of classification and sub classification
+  const uniqueData = Array.from(new Set(allData.map(d => JSON.stringify({
+    classificationId: d.classificationId,
+    classificationName: d.classificationName,
+    subClassificationId: d.subClassificationId,
+    subClassificationName: d.subClassificationName
+  }))))
+
+  const uniqueObjects = uniqueData.map(d => JSON.parse(d))
+  const classificationList = xlsx.utils.json_to_sheet(uniqueObjects, { header: ['classificationId', 'classificationName', 'subClassificationId', 'subClassificationName'] })
+  xlsx.writeFileXLSX(xlsx.utils.book_new(classificationList, 'Classification List'), 'output/classificationList.xlsx')
+
+  console.log('Done')
 
 }
 
 function processWorksheetData(data: ItemRow[], sheetName: string) {
 
   const classifications: Classifications = {
-    classificationName: data[0]['Classification Name'],
-    classificationId: data[0]['Classification ID'],
-    subClassificationName: data[1]['Classification Name'],
-    subClassificationId: data[1][`Classification ID`]
+    classificationName: data[0]['Classification Name'] + '',
+    classificationId: data[0]['Classification ID'] + '',
+    subClassificationName: data[1]['Classification Name'] + '',
+    subClassificationId: data[1][`Classification ID`] + ''
   }
 
   if (!classifications.classificationName || !classifications.classificationId) {
     throw new Error(`Classification name and id are required - Sheet: ${sheetName}`)
   }
 
-  if (!classifications.subClassificationId || !classifications.subClassificationName) {
-    throw new Error(`Subclassification name and id are required - Sheet: ${sheetName}`)
+  if (!noSubClass.includes(classifications.classificationId)) {
+    if (!classifications.subClassificationId || !classifications.subClassificationName) {
+      throw new Error(`Subclassification name and id are required - Sheet: ${sheetName}`)
+    }
   }
 
   let groupType: 'master' | 'none' | 'inactivate' = 'none'
   let masterRecord: ItemRecord = {} as ItemRecord
 
-  for (let rowNum = 2; rowNum < data.length; rowNum++) {
+  for (let rowNum = 2; rowNum <= data.length; rowNum++) {
     const record = data[rowNum]
 
-    if (Object.keys(record).length === 0) {
+    if (rowNum === data.length || Object.keys(record).length === 0) {
       if (groupType === 'master') {
         masterRecord = updateMasterRecord(masterRecord, allData)
         pushData(masterRecord)
@@ -86,7 +127,7 @@ function processWorksheetData(data: ItemRow[], sheetName: string) {
       continue
     }
 
-    const office = record['Office'].toLocaleUpperCase()
+    const office = record['Office']?.toLocaleUpperCase()
     const status = record['Status']?.toLocaleUpperCase()
 
     if (office === 'C' && status !== 'DELETE' && groupType === 'none') {
@@ -99,10 +140,10 @@ function processWorksheetData(data: ItemRow[], sheetName: string) {
       masterRecord.classificationName = classifications.classificationName
       masterRecord.subClassificationId = classifications.subClassificationId
       masterRecord.subClassificationName = classifications.subClassificationName
-      masterRecord.recordId = itemRecordId('CIVA', record['Master Item ID'] + '')
+      masterRecord.recordId = nanoid(8)
       masterRecord.officeId = 'CIVA'
       masterRecord.itemId = record['Master Item ID'] + ''
-      masterRecord.itemDescription = record['Master Description']
+      masterRecord.itemDescription = record['Master Description'] + ''
       masterRecord.linkedItems = []
       continue
     }
@@ -119,10 +160,16 @@ function processWorksheetData(data: ItemRow[], sheetName: string) {
     const itemRecord: ItemRecord = createItemRecord(office, status, record, classifications, rowNum, sheetName)
     if (groupType === 'master') {
       itemRecord.itemLinkedTo = { recordId: masterRecord.recordId, officeId: masterRecord.officeId }
+      masterRecord.linkedItems?.push({ recordId: itemRecord.recordId, officeId: itemRecord.officeId })
+
       itemRecord.idChanged = itemRecord.itemId !== masterRecord.itemId
       itemRecord.descriptionChanged = itemRecord.itemDescription !== masterRecord.itemDescription
-      itemRecord.descriptionDifference = stringSimilarity(itemRecord.itemDescription, masterRecord.itemDescription) * 100
-      masterRecord.linkedItems?.push({ recordId: itemRecord.recordId, officeId: itemRecord.officeId })
+      try {
+        itemRecord.descriptionDifference = stringSimilarity(itemRecord.itemDescription, masterRecord.itemDescription) * 100
+      } catch (e) {
+        console.log(e)
+        throw new RowError('Error in string similarity', rowNum, sheetName, record)
+      }
     }
     if (groupType === 'inactivate') {
       itemRecord.status = 'inactive'
@@ -162,7 +209,7 @@ function createItemRecord(office: string, status: string, record: ItemRow, class
     subClassificationId: classifications.subClassificationId,
     subClassificationName: classifications.subClassificationName,
     itemId,
-    itemDescription: record['Invoice Item Description'],
+    itemDescription: record['Invoice Item Description'] + '',
     definition: '',
     itemType: record['Service/Inventory'],
     itemTypeDescription: '',
@@ -187,6 +234,10 @@ function updateMasterRecord(masterRecord: ItemRecord, allData: ItemRecord[]) {
     status: 'active',
     recordId: masterRecord.recordId,
     officeId: masterRecord.officeId,
+    classificationId: masterRecord.classificationId,
+    classificationName: masterRecord.classificationName,
+    subClassificationId: masterRecord.subClassificationId,
+    subClassificationName: masterRecord.subClassificationName,
     itemId: masterRecord.itemId,
     itemDescription: masterRecord.itemDescription,
     allCaps: masterRecord.itemDescription === masterRecord.itemDescription.toUpperCase()

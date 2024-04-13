@@ -83,6 +83,7 @@ function mergeCatalogs(inCatalogs: Catalogs) {
 }
 
 function search(query: CatalogQuery) {
+  console.log('🚀 ~ search ~ query:', query)
   if (!searcher) throw new Error('Searcher not initialized')
 
   if (!query) {

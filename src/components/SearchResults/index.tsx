@@ -4,6 +4,7 @@ import ItemSummary from "../ItemSummary"
 import SortOrder from "../SortOrder"
 import s from './searchResults.module.css'
 import { useState } from "react"
+import { useSearchParam } from "../../hooks/searchParams"
 
 type props = {
   search: UseSearchCatalogReturn
@@ -12,6 +13,10 @@ type props = {
 
 export default function SearchResults({ search, selector }: props) {
   const [expandAll, setExpandAll] = useState(false)
+  const [groupBy, setGroupBy] = useState(false)
+  const sort = useSearchParam('srt')
+  const sortFields: SortField[] = sort.value ? JSON.parse(atob(sort.value)) : []
+
   return (
     <div className={`${s.container} SearchResults-container`}>
       {(search?.result?.matchedRecords || 0 > 0) &&
@@ -39,6 +44,14 @@ export default function SearchResults({ search, selector }: props) {
 
             <fieldset>
               <input type="checkbox"
+                id='groupBy'
+                checked={groupBy}
+                onChange={() => setGroupBy(!groupBy)} />
+              <label className={s.selectAll} htmlFor='expandAll'>Group By Sort</label>
+            </fieldset>
+
+            <fieldset>
+              <input type="checkbox"
                 id='expandAll'
                 checked={expandAll}
                 onChange={() => setExpandAll(!expandAll)} />
@@ -46,8 +59,15 @@ export default function SearchResults({ search, selector }: props) {
             </fieldset>
           </div>
 
-          {search?.page.map(r =>
-            <ItemSummary key={r.recordId} itemKey={r} selector={selector} expandAll={expandAll} />)}
+          {search?.page.map((r, index) =>
+            <ItemSummary key={index}
+              itemKey={r}
+              selector={selector}
+              expandAll={expandAll}
+              groupBy={groupBy ? sortFields : null}
+              prevItemKey={index > 0 ? search?.page?.[index - 1] : undefined}
+            />
+          )}
         </div>
         : null
       }
