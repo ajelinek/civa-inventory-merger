@@ -97,6 +97,7 @@ type SearchParams =
   | 'mo' // missingOfficeIds
   | 'di' // different Item Id
   | 'dc' // different classification
+  | 'mso' // multiple of the same offices linked
   | 'did' // different item description
   | 'mc' // matchedCatalogs page specific
   | 'msc' // matchedRecords page specific

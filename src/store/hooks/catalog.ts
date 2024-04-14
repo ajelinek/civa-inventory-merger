@@ -41,6 +41,7 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       differentItemId: searchParams.get('di') === 'true',
       differentClassification: searchParams.get('dc') === 'true',
       differentItemDescription: searchParams.get('did') === 'true',
+      multipleSameOffice: searchParams.get('mso') === 'true',
       unitPriceLow: searchParams.get('upl') ? Number(searchParams.get('upl')) : undefined,
       unitPriceHigh: searchParams.get('uph') ? Number(searchParams.get('uph')) : undefined,
       markUpPercentageLow: searchParams.get('mpl') ? Number(searchParams.get('mpl')) : undefined,
@@ -76,6 +77,7 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       prev.delete('uph')
       prev.delete('dfl')
       prev.delete('dfh')
+      prev.delete('mso')
       prev.delete('mpl')
       prev.delete('mph')
       prev.delete('srt')
@@ -165,8 +167,8 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSea
 
   useEffect(() => {
     if (!(result && catalogs)) return
-    const newPageNumbers = calculatePageNumbers(result?.matchedRecords ?? 0)
-    if (newPageNumbers.length === pageNumbers.length) return
+    // const newPageNumbers = calculatePageNumbers(result?.matchedRecords ?? 0)
+    // if (newPageNumbers.length === pageNumbers.length) return
     setPageNumbers(calculatePageNumbers(result?.matchedRecords ?? 0))
     goToPage(1)
   }, [result])

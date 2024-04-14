@@ -33,6 +33,7 @@
     "react-router-dom": "^6.15.0",
     "stopword": "^2.0.8",
     "use-debounce": "^9.0.4",
+    "xlsx": "^0.18.5",
     "zustand": "^4.4.1"
   },
   "devDependencies": {

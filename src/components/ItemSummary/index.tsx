@@ -9,6 +9,7 @@ import ItemSummaryCharts from '../ItemSummaryCharts'
 import ItemTitle from '../ItemTitle'
 import Money from '../Money'
 import s from './itemSummary.module.css'
+import LinkedItemsList from '../LinkedItemsList'
 
 type props = {
   itemKey: ItemKey
@@ -29,10 +30,10 @@ export default function ItemSummary({ itemKey, selector, expandAll, groupBy, pre
     return (
       <>
         {item?.subClassificationName
-          ? <p className={s.subTitle}>C -{item.classificationName}
+          ? <p className={`${s.subTitle} summary-subtitle`}>C -{item.classificationName}
             <RxDividerVertical className={s.divider} />  SC - {item.subClassificationName}
           </p>
-          : <p className={s.subTitle}>C - {item?.classificationName}</p>}
+          : <p className={`${s.subTitle} summary-subtitle`}>C - {item?.classificationName}</p>}
       </>
     )
   }
@@ -49,7 +50,7 @@ export default function ItemSummary({ itemKey, selector, expandAll, groupBy, pre
   return (
     <>
       {GroupByLine && <GroupByLine />}
-      <div className={`${s.container}`} >
+      <div className={`${s.container} item-summary-container`} >
         <div className={s.summary}>
           <input type='checkbox'
             onChange={(e) => selector.onSelect(e, itemKey)}
@@ -76,7 +77,8 @@ export default function ItemSummary({ itemKey, selector, expandAll, groupBy, pre
             <ItemAttributes item={item} />
             <div className={s.chartArea}>
               {(item.officeId === 'CIVA' && item.linkedItems?.length && item.linkedItems.length > 0) &&
-                <ItemSummaryCharts itemKeys={item.linkedItems} />}
+                <LinkedItemsList itemKeys={item.linkedItems || []} selector={selector} compact={true} />
+              }
             </div>
           </div>
         }

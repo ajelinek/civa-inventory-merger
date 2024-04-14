@@ -19,3 +19,16 @@
 .officeSelectContainer {
   margin: 1rem 0;
 }
+
+.compact button {
+  display: none;
+}
+
+.compact :global(.item-summary-container) {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.compact p {
+  margin: 0;
+}

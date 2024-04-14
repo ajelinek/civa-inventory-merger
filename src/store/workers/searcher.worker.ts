@@ -143,6 +143,7 @@ function generalSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
 }
 
 function basicSearch(query: CatalogQuery, searcher: Fuse<SearchItem>, limit?: number) {
+  console.log('🚀 ~ basicSearch ~ query:', query)
   const results = searcher.search(buildLogicalQuery(query))
   const filtered = filterResultsByQueryOptions(results, query)
   const matchedRecords = filtered.length
@@ -273,6 +274,16 @@ function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], que
       else mappingFilters.push(false)
     }
 
+    if (query.multipleSameOffice) {
+      if (item.officeId === 'CIVA') {
+        const uniqueOfficeIds = new Set(item.linkedItems?.map(itemKey => itemKey.officeId))
+        if (uniqueOfficeIds.size !== item.linkedItems?.length && item.linkedItems?.length || 0 > 0) mappingFilters.push(true)
+        else mappingFilters.push(false)
+      } else {
+        mappingFilters.push(false)
+      }
+    }
+
     if (mappingFilters.length > 0 && !mappingFilters.includes(true)) return false
 
     return true
@@ -364,5 +375,6 @@ function cleanStringForSearch(token?: string, minSize: number = 1) {
 
 function getItem(itemKey?: ItemKey) {
   if (!itemKey) return undefined
-  return catalogs?.[itemKey.officeId]?.[itemKey.recordId]
+  const item = catalogs?.[itemKey.officeId]?.[itemKey.recordId]
+  return item
 }

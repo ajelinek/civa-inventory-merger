@@ -4,11 +4,12 @@ import s from './linkedItemList.module.css'
 type props = {
   itemKeys: ItemKey[]
   selector: Selector<ItemKey>
+  compact?: boolean
 }
 
-export default function LinkedItemsList({ selector, itemKeys }: props) {
+export default function LinkedItemsList({ selector, itemKeys, compact }: props) {
   return (
-    <div className={s.matched}>
+    <div className={`${s.matched} ${compact && s.compact}`}>
       <input type="checkbox"
         id='selectAll'
         checked={selector.isAllSelected(itemKeys)}

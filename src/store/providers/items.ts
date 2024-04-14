@@ -76,3 +76,26 @@ export function removeItemKeyFromLinkedItems(linkedItems: ItemKey[], officeId: O
 export function addItemKeyToLinkedItems(linkedItems: ItemKey[], itemKeys: ItemKey[]) {
   return [...removeItemKeyFromLinkedItems(linkedItems, itemKeys.map(k => k.officeId)), ...itemKeys]
 }
+
+type ItemMassUpdate = {
+  officeId: OfficeId
+  recordId: RecordId
+  status: 'active' | 'inactive'
+  classificationId: string
+  classificationName: string
+  subClassificationId?: string
+  subClassificationName?: string
+}
+export function massItemUpdates(items: ItemMassUpdate[]) {
+  const updates = items.reduce((acc, item) => {
+    acc[`catalogs/${item.officeId}/${item.recordId}/classificationId`] = item.classificationId
+    acc[`catalogs/${item.officeId}/${item.recordId}/classificationName`] = item.classificationName
+    acc[`catalogs/${item.officeId}/${item.recordId}/subClassificationId`] = item.subClassificationId || ''
+    acc[`catalogs/${item.officeId}/${item.recordId}/subClassificationName`] = item.subClassificationName || ''
+    acc[`catalogs/${item.officeId}/${item.recordId}/classificationMappedTimestamp`] = new Date().toISOString()
+    acc[`catalogs/${item.officeId}/${item.recordId}/status`] = item.status
+    return acc
+  }, {} as Record<string, string>)
+
+  return update(ref(rdb), updates)
+}

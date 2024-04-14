@@ -47,7 +47,6 @@ function main(fileName) {
         return;
     }
     const workbook = xlsx.readFile(fileName);
-    const sheets = [];
     workbook.SheetNames.forEach(sheetName => {
         const sheet = workbook.Sheets[sheetName];
         if (sheetName.includes('Client Instruction Codes'))
@@ -64,9 +63,23 @@ function main(fileName) {
         return acc;
     }, {});
     fs.writeFileSync('output/masterData.json', JSON.stringify(masterData, null, 2));
+    //TODO: HACK
+    const wenona = allData.filter(d => d.officeId === 'WV').reduce((acc, d) => {
+        acc[d.recordId] = d;
+        return acc;
+    }, {});
+    fs.writeFileSync('output/wenona.json', JSON.stringify(wenona, null, 2));
     //Write a json file of mappings of each item to the classification and subclassifcation.  This will be used to import into the database.
-    const classificationMapping = allData.map(d => ({ recordId: d.recordId, classificationId: d.classificationId, subClassificationId: d.subClassificationId }));
-    fs.writeFileSync('output/classificationMappings.json', JSON.stringify(classificationMapping, null, 2));
+    const massUpdates = allData.map(d => ({
+        officeId: d.officeId,
+        recordId: d.recordId,
+        classificationId: d.classificationId,
+        classificationName: d.classificationName,
+        subClassificationId: d.subClassificationId,
+        subClassificationName: d.subClassificationName,
+        status: d.status
+    }));
+    fs.writeFileSync('output/massUpdates.json', JSON.stringify(massUpdates, null, 2));
     //write out a unique list of classification and sub classification
     const uniqueData = Array.from(new Set(allData.map(d => JSON.stringify({
         classificationId: d.classificationId,

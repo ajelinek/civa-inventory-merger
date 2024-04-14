@@ -60,7 +60,7 @@ export default function SearchResults({ search, selector }: props) {
           </div>
 
           {search?.page.map((r, index) =>
-            <ItemSummary key={index}
+            <ItemSummary key={index + '' + r.recordId}
               itemKey={r}
               selector={selector}
               expandAll={expandAll}

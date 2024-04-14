@@ -1,6 +1,7 @@
 import { unparse } from 'papaparse'
 import { useSearchParams } from 'react-router-dom'
 import { useStore } from '../../store'
+import { utils, writeFile } from 'xlsx'
 
 export function ExportData() {
   const [searchParams] = useSearchParams()
@@ -56,15 +57,22 @@ export function ExportData() {
         exportData.push(record)
       }
     })
+    const worksheet = utils.json_to_sheet(exportData)
+    const workbook = utils.book_new()
+    utils.book_append_sheet(workbook, worksheet, "Sheet1")
 
-    const csv = unparse(exportData, { header: true })
+    // This will download the file directly in the browser.
+    // If you want to send the file from a server, you'll need a different approach.
+    writeFile(workbook, `${office}-export.xlsx`)
+
+    //Create CSV Files(s)
+    const csv = utils.sheet_to_csv(worksheet)
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.setAttribute('href', url)
     a.setAttribute('download', `${office}-export.csv`)
     a.click()
-
   }
 
   return (

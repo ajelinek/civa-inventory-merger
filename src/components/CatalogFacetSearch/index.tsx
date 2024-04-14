@@ -40,6 +40,7 @@ function MappingHelperFacets() {
   const differentItemId = useSearchParam('di')
   const differentClassification = useSearchParam('dc')
   const differentItemDescription = useSearchParam('did')
+  const multiOffice = useSearchParam('mso')
 
   return (
     <div className={s.mappingFilters}>
@@ -58,6 +59,10 @@ function MappingHelperFacets() {
       <fieldset>
         <input type="checkbox" id="differentItemDescription" checked={!!differentItemDescription.value} onChange={() => differentItemDescription.toggle()} />
         <label htmlFor="differentItemDescription">Different Item Description</label>
+      </fieldset>
+      <fieldset>
+        <input type="checkbox" id="multiOffice" checked={!!multiOffice.value} onChange={() => multiOffice.toggle()} />
+        <label htmlFor="multiOffice">Multi Office</label>
       </fieldset>
     </div>
   )
