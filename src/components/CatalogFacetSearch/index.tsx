@@ -41,6 +41,12 @@ function MappingHelperFacets() {
   const differentClassification = useSearchParam('dc')
   const differentItemDescription = useSearchParam('did')
   const multiOffice = useSearchParam('mso')
+  const nameAllCaps = useSearchParam('nac')
+  const inactiveLinkedToMaster = useSearchParam('il2m')
+  const unsimilarItemDescription = useSearchParam('uid')
+  const duplicateMasterIds = useSearchParam('dmi')
+  const mismatchedItemTypes = useSearchParam('mit')
+
 
   return (
     <div className={s.mappingFilters}>
@@ -63,6 +69,26 @@ function MappingHelperFacets() {
       <fieldset>
         <input type="checkbox" id="multiOffice" checked={!!multiOffice.value} onChange={() => multiOffice.toggle()} />
         <label htmlFor="multiOffice">Multi Office</label>
+      </fieldset>
+      <fieldset>
+        <input type="checkbox" id="nameAllCaps" checked={!!nameAllCaps.value} onChange={() => nameAllCaps.toggle()} />
+        <label htmlFor="nameAllCaps">Name All Caps</label>
+      </fieldset>
+      <fieldset>
+        <input type="checkbox" id="inactiveLinkedToMaster" checked={!!inactiveLinkedToMaster.value} onChange={() => inactiveLinkedToMaster.toggle()} />
+        <label htmlFor="inactiveLinkedToMaster">Inactive Linked To Master</label>
+      </fieldset>
+      <fieldset>
+        <input type="checkbox" id="unsimilarItemDescription" checked={!!unsimilarItemDescription.value} onChange={() => unsimilarItemDescription.toggle()} />
+        <label htmlFor="unsimilarItemDescription">Unsimilar Item Description</label>
+      </fieldset>
+      <fieldset>
+        <input type="checkbox" id="duplicateMasterIds" checked={!!duplicateMasterIds.value} onChange={() => duplicateMasterIds.toggle()} />
+        <label htmlFor="duplicateMasterIds">Duplicate Master Ids</label>
+      </fieldset>
+      <fieldset>
+        <input type="checkbox" id="mismatchedItemTypes" checked={!!mismatchedItemTypes.value} onChange={() => mismatchedItemTypes.toggle()} />
+        <label htmlFor="mismatchedItemTypes">Mismatched Item Types</label>
       </fieldset>
     </div>
   )

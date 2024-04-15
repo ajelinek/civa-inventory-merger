@@ -97,6 +97,11 @@ interface CatalogQuery {
   differentClassification?: boolean
   differentItemDescription?: boolean
   multipleSameOffice?: boolean
+  nameAllCaps?: boolean
+  inactiveLinkedItems?: boolean
+  unsimilarItemDescription?: boolean
+  duplicateMasterIds?: boolean
+  mismatchedItemTypes?: boolean
   classificationNames?: string[]
   subClassificationNames?: string[]
   unitPriceLow?: number

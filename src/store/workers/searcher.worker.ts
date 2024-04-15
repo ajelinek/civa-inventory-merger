@@ -1,12 +1,14 @@
 import { sort } from 'fast-sort'
 import Fuse from 'fuse.js'
 import { removeStopwords } from 'stopword'
-import { calculateLinkItemTotals } from '../selectors/item'
+import { calculateLinkItemTotals, itemRecordId } from '../selectors/item'
 import { classifications } from '../const'
+import { stringSimilarity } from 'string-similarity-js'
 
 let searcher: Fuse<SearchItem> | null = null
 let catalogs: Catalogs | null = null
 let offices: Offices | null = null
+let officeArray: OfficeId[] | null = null
 const defaultSortOrder = [
   {
     "field": "itemId",
@@ -36,6 +38,7 @@ interface loadProps {
 function load(payload: loadProps) {
   catalogs = payload.catalogs
   offices = payload.offices
+  officeArray = Object.keys(offices) as OfficeId[]
   searcher = new Fuse<SearchItem>(mergeCatalogs(payload.catalogs), {
     keys: ['searchString', 'classificationId', 'subClassificationId', 'officeId', 'itemId', 'classificationMappedTimestamp', 'itemLinkedTimestamp', 'recordId'],
     threshold: 0.5,
@@ -251,8 +254,8 @@ function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], que
     if (query.differentItemId === true) {
       if (item.officeId === 'CIVA' && (item.linkedItems?.find(itemKeys => getItem(itemKeys)?.itemId !== item.itemId))) mappingFilters.push(true)
       else mappingFilters.push(false)
-      if (item.officeId !== 'CIVA' && (item.itemLinkedTo?.recordId && getItem(item.itemLinkedTo)?.itemId !== item.itemId)) mappingFilters.push(true)
-      else mappingFilters.push(false)
+      // if (item.officeId !== 'CIVA' && (item.itemLinkedTo?.recordId && getItem(item.itemLinkedTo)?.itemId !== item.itemId)) mappingFilters.push(true)
+      // else mappingFilters.push(false)
     }
 
     if (query.differentClassification === true) {
@@ -284,12 +287,60 @@ function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], que
       }
     }
 
+    if (query.nameAllCaps) {
+      if (item.itemDescription === item.itemDescription?.toUpperCase()) mappingFilters.push(true)
+      else mappingFilters.push(false)
+    }
+
+    if (query.inactiveLinkedItems) {
+      if (item.officeId === 'CIVA') {
+        if (item.linkedItems?.find(itemKey => getItem(itemKey)?.status === 'inactive')) mappingFilters.push(true)
+        else mappingFilters.push(false)
+      } else {
+        mappingFilters.push(false)
+      }
+    }
+
+    if (query.unsimilarItemDescription) {
+      if (item.officeId === 'CIVA') {
+        if (item.linkedItems?.find(itemKey =>
+          stringSimilarity(getItem(itemKey)?.itemDescription || '', item.itemDescription) < .5)) mappingFilters.push(true)
+        else mappingFilters.push(false)
+      } else {
+        mappingFilters.push(false)
+      }
+    }
+
+    if (query.duplicateMasterIds) {
+      if (item.officeId === 'CIVA') {
+        officeArray?.forEach(officeId => {
+          const recordId = itemRecordId({ officeId, itemId: item.itemId })
+          const fItem = catalogs?.[officeId]?.[recordId]
+          if (fItem && fItem.itemLinkedTo?.recordId !== item.recordId) mappingFilters.push(true)
+          else mappingFilters.push(false)
+        })
+      }
+    }
+
+    if (query.mismatchedItemTypes) {
+      console.log('IIIIN ISDOFjl;aksdfj')
+      if (item.officeId === 'CIVA') {
+        if (item.linkedItems?.find(itemKey =>
+          getItem(itemKey)?.itemType?.toLocaleLowerCase() !== item.itemType?.toLocaleLowerCase() &&
+          getItem(itemKey)?.officeId !== 'WV')) mappingFilters.push(true)
+        else mappingFilters.push(false)
+      } else {
+        mappingFilters.push(false)
+      }
+    }
+
+
     if (mappingFilters.length > 0 && !mappingFilters.includes(true)) return false
 
     return true
-
   })
 }
+
 
 
 function identifyKeyWords(results: Fuse.FuseResult<SearchItem>[], query: CatalogQuery) {

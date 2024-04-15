@@ -99,6 +99,11 @@ type SearchParams =
   | 'dc' // different classification
   | 'mso' // multiple of the same offices linked
   | 'did' // different item description
+  | 'nac' // nameAllCaps
+  | 'il2m' // inactive Linked Items
+  | 'uid' // unsimilar item ids
+  | 'dmi' // duplicate Master Ids
+  | 'mit' // miismatched Item Types
   | 'mc' // matchedCatalogs page specific
   | 'msc' // matchedRecords page specific
   | 'cc' // comparisonCount page specific

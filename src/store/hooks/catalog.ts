@@ -42,6 +42,11 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       differentClassification: searchParams.get('dc') === 'true',
       differentItemDescription: searchParams.get('did') === 'true',
       multipleSameOffice: searchParams.get('mso') === 'true',
+      nameAllCaps: searchParams.get('nac') === 'true',
+      inactiveLinkedItems: searchParams.get('il2m') === 'true',
+      unsimilarItemDescription: searchParams.get('uid') === 'true',
+      duplicateMasterIds: searchParams.get('dmi') === 'true',
+      mismatchedItemTypes: searchParams.get('mit') === 'true',
       unitPriceLow: searchParams.get('upl') ? Number(searchParams.get('upl')) : undefined,
       unitPriceHigh: searchParams.get('uph') ? Number(searchParams.get('uph')) : undefined,
       markUpPercentageLow: searchParams.get('mpl') ? Number(searchParams.get('mpl')) : undefined,
@@ -78,6 +83,11 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       prev.delete('dfl')
       prev.delete('dfh')
       prev.delete('mso')
+      prev.delete('nac')
+      prev.delete('il2m')
+      prev.delete('uid')
+      prev.delete('dmi')
+      prev.delete('mit')
       prev.delete('mpl')
       prev.delete('mph')
       prev.delete('srt')
