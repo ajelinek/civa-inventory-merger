@@ -33,5 +33,4 @@ export async function updateClassifications(updateInput: UpdateClassificationInp
   }, {} as Record<string, string>)
 
   return update(ref(rdb), updates)
-
 }

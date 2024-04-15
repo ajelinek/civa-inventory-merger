@@ -9,6 +9,7 @@ import LinkerPage from "./pages/Linker"
 import ItemPage from "./pages/Item"
 import NewItemPage from "./pages/NewItem"
 import PasswordReset from "./pages/PasswordReset"
+import AdminPage from "./pages/Admin"
 
 export const router = createBrowserRouter([
   {
@@ -23,6 +24,10 @@ export const router = createBrowserRouter([
       {
         element: <Catalog />,
         children: [
+          {
+            path: "admin",
+            element: <AdminPage />
+          },
           {
             path: "catalogs",
             element: <CatalogViewer />

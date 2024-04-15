@@ -33,12 +33,9 @@ export const classifications: Classifications = {
         name: "Euthanasia"
       },
       "100e": {
-        name: "Laser Treatment"
+        name: "Emergency"
       },
       "100f": {
-        name: "Injectables"
-      },
-      "100g": {
         name: "Rescue"
       }
     }
@@ -67,19 +64,10 @@ export const classifications: Classifications = {
         name: "Lab In House"
       },
       "102b": {
-        name: "Lab Outside"
+        name: "Lab - Outside"
       },
       "102c": {
         name: "Antech"
-      },
-      "102d": {
-        name: "MiraVista"
-      },
-      "102e": {
-        name: "MSU"
-      },
-      "102f": {
-        name: "U of I"
       }
     }
   },
@@ -90,18 +78,36 @@ export const classifications: Classifications = {
         name: "Anesthesia"
       },
       "103b": {
-        name: "Surgery Dog"
+        name: "Surgery"
       },
       "103c": {
-        name: "Surgery Cat"
+        name: "Canine Spay"
       },
       "103d": {
-        name: "Surgery Misc."
+        name: "Canine Neuter"
       },
       "103e": {
-        name: "Dentistry"
+        name: "Feline Spay"
       },
       "103f": {
+        name: "Feline Neuter"
+      },
+      "103g": {
+        name: "Growth Removal"
+      },
+      "103h": {
+        name: "Exploratory"
+      },
+      "103i": {
+        name: "Orthopedic"
+      },
+      "103j": {
+        name: "Dentistry"
+      },
+      "103k": {
+        name: "Laceration Repair"
+      },
+      "103l": {
         name: "Rescue"
       }
     }
@@ -117,6 +123,9 @@ export const classifications: Classifications = {
       },
       "104c": {
         name: "Boarding Other"
+      },
+      "104d": {
+        name: "Medical Boarding"
       }
     }
   },
@@ -144,30 +153,37 @@ export const classifications: Classifications = {
         name: "Liquids"
       },
       "106c": {
-        name: "Narcotics"
-      }
+        name: "Injectables"
+      },
+      "106d": {
+        name: "Controlled Substance"
+      },
     }
   },
   "107": {
-    name: "Heartworm Prevention",
+    name: "Parasiticide",
     subClassifications: {
       "107a": {
         name: "Injectable HW"
       },
       "107b": {
         name: "Oral HW"
-      }
-    }
-  },
-  "108": {
-    name: "Flea Control",
-    subClassifications: {
-      "108a": {
-        name: "Canine Flea Control"
       },
-      "108b": {
-        name: "Feline Flea Control"
-      }
+      "107c": {
+        name: "HW/FC Combo"
+      },
+      "107d": {
+        name: "Canine Oral Flea Control"
+      },
+      "107e": {
+        name: "Canine Topical Flea Control"
+      },
+      "107f": {
+        name: "Feline Oral Flea Control"
+      },
+      "107g": {
+        name: "Feline Topical Flea Control"
+      },
     }
   },
   "109": {
@@ -206,7 +222,7 @@ export const classifications: Classifications = {
         name: "Purina"
       },
       "114c": {
-        name: "Royal Canin"
+        name: "Miscellaneous Food"
       }
     }
   },
@@ -245,7 +261,7 @@ export const classifications: Classifications = {
     name: "Large Animal",
     subClassifications: {
       "117a": {
-        name: "LA Preventitives"
+        name: "LA Parasiticide"
       },
       "117b": {
         name: "LA Miscellaneous"
@@ -254,32 +270,40 @@ export const classifications: Classifications = {
         name: "LA Supplies"
       },
       "117d": {
-        name: "LA Injectables"
+        name: "LA Pharmacy"
       },
       "117e": {
-        name: "LA Liquid"
-      },
-      "117f": {
-        name: "LA Tablets"
-      },
-      "117g": {
         name: "LA Laboratory"
       },
-      "117h": {
-        name: "LA Over the Counter"
-      },
-      "117i": {
+      "117f": {
         name: "LA Professional Services"
       },
-      "117j": {
+      "117g": {
         name: "LA Radiology"
       },
-      "117k": {
-        name: "LA Surgery"
-      },
-      "117l": {
+      "117h": {
         name: "LA Vaccine"
       }
     }
+  },
+  "118": {
+    name: "Hospitalization",
+    subClassifications: {
+      "118a": {
+        name: "Hospitalization Dog"
+      },
+      "118b": {
+        name: "Hospitalization Cat"
+      },
+      "118c": {
+        name: "Hospitalization Other"
+      },
+      "118d": {
+        name: "Isolation"
+      },
+    }
+  },
+  "119": {
+    name: "Dispensing Codes",
   }
 }

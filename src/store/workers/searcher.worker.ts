@@ -1,11 +1,24 @@
 import { sort } from 'fast-sort'
 import Fuse from 'fuse.js'
 import { removeStopwords } from 'stopword'
-import { calculateLinkItemTotals } from '../selectors/item'
+import { calculateLinkItemTotals, itemRecordId } from '../selectors/item'
+import { classifications } from '../const'
+import { stringSimilarity } from 'string-similarity-js'
 
 let searcher: Fuse<SearchItem> | null = null
 let catalogs: Catalogs | null = null
 let offices: Offices | null = null
+let officeArray: OfficeId[] | null = null
+const defaultSortOrder = [
+  {
+    "field": "itemId",
+    "direction": "asc"
+  },
+  {
+    "field": "officeId",
+    "direction": "asc"
+  }
+]
 
 onmessage = (event: MessageEvent<SearcherMessage>) => {
   switch (event.data.type) {
@@ -25,6 +38,7 @@ interface loadProps {
 function load(payload: loadProps) {
   catalogs = payload.catalogs
   offices = payload.offices
+  officeArray = Object.keys(offices) as OfficeId[]
   searcher = new Fuse<SearchItem>(mergeCatalogs(payload.catalogs), {
     keys: ['searchString', 'classificationId', 'subClassificationId', 'officeId', 'itemId', 'classificationMappedTimestamp', 'itemLinkedTimestamp', 'recordId'],
     threshold: 0.5,
@@ -44,7 +58,8 @@ type SearchItem = Pick<ItemRecord,
   'subClassificationId' |
   'officeId' |
   'itemId' |
-  'recordId'
+  'recordId' |
+  'itemDescription'
 > & {
   searchString: string
   linkedToItemId?: string
@@ -71,6 +86,7 @@ function mergeCatalogs(inCatalogs: Catalogs) {
 }
 
 function search(query: CatalogQuery) {
+  console.log('🚀 ~ search ~ query:', query)
   if (!searcher) throw new Error('Searcher not initialized')
 
   if (!query) {
@@ -130,10 +146,12 @@ function generalSearch(query: CatalogQuery, searcher: Fuse<SearchItem>) {
 }
 
 function basicSearch(query: CatalogQuery, searcher: Fuse<SearchItem>, limit?: number) {
+  console.log('🚀 ~ basicSearch ~ query:', query)
   const results = searcher.search(buildLogicalQuery(query))
   const filtered = filterResultsByQueryOptions(results, query)
   const matchedRecords = filtered.length
-  const sortArray = query.sort?.map(sort => ({ [sort.direction]: (r: Fuse.FuseResult<SearchItem>) => getField(r.item, sort.field) })) ?? []
+  const sortFields = query.sort?.length ? query.sort : [...defaultSortOrder]
+  const sortArray = sortFields.map(sort => ({ [sort.direction]: (r: Fuse.FuseResult<SearchItem>) => getField(r.item, sort.field) }))
   //@ts-ignore
   const itemKeys = sort(filtered).by(sortArray)
     .slice(0, limit || filtered.length)
@@ -162,6 +180,7 @@ function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], que
     if (query.excludeMapped === true && item.classificationMappedTimestamp) return false
     if (query.excludeLinked === true && (item.itemLinkedTo?.recordId || item.linkedItems?.length === officeCount)) return false
     if (query.excludeInactive === true && item.status === 'inactive') return false
+    if (query.excludeProcessed === true && item.processed) return false
 
     /**************************** */
     //Fitlers For Pricing Information
@@ -226,13 +245,17 @@ function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], que
     //Follows OR logic for group
     /**************************** */
     const mappingFilters = []
-    if (query.missingOfficeIds === true && item.officeId === 'CIVA' && item.linkedItems?.length !== officeCount) mappingFilters.push(true)
+
+    if (query.missingOfficeIds === true) {
+      if (item.officeId === 'CIVA' && item.linkedItems?.length !== officeCount) mappingFilters.push(true)
+      else mappingFilters.push(false)
+    }
 
     if (query.differentItemId === true) {
       if (item.officeId === 'CIVA' && (item.linkedItems?.find(itemKeys => getItem(itemKeys)?.itemId !== item.itemId))) mappingFilters.push(true)
       else mappingFilters.push(false)
-      if (item.officeId !== 'CIVA' && (item.itemLinkedTo?.recordId && getItem(item.itemLinkedTo)?.itemId !== item.itemId)) mappingFilters.push(true)
-      else mappingFilters.push(false)
+      // if (item.officeId !== 'CIVA' && (item.itemLinkedTo?.recordId && getItem(item.itemLinkedTo)?.itemId !== item.itemId)) mappingFilters.push(true)
+      // else mappingFilters.push(false)
     }
 
     if (query.differentClassification === true) {
@@ -254,12 +277,70 @@ function filterResultsByQueryOptions(results: Fuse.FuseResult<SearchItem>[], que
       else mappingFilters.push(false)
     }
 
+    if (query.multipleSameOffice) {
+      if (item.officeId === 'CIVA') {
+        const uniqueOfficeIds = new Set(item.linkedItems?.map(itemKey => itemKey.officeId))
+        if (uniqueOfficeIds.size !== item.linkedItems?.length && item.linkedItems?.length || 0 > 0) mappingFilters.push(true)
+        else mappingFilters.push(false)
+      } else {
+        mappingFilters.push(false)
+      }
+    }
+
+    if (query.nameAllCaps) {
+      if (item.itemDescription === item.itemDescription?.toUpperCase()) mappingFilters.push(true)
+      else mappingFilters.push(false)
+    }
+
+    if (query.inactiveLinkedItems) {
+      if (item.officeId === 'CIVA') {
+        if (item.linkedItems?.find(itemKey => getItem(itemKey)?.status === 'inactive')) mappingFilters.push(true)
+        else mappingFilters.push(false)
+      } else {
+        mappingFilters.push(false)
+      }
+    }
+
+    if (query.unsimilarItemDescription) {
+      if (item.officeId === 'CIVA') {
+        if (item.linkedItems?.find(itemKey =>
+          stringSimilarity(getItem(itemKey)?.itemDescription || '', item.itemDescription) < .5)) mappingFilters.push(true)
+        else mappingFilters.push(false)
+      } else {
+        mappingFilters.push(false)
+      }
+    }
+
+    if (query.duplicateMasterIds) {
+      if (item.officeId === 'CIVA') {
+        officeArray?.forEach(officeId => {
+          const recordId = itemRecordId({ officeId, itemId: item.itemId })
+          const fItem = catalogs?.[officeId]?.[recordId]
+          if (fItem && fItem.itemLinkedTo?.recordId !== item.recordId) mappingFilters.push(true)
+          else mappingFilters.push(false)
+        })
+      }
+    }
+
+    if (query.mismatchedItemTypes) {
+      console.log('IIIIN ISDOFjl;aksdfj')
+      if (item.officeId === 'CIVA') {
+        if (item.linkedItems?.find(itemKey =>
+          getItem(itemKey)?.itemType?.toLocaleLowerCase() !== item.itemType?.toLocaleLowerCase() &&
+          getItem(itemKey)?.officeId !== 'WV')) mappingFilters.push(true)
+        else mappingFilters.push(false)
+      } else {
+        mappingFilters.push(false)
+      }
+    }
+
+
     if (mappingFilters.length > 0 && !mappingFilters.includes(true)) return false
 
     return true
-
   })
 }
+
 
 
 function identifyKeyWords(results: Fuse.FuseResult<SearchItem>[], query: CatalogQuery) {
@@ -297,10 +378,18 @@ function buildLogicalQuery(query: CatalogQuery): Fuse.Expression {
       ]
     })
   }
-  if (query.classificationIds?.length ?? 0 > 0) {
-    const classificationIds = query.classificationIds?.map(cId => ({ classificationId: `="${cId}"` }))
+
+  //exclude any classification ids where there is a sub classification id also in the query. 
+  const filteredClassificationIds = query.classificationIds?.filter(cId => {
+    const subIdFound = Object.keys(classifications[cId].subClassifications || {}).find(sCId => query.subClassificationIds?.includes(sCId))
+    if (subIdFound) return false
+    return true
+  })
+  if (filteredClassificationIds?.length ?? 0 > 0) {
+    const classificationIds = filteredClassificationIds?.map(cId => ({ classificationId: `="${cId}"` }))
     logicalQuery.$and.push({ $or: classificationIds })
   }
+
   if (query.subClassificationIds?.length ?? 0 > 0) {
     const subClassificationIds = query.subClassificationIds?.map(scId => ({ subClassificationId: `="${scId}"` }))
     logicalQuery.$and.push({ $or: subClassificationIds })
@@ -318,6 +407,8 @@ function getField(item: SearchItem, field: string): any {
   const cost = calculateLinkItemTotals(catalogs?.[item.officeId]?.[item.recordId]?.linkedItems ?? [], catalogs!)
   const itemRecord = catalogs?.[item.officeId]?.[item.recordId]
   if (field === 'itemId') return item.itemId
+  if (field === 'officeId') return item.officeId === 'CIVA' ? 'AAAAAA' : item.officeId
+  if (field === 'itemDescription') return item?.itemDescription
   if (field === 'unitPrice') return itemRecord?.unitPrice
   if (field === 'dispensingFee') return itemRecord?.dispensingFee
   if (field === 'classificationName') return itemRecord?.classificationName
@@ -335,5 +426,6 @@ function cleanStringForSearch(token?: string, minSize: number = 1) {
 
 function getItem(itemKey?: ItemKey) {
   if (!itemKey) return undefined
-  return catalogs?.[itemKey.officeId]?.[itemKey.recordId]
+  const item = catalogs?.[itemKey.officeId]?.[itemKey.recordId]
+  return item
 }

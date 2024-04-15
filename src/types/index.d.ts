@@ -21,7 +21,7 @@ interface Creds {
 
 type SortDirection = 'asc' | 'desc'
 interface SortField {
-  field: string
+  field: keyof ItemRecord | ''
   direction: SortDirection | ''
 }
 
@@ -91,10 +91,17 @@ interface CatalogQuery {
   excludeMapped?: boolean
   excludeLinked?: boolean
   excludeInactive?: boolean
+  excludeProcessed?: boolean
   missingOfficeIds?: boolean
   differentItemId?: boolean
   differentClassification?: boolean
   differentItemDescription?: boolean
+  multipleSameOffice?: boolean
+  nameAllCaps?: boolean
+  inactiveLinkedItems?: boolean
+  unsimilarItemDescription?: boolean
+  duplicateMasterIds?: boolean
+  mismatchedItemTypes?: boolean
   classificationNames?: string[]
   subClassificationNames?: string[]
   unitPriceLow?: number
@@ -156,3 +163,12 @@ type LinkedItemUpdate = {
   linkTo: ItemKey
   linkedItems: ItemKey[]
 }
+
+
+
+
+type ItemExportRecord = {
+  masterItemId?: string
+  masterItemDescription?: string
+  updateStatus?: UpdateStatus
+} & ItemRecordCore

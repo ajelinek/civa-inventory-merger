@@ -64,8 +64,7 @@ type PriceRecord = {
   markUpPercentage: number
 }
 
-interface ItemRecord {
-  recordId: RecordId
+interface ItemRecordCore {
   officeId: OfficeId
   classificationId: string
   classificationName: string
@@ -74,6 +73,7 @@ interface ItemRecord {
   itemId: ItemId
   itemDescription: string
   definition: string
+  status?: 'active' | 'inactive'
   itemType: ItemTypeId
   itemTypeDescription: string
   unitOfMeasure: string
@@ -81,11 +81,15 @@ interface ItemRecord {
   dispensingFee: number | null
   minimumPrice: number | null
   markUpPercentage: number | null
+}
+
+interface ItemRecord extends ItemRecordCore {
+  recordId: RecordId
   lastUpdateTimestamp?: Date
+  processed?: Date
   classificationMappedTimestamp?: Date | undefined
   linkedItems?: ItemKey[]
   itemLinkedTo?: ItemKey
-  status?: 'active' | 'inactive'
 
 }
 type ItemRecordWithLinkedItemTotals = ItemRecord & LinkItemTotals | undefined

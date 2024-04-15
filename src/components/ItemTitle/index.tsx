@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { useCatalogItem } from '../../store'
 import { OfficeIdsDisplay } from '../OfficeIdDisplay'
+import { sort } from 'fast-sort'
+import ss from './style.module.css'
 
 export default function ItemTitle({ s, itemKey }: { s: CSSModuleClasses, itemKey: ItemKey }) {
   const item = useCatalogItem(itemKey)
@@ -8,9 +10,10 @@ export default function ItemTitle({ s, itemKey }: { s: CSSModuleClasses, itemKey
 
   return (
     <div className={s.summaryTitle} >
-      <Link className={`${s.title} ${item.status === 'inactive' ? s.inactiveTitle : ''}`}
+      <Link className={`${s.title} ${item.status === 'inactive' ? s.inactiveTitle + ' ' + ss.inactiveItem : ''}`}
         to={`/item/${itemKey.recordId}/${itemKey.officeId}`}>
-        <span className={s.id}>{item.officeId}-{item.itemId}</span> - {item.itemDescription}
+        <span className={s.id}>{item.itemId}: </span>  {item.itemDescription}
+        <span className={s.office}>  ({item.officeId}) </span>
       </Link>
       {item.officeId === 'CIVA' && <><OfficeIdList item={item} /></>}
     </div>
@@ -20,5 +23,6 @@ export default function ItemTitle({ s, itemKey }: { s: CSSModuleClasses, itemKey
 
 function OfficeIdList({ item }: { item: ItemRecord }) {
   const officeIds = item.linkedItems?.map(linkedItem => linkedItem.officeId) || []
-  return <OfficeIdsDisplay officeIds={officeIds} />
+  const display = sort(officeIds).asc()
+  return <OfficeIdsDisplay officeIds={display} />
 }

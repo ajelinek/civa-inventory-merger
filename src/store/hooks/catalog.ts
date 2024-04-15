@@ -6,7 +6,6 @@ import { useStore } from ".."
 import { loadCatalog, updateClassifications } from "../providers/catalog"
 import { processImportFile } from "../providers/import"
 import Searcher from "../workers/searcher.worker?worker"
-import { set } from "firebase/database"
 
 export function useFileImport() {
   return useAsyncCallback(async (file: importFileOptions) => {
@@ -31,18 +30,25 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       officeIds: searchParams.getAll('o'),
       classificationIds: searchParams.getAll('c'),
       classificationNames: searchParams.getAll('c').map(id => classificationsMap?.[id]?.name ?? ''),
-      subClassificationIds: searchParams.getAll('cs'),
+      subClassificationIds: searchParams.getAll('sc'),
       keyWords: searchParams.getAll('kw'),
       searchText: searchParams.get('st') || '',
       excludeMapped: searchParams.get('exm') === 'true',
       excludeLinked: searchParams.get('exl') === 'true',
       excludeInactive: searchParams.get('exi') === 'true',
+      excludeProcessed: searchParams.get('exp') === 'true',
       missingOfficeIds: searchParams.get('mo') === 'true',
       differentItemId: searchParams.get('di') === 'true',
       differentClassification: searchParams.get('dc') === 'true',
       differentItemDescription: searchParams.get('did') === 'true',
-      unitPriceLow: searchParams.get('upvl') ? Number(searchParams.get('upvl')) : undefined,
-      unitPriceHigh: searchParams.get('upvh') ? Number(searchParams.get('upvh')) : undefined,
+      multipleSameOffice: searchParams.get('mso') === 'true',
+      nameAllCaps: searchParams.get('nac') === 'true',
+      inactiveLinkedItems: searchParams.get('il2m') === 'true',
+      unsimilarItemDescription: searchParams.get('uid') === 'true',
+      duplicateMasterIds: searchParams.get('dmi') === 'true',
+      mismatchedItemTypes: searchParams.get('mit') === 'true',
+      unitPriceLow: searchParams.get('upl') ? Number(searchParams.get('upl')) : undefined,
+      unitPriceHigh: searchParams.get('uph') ? Number(searchParams.get('uph')) : undefined,
       markUpPercentageLow: searchParams.get('mpl') ? Number(searchParams.get('mpl')) : undefined,
       markUpPercentageHigh: searchParams.get('mph') ? Number(searchParams.get('mph')) : undefined,
       dispensingFeeLow: searchParams.get('dfl') ? Number(searchParams.get('dfl')) : undefined,
@@ -67,6 +73,7 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       prev.delete('exm')
       prev.delete('exl')
       prev.delete('exi')
+      prev.delete('exp')
       prev.delete('mo')
       prev.delete('mc')
       prev.delete('msc')
@@ -75,9 +82,23 @@ export function useCatalogSearchParamQuery(initialQuery?: CatalogQuery): Catalog
       prev.delete('uph')
       prev.delete('dfl')
       prev.delete('dfh')
+      prev.delete('mso')
+      prev.delete('nac')
+      prev.delete('il2m')
+      prev.delete('uid')
+      prev.delete('dmi')
+      prev.delete('mit')
       prev.delete('mpl')
       prev.delete('mph')
       prev.delete('srt')
+      prev.delete('di')
+      prev.delete('dc')
+      prev.delete('did')
+      prev.delete('upvl')
+      prev.delete('upvh')
+      prev.delete('dfvl')
+      prev.delete('dfvh')
+
 
       if (initialQuery?.officeIds?.length ?? 0 > 0) {
         initialQuery?.officeIds?.forEach(id => prev.append('o', id))
@@ -156,6 +177,8 @@ export function useSearchCatalog(query: CatalogQuery | undefined | null): UseSea
 
   useEffect(() => {
     if (!(result && catalogs)) return
+    // const newPageNumbers = calculatePageNumbers(result?.matchedRecords ?? 0)
+    // if (newPageNumbers.length === pageNumbers.length) return
     setPageNumbers(calculatePageNumbers(result?.matchedRecords ?? 0))
     goToPage(1)
   }, [result])

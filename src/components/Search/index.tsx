@@ -12,6 +12,7 @@ export default function Search({ keyWords }: SearchProps) {
   const excludeMapped = useSearchParam('exm')
   const excludeLinked = useSearchParam('exl')
   const excludeInactive = useSearchParam('exi')
+  const excludeProcessed = useSearchParam('exp')
   const searchTerm = useSearchParam('st')
   const [showAllAutoTerms, setShowAutoTerms] = useState(false)
   const [searchInput, setSearchInput] = useState(searchTerm.value || '')
@@ -113,6 +114,17 @@ export default function Search({ keyWords }: SearchProps) {
               onChange={() => !!excludeLinked.value ? excludeLinked.remove() : excludeLinked.setValue('true')}
             />
             <label htmlFor="excludeLinked" className={s.label}>Exclude linked items</label>
+          </fieldset>
+          <fieldset>
+            <input
+              type="checkbox"
+              role='switch'
+              id="excludeProcessed"
+              className={s.checkbox}
+              checked={!!excludeProcessed.value}
+              onChange={() => !!excludeProcessed.value ? excludeProcessed.remove() : excludeProcessed.setValue('true')}
+            />
+            <label htmlFor="excludeProcessed" className={s.label}>Exclude processed items</label>
           </fieldset>
         </div>
       </div>

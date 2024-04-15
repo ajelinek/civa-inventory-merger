@@ -11,7 +11,7 @@ export function OfficeIdsDisplay({ officeIds, label }: props) {
     <div className={s.unmatched}>
       {label && <label className={s.notFoundOfficeLabel}>{label}</label>}
       {officeIds.map((officeId, index) =>
-        <span key={officeId} className={s.officeList}>
+        <span key={officeId + index} className={s.officeList}>
           <span className={s.officeId}>{officeId}</span>
           {index < officeIds.length - 1 && <RxDividerVertical className={s.divider} />}
         </span>
