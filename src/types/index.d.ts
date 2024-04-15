@@ -160,6 +160,14 @@ type LinkedItemUpdate = {
 }
 
 
+
+
+type ItemExportRecord = {
+  masterItemId: string
+  masterItemDescription: string
+} & ItemRecordCore
+
+
 type ExportRecord = {
   officeId: OfficeId
   status: 'CREATE' | 'UPDATE' | 'DELETE' | 'NO_CHANGE' | 'UNKNOWN'

@@ -88,6 +88,9 @@ type ItemMassUpdate = {
 }
 export function massItemUpdates(items: ItemMassUpdate[]) {
   const updates = items.reduce((acc, item) => {
+    const exists = useStore.getState().catalog?.[item.officeId]?.[item.recordId]
+    if (!exists) return acc
+
     acc[`catalogs/${item.officeId}/${item.recordId}/classificationId`] = item.classificationId
     acc[`catalogs/${item.officeId}/${item.recordId}/classificationName`] = item.classificationName
     acc[`catalogs/${item.officeId}/${item.recordId}/subClassificationId`] = item.subClassificationId || ''

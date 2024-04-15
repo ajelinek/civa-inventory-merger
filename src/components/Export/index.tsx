@@ -1,82 +1,92 @@
-import { unparse } from 'papaparse'
-import { useSearchParams } from 'react-router-dom'
 import { useStore } from '../../store'
 import { utils, writeFile } from 'xlsx'
+import { useOfficeIds } from '../../store/selectors/offices'
 
 export function ExportData() {
-  const [searchParams] = useSearchParams()
-  const officeParams = searchParams.getAll('o')
-  const office = officeParams[0] as OfficeId
-  const disabled = officeParams.length !== 1 || office === 'CIVA'
-
+  // const offices = useOfficeIds(['CIVA'])
+  const offices = ['EC'] as OfficeId[]
 
   function handleExport() {
-    console.log('Exporting', office)
-    const exportData = [] as ExportRecord[]
-    const linkedItemIds = [] as ItemId[]
+    /* We are going to export one csv file for each office which will have every record from the master file and original office file
+    /* We will also export an xlxs file with a a sheet that has all the data, and a sheet per classification/subclassification. 
+    */
 
-    const masterCatalog = useStore.getState().catalog?.['CIVA']
-    if (!masterCatalog) {
-      alert('System Error: Master Catalog not found')
-      return
-    }
-    const officeCatalog = useStore.getState().catalog?.[office]
-    if (!officeCatalog) {
-      alert('System Error: Office Catalog not found')
-      return
-    }
+    const officeCatalog = useStore.getState().catalog
+    const classificationSheets = new Map<string, ExportRecord[]>()
+    const exportByOffice = new Map<OfficeId, ExportRecord[]>()
 
-    Object.values(masterCatalog!).forEach(master => {
-      if (master.status === 'inactive') return
 
-      const record = initRecord(office)
-      record.status = 'CREATE'
-      updateNewRecord(record, master)
+    //IDEXX CSV File Exports
+    offices.forEach(office => {
+      const masterCatalog = officeCatalog!['CIVA']
 
-      const linked = master.linkedItems?.find(link => link.officeId === office)
-      const linkedItem = linked?.recordId && officeCatalog![linked?.recordId]
-      if (linkedItem) {
-        updateOldRecord(record, linkedItem)
-        linkedItemIds.push(linkedItem.itemId)
+      exportByOffice.get(office) || exportByOffice.set(office, [])
 
-        if (isChange(record)) {
-          record.status = 'UPDATE'
-        } else {
-          record.status = 'NO_CHANGE'
+      //Process Master Catalog to see what needs to be added, updated or no change
+      console.log('🚀 ~ Object.values ~ masterCatalog:', Object.values(masterCatalog))
+      Object.values(masterCatalog!).forEach(master => {
+        // console.log('🚀 ~ Object.values ~ master:', master)
+        if (master.status === 'inactive') return
+
+        const record = initRecord(office)
+        record.status = 'CREATE'
+        updateNewRecord(record, master)
+
+        const linked = master.linkedItems?.find(link => link.officeId === office)
+        const linkedItem = linked?.recordId && officeCatalog![office]![linked?.recordId]
+        if (linkedItem) {
+          updateOldRecord(record, linkedItem)
+
+          if (isChange(record)) {
+            record.status = 'UPDATE'
+          } else {
+            record.status = 'NO_CHANGE'
+          }
         }
-      }
 
-      exportData.push(record)
+
+        exportByOffice.get(office)!.push(record)
+      })
+
+      //Process the specific office for any times that are not linked (so not taken care of in the master catalog)
+      Object.values(officeCatalog![office]!).forEach(officeRecord => {
+        if (officeRecord.itemLinkedTo) return
+        const record = initRecord(office)
+        updateOldRecord(record, officeRecord)
+        record.status = officeRecord.status === 'inactive' ? 'DELETE' : 'UNKNOWN'
+        exportByOffice.get(office)!.push(record)
+      })
     })
 
-    Object.values(officeCatalog!).forEach(officeItem => {
-      const record = initRecord(office)
-      record.status = 'DELETE'
-      if (!linkedItemIds.includes(officeItem.itemId)) {
-        updateOldRecord(record, officeItem)
-        exportData.push(record)
-      }
-    })
-    const worksheet = utils.json_to_sheet(exportData)
-    const workbook = utils.book_new()
-    utils.book_append_sheet(workbook, worksheet, "Sheet1")
+    console.log('🚀 ~ Object.values ~ exportByOffice:', exportByOffice)
+
+
+
+    // const worksheet = utils.json_to_sheet(exportData)
+    // const workbook = utils.book_new()
+    // utils.book_append_sheet(workbook, worksheet, "Sheet1")
 
     // This will download the file directly in the browser.
     // If you want to send the file from a server, you'll need a different approach.
-    writeFile(workbook, `${office}-export.xlsx`)
+    // writeFile(workbook, `${office}-export.xlsx`)
 
     //Create CSV Files(s)
-    const csv = utils.sheet_to_csv(worksheet)
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.setAttribute('href', url)
-    a.setAttribute('download', `${office}-export.csv`)
-    a.click()
+
+
+    exportByOffice.forEach((records, office) => {
+      const sheet = utils.json_to_sheet(records)
+      const csv = utils.sheet_to_csv(sheet)
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.setAttribute('href', url)
+      a.setAttribute('download', `${office}-idexx-export.csv`)
+      a.click()
+    })
   }
 
   return (
-    <button disabled={disabled} onClick={handleExport}>Export {!disabled && office}</button>
+    <button onClick={handleExport}>Export</button>
   )
 
 }
