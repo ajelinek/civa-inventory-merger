@@ -1,5 +1,7 @@
-import { FaLink, FaUnlink, FaToggleOn, FaToggleOff, FaPlusCircle } from 'react-icons/fa'
+import { nanoid } from 'nanoid'
 import { useEffect, useState } from 'react'
+import { FaLink, FaPlusCircle, FaToggleOff, FaToggleOn, FaUnlink } from 'react-icons/fa'
+import { AlertMessage } from '../../components/AlertMessage'
 import CatalogActionBar from '../../components/CatalogActionBar'
 import FacetedSearch from '../../components/CatalogFacetSearch'
 import ImportModel from '../../components/ImportModal'
@@ -7,11 +9,8 @@ import Search from '../../components/Search'
 import SearchResults from '../../components/SearchResults'
 import useListSelector from '../../hooks/useListSelector'
 import { useActivateItems, useCatalogSearchParamQuery, useInactivateItems, useLinkItems, useSearchCatalog, useStore, useUnLinkItems, useUpsertItem } from '../../store'
-import s from './catalogViewer.module.css'
-import { AlertMessage } from '../../components/AlertMessage'
 import { getItem } from '../../store/selectors/item'
-import { nanoid } from 'nanoid'
-import { set } from 'firebase/database'
+import s from './catalogViewer.module.css'
 
 export default function CatalogViewer() {
   const query = useCatalogSearchParamQuery()
