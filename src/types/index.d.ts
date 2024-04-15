@@ -163,24 +163,7 @@ type LinkedItemUpdate = {
 
 
 type ItemExportRecord = {
-  masterItemId: string
-  masterItemDescription: string
+  masterItemId?: string
+  masterItemDescription?: string
+  updateStatus?: UpdateStatus
 } & ItemRecordCore
-
-
-type ExportRecord = {
-  officeId: OfficeId
-  status: 'CREATE' | 'UPDATE' | 'DELETE' | 'NO_CHANGE' | 'UNKNOWN'
-  oldClassificationId: ClassificationId
-  newClassificationId: ClassificationId
-  oldClassificationName: string
-  newClassificationName: string
-  oldSubClassificationId: ClassificationId
-  newSubClassificationId: ClassificationId
-  oldSubClassificationName: string
-  newSubClassificationName: string
-  oldItemId: ItemId
-  newItemId: ItemId
-  oldItemDescription: string
-  newItemDescription: string
-}

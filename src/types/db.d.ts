@@ -73,6 +73,7 @@ interface ItemRecordCore {
   itemId: ItemId
   itemDescription: string
   definition: string
+  status?: 'active' | 'inactive'
   itemType: ItemTypeId
   itemTypeDescription: string
   unitOfMeasure: string
@@ -89,7 +90,6 @@ interface ItemRecord extends ItemRecordCore {
   classificationMappedTimestamp?: Date | undefined
   linkedItems?: ItemKey[]
   itemLinkedTo?: ItemKey
-  status?: 'active' | 'inactive'
 
 }
 type ItemRecordWithLinkedItemTotals = ItemRecord & LinkItemTotals | undefined
