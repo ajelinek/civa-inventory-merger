@@ -28,18 +28,29 @@
   margin-top: -3rem;
 }
 
-.linkSubmit {
-  width: 10rem;
+.quickActions {
   position: fixed;
   bottom: 2rem;
   right: 2.5rem;
   z-index: 101;
 }
 
+.linkSubmit,
+.unLinkSubmit,
+.inactivateSubmit,
+.activateSubmit,
+.createAndLinkSubmit {
+  width: 8.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
 .errorMessageContainer {
   position: fixed;
   display: block;
   bottom: 2.5rem;
-  right: 2.5rem;
+  right: 15.5rem;
   z-index: 100;
 }

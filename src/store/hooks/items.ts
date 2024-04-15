@@ -1,5 +1,5 @@
 import { useAsyncCallback } from "react-async-hook"
-import { inactiveItems, linkItems, markItemProcessed, massItemUpdates, unlinkItems, upsertItem } from "../providers/items"
+import { activeItems, inactiveItems, linkItems, markItemProcessed, massItemUpdates, unlinkItems, upsertItem } from "../providers/items"
 
 export function useUpsertItem() {
   return useAsyncCallback(upsertItem)
@@ -15,6 +15,10 @@ export function useUnLinkItems() {
 
 export function useInactivateItems() {
   return useAsyncCallback(inactiveItems)
+}
+
+export function useActivateItems() {
+  return useAsyncCallback(activeItems)
 }
 
 export function useMarkedProcessed() {

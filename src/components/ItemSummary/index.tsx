@@ -5,11 +5,10 @@ import { RxDividerVertical } from 'react-icons/rx'
 import { Link } from 'react-router-dom'
 import { useCatalogItem, useMarkedProcessed, useStore } from '../../store'
 import { calculateLinkItemTotals } from '../../store/selectors/item'
-import ItemSummaryCharts from '../ItemSummaryCharts'
 import ItemTitle from '../ItemTitle'
+import LinkedItemsList from '../LinkedItemsList'
 import Money from '../Money'
 import s from './itemSummary.module.css'
-import LinkedItemsList from '../LinkedItemsList'
 
 type props = {
   itemKey: ItemKey

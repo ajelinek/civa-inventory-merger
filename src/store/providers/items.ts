@@ -69,6 +69,15 @@ export function inactiveItems(itemKeys: ItemKey[]) {
   return update(ref(rdb), updates)
 }
 
+export function activeItems(itemKeys: ItemKey[]) {
+  const updates = itemKeys.reduce((acc, itemKey) => {
+    acc[`catalogs/${itemKey.officeId}/${itemKey.recordId}/status`] = 'active'
+    return acc
+  }, {} as Record<string, any>)
+
+  return update(ref(rdb), updates)
+}
+
 export function removeItemKeyFromLinkedItems(linkedItems: ItemKey[], officeId: OfficeId[]) {
   return linkedItems.filter(itemKey => !officeId.includes(itemKey.officeId))
 }
