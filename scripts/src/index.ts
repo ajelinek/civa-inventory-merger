@@ -3,10 +3,6 @@ import { nanoid } from 'nanoid'
 import * as xlsx from 'xlsx'
 import * as fs from 'fs'
 
-// TODOs
-// [ ] - Loop thru all sheets and create a single output file
-// [ ] - create an mapping import file which contains the item to master and master to linked items
-// [ ] - create a master file which contains only the master items.
 
 /** Const Objects */
 const OfficeMap = new Map<string, OfficeId>([['C', 'CIVA'], ['E', 'EC'], ['B', 'BH'], ['L', 'LS'], ['M', 'MC'], ['W', 'WV'], ['V', 'VC']])
@@ -36,6 +32,7 @@ const header = [
   'idChanged',
   'descriptionChanged',
   'descriptionDifference',
+  'duplicateOffice',
   'allCaps',
   'linkedItems',
   'itemLinkedTo',
@@ -184,12 +181,14 @@ function processWorksheetData(data: ItemRow[], sheetName: string) {
         console.log(e)
         throw new RowError('Error in string similarity', rowNum, sheetName, record)
       }
+
     }
     if (groupType === 'inactivate') {
       itemRecord.status = 'inactive'
     }
     pushData(itemRecord)
   }
+
 
   function pushData(itemRecord: ItemRecord) {
     allData.push(itemRecord)
@@ -241,7 +240,8 @@ function updateMasterRecord(masterRecord: ItemRecord, allData: ItemRecord[]) {
   let bestRecord = allDataCopy.reverse().find(d => d.itemLinkedTo?.recordId === masterRecord.recordId && d.officeId === 'EC')
   if (!bestRecord) bestRecord = allDataCopy.find(d => d.itemLinkedTo?.recordId === masterRecord.recordId && d.officeId === 'BH')
   if (!bestRecord) bestRecord = allDataCopy.find(d => d.itemLinkedTo?.recordId === masterRecord.recordId)
-  return ({
+
+  const record = {
     ...bestRecord,
     linkedItems: masterRecord.linkedItems,
     itemLinkedTo: undefined,
@@ -255,7 +255,22 @@ function updateMasterRecord(masterRecord: ItemRecord, allData: ItemRecord[]) {
     itemId: masterRecord.itemId,
     itemDescription: masterRecord.itemDescription,
     allCaps: masterRecord.itemDescription === masterRecord.itemDescription.toUpperCase()
-  } as ItemRecord)
+  } as ItemRecord
+  checkDuplicateOffice(record)
+  return record
+}
+
+function checkDuplicateOffice(itemRecord: ItemRecord) {
+  //Find any time the linkedItems has the same office listed more than once. 
+  const officeCount = itemRecord?.linkedItems?.reduce((acc, d) => {
+    acc[d.officeId] = acc[d.officeId] ? acc[d.officeId] + 1 : 1
+    return acc
+  }, {} as Record<string, number>)
+  if (officeCount) {
+    itemRecord.duplicateOffice = !!Object.keys(officeCount).find(k => officeCount[k] > 1)
+  } else {
+    itemRecord.duplicateOffice = false
+  }
 }
 
 const itemRecordId = (officeId: string, itemId: string) => `${officeId}-${itemId.replace(/[.#$\/\[\]]/g, '_')}`
@@ -296,6 +311,7 @@ type ItemRecord = {
   allCaps?: boolean
   idChanged?: boolean
   descriptionChanged?: boolean
+  duplicateOffice?: boolean
   descriptionDifference?: number
 }
 

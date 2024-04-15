@@ -4,10 +4,6 @@ const string_similarity_js_1 = require("string-similarity-js");
 const nanoid_1 = require("nanoid");
 const xlsx = require("xlsx");
 const fs = require("fs");
-// TODOs
-// [ ] - Loop thru all sheets and create a single output file
-// [ ] - create an mapping import file which contains the item to master and master to linked items
-// [ ] - create a master file which contains only the master items.
 /** Const Objects */
 const OfficeMap = new Map([['C', 'CIVA'], ['E', 'EC'], ['B', 'BH'], ['L', 'LS'], ['M', 'MC'], ['W', 'WV'], ['V', 'VC']]);
 const officeData = new Map();
@@ -36,6 +32,7 @@ const header = [
     'idChanged',
     'descriptionChanged',
     'descriptionDifference',
+    'duplicateOffice',
     'allCaps',
     'linkedItems',
     'itemLinkedTo',
@@ -216,7 +213,23 @@ function updateMasterRecord(masterRecord, allData) {
         bestRecord = allDataCopy.find(d => { var _a; return ((_a = d.itemLinkedTo) === null || _a === void 0 ? void 0 : _a.recordId) === masterRecord.recordId && d.officeId === 'BH'; });
     if (!bestRecord)
         bestRecord = allDataCopy.find(d => { var _a; return ((_a = d.itemLinkedTo) === null || _a === void 0 ? void 0 : _a.recordId) === masterRecord.recordId; });
-    return Object.assign(Object.assign({}, bestRecord), { linkedItems: masterRecord.linkedItems, itemLinkedTo: undefined, status: 'active', recordId: masterRecord.recordId, officeId: masterRecord.officeId, classificationId: masterRecord.classificationId, classificationName: masterRecord.classificationName, subClassificationId: masterRecord.subClassificationId, subClassificationName: masterRecord.subClassificationName, itemId: masterRecord.itemId, itemDescription: masterRecord.itemDescription, allCaps: masterRecord.itemDescription === masterRecord.itemDescription.toUpperCase() });
+    const record = Object.assign(Object.assign({}, bestRecord), { linkedItems: masterRecord.linkedItems, itemLinkedTo: undefined, status: 'active', recordId: masterRecord.recordId, officeId: masterRecord.officeId, classificationId: masterRecord.classificationId, classificationName: masterRecord.classificationName, subClassificationId: masterRecord.subClassificationId, subClassificationName: masterRecord.subClassificationName, itemId: masterRecord.itemId, itemDescription: masterRecord.itemDescription, allCaps: masterRecord.itemDescription === masterRecord.itemDescription.toUpperCase() });
+    checkDuplicateOffice(record);
+    return record;
+}
+function checkDuplicateOffice(itemRecord) {
+    var _a;
+    //Find any time the linkedItems has the same office listed more than once. 
+    const officeCount = (_a = itemRecord === null || itemRecord === void 0 ? void 0 : itemRecord.linkedItems) === null || _a === void 0 ? void 0 : _a.reduce((acc, d) => {
+        acc[d.officeId] = acc[d.officeId] ? acc[d.officeId] + 1 : 1;
+        return acc;
+    }, {});
+    if (officeCount) {
+        itemRecord.duplicateOffice = !!Object.keys(officeCount).find(k => officeCount[k] > 1);
+    }
+    else {
+        itemRecord.duplicateOffice = false;
+    }
 }
 const itemRecordId = (officeId, itemId) => `${officeId}-${itemId.replace(/[.#$\/\[\]]/g, '_')}`;
 const fileName = process.argv[2];
