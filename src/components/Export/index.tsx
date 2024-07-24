@@ -71,17 +71,14 @@ export function ExportData() {
     })
     writeFile(workbook, `civa-inventory-data-export.xlsx`)
 
+    const allOffices: Partial<ItemExportRecord>[] = []
     //Create CSV Files(s)
+    //@ts-ignore
     exportByOffice.forEach((records, office) => {
-      const sheet = utils.json_to_sheet(records)
-      const csv = utils.sheet_to_csv(sheet)
-      const blob = new Blob([csv], { type: 'text/csv' })
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.setAttribute('href', url)
-      a.setAttribute('download', `${office}-idexx-export.csv`)
-      a.click()
+      allOffices.push(...records)
+      // downloadCSV(records, office)
     })
+    downloadCSV(allOffices, 'ALL')
 
 
     type UpdateStatus = 'CREATE' | 'UPDATE' | 'NO_CHANGE' | 'DELETE' | 'UNKNOWN'
@@ -129,6 +126,17 @@ export function ExportData() {
     <button onClick={handleExport}>Export</button>
   )
 
+
+  function downloadCSV(records: Partial<ItemExportRecord>[], office: string) {
+    const sheet = utils.json_to_sheet(records)
+    const csv = utils.sheet_to_csv(sheet)
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.setAttribute('href', url)
+    a.setAttribute('download', `${office}-idexx-export.csv`)
+    a.click()
+  }
 }
 
 

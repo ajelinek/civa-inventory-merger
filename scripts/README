@@ -1,0 +1,10 @@
+The script will run Wendy's Excel file and produce a new master file with everything linked correctly.
+The masterData.json can be manually uploaded to the production data and override everything. Same is true for the Wenona office
+The massUpdates.json can be uploaded the app/admin page where all of the names and classifications will be updated correctly for each office.
+Once everything is uploaded the the webapp, and export can be used to create the needed files in bigquery for reports.
+
+## Combining CSV files
+
+1. `sudo chmod -R 777 /mnt/c/Users/ajjel/Downloads` - to change permissions if needed.
+2. `npm run dev:start`
+3. `node merge_csv.js /mnt/c/Users/ajjel/Downloads/<Folder_NAME>`
